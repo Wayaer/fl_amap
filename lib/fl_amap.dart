@@ -56,7 +56,6 @@ Future<bool?> get disposeWithAMap => _channel.invokeMethod('dispose');
 Future<bool?> startLocationWithAMap(
     {EventHandlerAMapLocation? onLocationChange}) async {
   final bool? state = await _channel.invokeMethod<bool>('startLocation');
-  print(state);
   _channel.setMethodCallHandler((MethodCall call) async {
     switch (call.method) {
       case 'updateLocation':

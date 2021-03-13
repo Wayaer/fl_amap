@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:fl_amap/fl_amap.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -31,12 +33,22 @@ class _HomeState extends State<Home> {
   }
 
   Future<bool> get getPermissions async {
-    if (!await requestPermissions(Permission.location, '获取定位权限') ||
-        !await requestPermissions(Permission.phone, '获取定位权限')) {
-      show('未获取到定位权限');
-      return false;
+    if (Platform.isIOS) {
+      if (!await requestPermissions(Permission.locationWhenInUse, '获取定位权限') ||
+          !await requestPermissions(Permission.locationWhenInUse, '获取定位权限')) {
+        show('未获取到定位权限');
+        return false;
+      }
+      return true;
+    } else if (Platform.isAndroid) {
+      if (!await requestPermissions(Permission.location, '获取定位权限') ||
+          !await requestPermissions(Permission.phone, '获取定位权限')) {
+        show('未获取到定位权限');
+        return false;
+      }
+      return true;
     }
-    return true;
+    return false;
   }
 
   Future<void> get getLocation async {
@@ -125,7 +137,7 @@ class _HomeState extends State<Home> {
       i += 1;
       text.value = '位置更新$i次';
     });
-    show((data == null || !data) ? '开启成功' : '开启失败');
+    show((data == null || !data) ? '开启失败' : '开启成功');
   }
 
   void show(String str) {
