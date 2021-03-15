@@ -12,14 +12,32 @@ enum AMapLocationProtocol { http, https }
 enum GeoLanguage { none, zh, en }
 
 ///  android 定位模式
-enum AMapLocationMode { BatterySaving, DeviceSensors, HeightAccuracy }
+enum AMapLocationMode {
+  /// 低功耗
+  BatterySaving,
+
+  /// 仅使用设备
+  DeviceSensors,
+
+  /// 高精度
+  HeightAccuracy
+}
 
 ///  ios定位精度
 enum CLLocationAccuracy {
+  /// 最好的,米级
   kCLLocationAccuracyBest,
+
+  /// 十米
   kCLLocationAccuracyNearestTenMeters,
+
+  /// 百米
   kCLLocationAccuracyHundredMeters,
+
+  /// 一公里
   kCLLocationAccuracyKilometer,
+
+  /// 三公里
   kCLLocationAccuracyThreeKilometers
 }
 
@@ -41,8 +59,8 @@ Future<bool?> initWithAMap(AMapLocationOption option) =>
     _channel.invokeMethod('init', option.toMap());
 
 ///  直接获取定位
-///  @param needsAddress 是否需要详细地址信息
-Future<AMapLocation?> getLocationWithAMap(bool needsAddress) async {
+///  @param needsAddress 是否需要详细地址信息 默认false
+Future<AMapLocation?> getLocationWithAMap([bool needsAddress = false]) async {
   final Map<dynamic, dynamic>? location =
       await _channel.invokeMethod('getLocation', needsAddress);
   if (location == null) return null;
@@ -170,8 +188,8 @@ class AMapLocation {
   final String? poiName;
   final String? aoiName;
 
-  ///    这个参数很重要，在anroid和ios下的判断标准不一样
-  ///      android下: 0  定位成功。
+  ///    这个参数很重要，在android和ios下的判断标准不一样
+  ///    android下: 0  定位成功。
   ///       1  一些重要参数为空，如context；请对定位传递的参数进行非空判断。
   ///       2  定位失败，由于仅扫描到单个wifi，且没有基站信息。
   ///       3  获取到的请求参数为空，可能获取过程中出现异常。
@@ -181,15 +199,15 @@ class AMapLocation {
   ///       7  KEY建权失败，请仔细检查key绑定的sha1值与apk签名sha1值是否对应。
   ///       8  Android exception通用错误，请将errordetail信息通过API@autonavi.com反馈给我们。
   ///       9  定位初始化时出现异常，请重新启动定位。
-  ///       10     定位客户端启动失败，请检查AndroidManifest.xml文件是否配置了APSService定位服务
-  ///       11     定位时的基站信息错误，请检查是否安装SIM卡，设备很有可能连入了伪基站网络。
-  ///       12     缺少定位权限，请在设备的设置中开启app的定位权限。
+  ///       10 定位客户端启动失败，请检查AndroidManifest.xml文件是否配置了APSService定位服务
+  ///       11 定位时的基站信息错误，请检查是否安装SIM卡，设备很有可能连入了伪基站网络。
+  ///       12 缺少定位权限，请在设备的设置中开启app的定位权限。
   ///
   ///    ios下:
   ///    typedef NS_ENUM(NSInteger, AMapLocationErrorCode)
   ///       {
   ///       AMapLocationErrorUnknown = 1,               /// <未知错误
-  ///      AMapLocationErrorLocateFailed = 2,          /// <定位错误
+  ///       AMapLocationErrorLocateFailed = 2,          /// <定位错误
   ///       AMapLocationErrorReGeocodeFailed  = 3,      /// <逆地理错误
   ///       AMapLocationErrorTimeOut = 4,               /// <超时
   ///       AMapLocationErrorCanceled = 5,              /// <取消
@@ -207,10 +225,10 @@ class AMapLocation {
   final String? description;
 
   /// 这个字段用来判断有没有定位成功，在ios下，有可能获取到了经纬度，但是详细地址没有获取到，
-  ///  这个情况下，值也为true
+  /// 这个情况下，值也为true
   final bool? success;
 
-  ///  以下属性为anroid特有
+  ///  以下属性为android特有
   final String? provider;
 
   final int? locationType;
@@ -229,36 +247,47 @@ class AMapLocationOption {
   /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// ///
 
   AMapLocationOption({
-    this.locationMode = AMapLocationMode.HeightAccuracy,
+    this.locationMode = AMapLocationMode.BatterySaving,
     this.gpsFirst = false,
-    this.httpTimeOut = 10000, //30有点长，特殊情况才需要这么长，改成10
+
+    /// 30有点长，特殊情况才需要这么长，改成5
+    this.httpTimeOut = 5000,
     this.interval = 2000,
     this.needsAddress = true,
-    this.onceLocation = false,
-    this.onceLocationLatest = false,
+
+    /// 默认为单次定位
+    this.onceLocation = true,
+    this.onceLocationLatest = true,
     this.locationProtocol = AMapLocationProtocol.http,
     this.sensorEnable = false,
     this.wifiScan = true,
     this.locationCacheEnable = true,
     this.allowsBackgroundLocationUpdates = false,
+
+    /// 精度越高，时间越久
     this.desiredAccuracy =
-        CLLocationAccuracy.kCLLocationAccuracyBest, //精度越高，时间越久
+        CLLocationAccuracy.kCLLocationAccuracyNearestTenMeters,
     this.locatingWithReGeocode = false,
-    this.locationTimeout = 5, //注意这里的单位为秒
+
+    /// 注意这里的单位为秒
+    this.locationTimeout = 2,
     this.pausesLocationUpdatesAutomatically = false,
-    this.reGeocodeTimeout = 5, //注意ios的时间单位是秒
+
+    /// 注意ios的时间单位是秒
+    this.reGeocodeTimeout = 2,
     this.detectRiskOfFakeLocation = false,
     this.distanceFilter = -1.0,
     this.geoLanguage = GeoLanguage.none,
   });
 
   /// 可选，设置定位模式，可选的模式有高精度、仅设备、仅网络。默认为高精度模式
+  /// 默认 [AMapLocationMode.BatterySaving]
   final AMapLocationMode locationMode;
 
   /// 可选，设置是否gps优先，只在高精度模式下有效。默认关闭
   final bool gpsFirst;
 
-  /// 可选，设置网络请求超时时间(ms)。默认为30秒。在仅设备模式下无效
+  /// 可选，设置网络请求超时时间(ms)。默认为5秒。在仅设备模式下无效
   final int httpTimeOut;
 
   /// 可选，设置定位间隔(ms)。默认为2秒
@@ -267,10 +296,10 @@ class AMapLocationOption {
   /// 可选，设置是否返回逆地理地址信息。默认是true
   final bool needsAddress;
 
-  /// 可选，设置是否单次定位。默认是false
+  /// 可选，设置是否单次定位。默认是 true
   final bool onceLocation;
 
-  /// 可选，设置是否等待wifi刷新，默认为false.如果设置为true,会自动变为单次定位，持续定位时不要使用
+  /// 可选，设置是否等待wifi刷新，默认为true.如果设置为true,会自动变为单次定位，持续定位时不要使用
   final bool onceLocationLatest;
 
   /// 可选， 设置网络请求的协议。可选HTTP或者HTTPS。默认为HTTP
@@ -288,33 +317,34 @@ class AMapLocationOption {
   /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// ///
   /// 以下属性为ios特有
   /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// ///
-  /// 设定期望的定位精度。单位米，默认为 kCLLocationAccuracyBest。
+  /// 设定期望的定位精度。单位米，默认为 [CLLocationAccuracy.kCLLocationAccuracyNearestTenMeters]。
   /// 定位服务会尽可能去获取满足desiredAccuracy的定位结果，但不保证一定会得到满足期望的结果。
-  /// \n注意：设置为kCLLocationAccuracyBest或kCLLocationAccuracyBestForNavigation时，
+  /// 注意：设置为kCLLocationAccuracyBest或kCLLocationAccuracyBestForNavigation时，
   /// 单次定位会在达到locationTimeout设定的时间后，将时间内获取到的最高精度的定位结果返回。
+  ///
   final CLLocationAccuracy desiredAccuracy;
 
   /// 指定定位是否会被系统自动暂停。默认为NO。
   final bool pausesLocationUpdatesAutomatically;
 
   /// 是否允许后台定位。默认为NO。只在iOS 9.0及之后起作用。设置为YES的时候必须保证
-  ///  Background Modes 中的 Location updates 处于选中状态，否则会抛出异常。
-  ///  由于iOS系统限制，需要在定位未开始之前或定位停止之后，修改该属性的值才会有效果。
+  /// Background Modes 中的 Location updates 处于选中状态，否则会抛出异常。
+  /// 由于iOS系统限制，需要在定位未开始之前或定位停止之后，修改该属性的值才会有效果。
   final bool allowsBackgroundLocationUpdates;
 
-  /// 指定单次定位超时时间,默认为10s。最小值是2s。
+  /// 指定单次定位超时时间,默认为2s。最小值是2s。
   ///  注意单次定位请求前设置。
   ///  注意: 单次定位超时时间从确定了定位权限(非kCLAuthorizationStatusNotDetermined状态)后开始计算。
   final int locationTimeout;
 
-  /// 指定单次定位逆地理超时时间,默认为5s。最小值是2s。注意单次定位请求前设置。
+  /// 指定单次定位逆地理超时时间,默认为2s。最小值是2s。注意单次定位请求前设置。
   final int reGeocodeTimeout;
 
   /// 连续定位是否返回逆地理信息，默认NO。
   final bool locatingWithReGeocode;
 
   /// 检测是否存在虚拟定位风险，默认为NO，不检测。
-  ///  \n注意:设置为YES时，单次定位通过 AMapLocatingCompletionBlock 的
+  ///  注意:设置为YES时，单次定位通过 AMapLocatingCompletionBlock 的
   ///  error给出虚拟定位风险提示；
   ///  连续定位通过 amapLocationManager:didFailWithError: 方法的
   ///  error给出虚拟定位风险提示。
