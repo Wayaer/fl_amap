@@ -252,37 +252,37 @@ class AMapLocationOption {
     this.geoLanguage = GeoLanguage.none,
   });
 
-  //可选，设置定位模式，可选的模式有高精度、仅设备、仅网络。默认为高精度模式
+  /// 可选，设置定位模式，可选的模式有高精度、仅设备、仅网络。默认为高精度模式
   final AMapLocationMode locationMode;
 
-  //可选，设置是否gps优先，只在高精度模式下有效。默认关闭
+  /// 可选，设置是否gps优先，只在高精度模式下有效。默认关闭
   final bool gpsFirst;
 
-  //可选，设置网络请求超时时间(ms)。默认为30秒。在仅设备模式下无效
+  /// 可选，设置网络请求超时时间(ms)。默认为30秒。在仅设备模式下无效
   final int httpTimeOut;
 
-  //可选，设置定位间隔(ms)。默认为2秒
+  /// 可选，设置定位间隔(ms)。默认为2秒
   final int interval;
 
-  //可选，设置是否返回逆地理地址信息。默认是true
+  /// 可选，设置是否返回逆地理地址信息。默认是true
   final bool needsAddress;
 
-  //可选，设置是否单次定位。默认是false
+  /// 可选，设置是否单次定位。默认是false
   final bool onceLocation;
 
-  //可选，设置是否等待wifi刷新，默认为false.如果设置为true,会自动变为单次定位，持续定位时不要使用
+  /// 可选，设置是否等待wifi刷新，默认为false.如果设置为true,会自动变为单次定位，持续定位时不要使用
   final bool onceLocationLatest;
 
-  //可选， 设置网络请求的协议。可选HTTP或者HTTPS。默认为HTTP
+  /// 可选， 设置网络请求的协议。可选HTTP或者HTTPS。默认为HTTP
   final AMapLocationProtocol locationProtocol;
 
-  //可选，设置是否使用传感器。默认是false
+  /// 可选，设置是否使用传感器。默认是false
   final bool sensorEnable;
 
-  //可选，设置是否开启wifi扫描。默认为true，如果设置为false会同时停止主动刷新，停止以后完全依赖于系统刷新，定位位置可能存在误差
+  /// 可选，设置是否开启wifi扫描。默认为true，如果设置为false会同时停止主动刷新，停止以后完全依赖于系统刷新，定位位置可能存在误差
   final bool wifiScan;
 
-  //可选，设置是否使用缓存定位，默认为true
+  /// 可选，设置是否使用缓存定位，默认为true
   final bool locationCacheEnable;
 
   /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// ///
