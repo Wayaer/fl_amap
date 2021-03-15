@@ -1,3 +1,3 @@
-## [0.0.2]
-  * 支持单次定位 
-  * 支持定位监听
+## [0.0.3]
+  * Support single location
+  * Support location monitoring
