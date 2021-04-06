@@ -44,7 +44,7 @@ enum CLLocationAccuracy {
 const MethodChannel _channel = MethodChannel('fl_amap');
 
 ///  设置ios&android的key
-Future<bool?> setKeyWithAMap(
+Future<bool?> setAMapKey(
     {required String iosKey, required String androidKey}) async {
   if (Platform.isAndroid)
     return await _channel
@@ -55,23 +55,23 @@ Future<bool?> setKeyWithAMap(
 
 ///  初始化定位
 ///  @param options 启动系统所需选项
-Future<bool?> initWithAMap(AMapLocationOption option) =>
+Future<bool?> initAMap(AMapLocationOption option) =>
     _channel.invokeMethod('init', option.toMap());
 
 ///  直接获取定位
 ///  @param needsAddress 是否需要详细地址信息 默认false
-Future<AMapLocation?> getLocationWithAMap([bool needsAddress = false]) async {
+Future<AMapLocation?> getAMapLocation([bool needsAddress = false]) async {
   final Map<dynamic, dynamic>? location =
       await _channel.invokeMethod('getLocation', needsAddress);
   if (location == null) return null;
   return AMapLocation.fromMap(location);
 }
 
-/// 关闭定位
-Future<bool?> get disposeWithAMap => _channel.invokeMethod('dispose');
+/// 销毁定位参数
+Future<bool?> disposeAMap() => _channel.invokeMethod('dispose');
 
 /// 启动监听位置改变
-Future<bool?> startLocationWithAMap(
+Future<bool?> startAMapLocationChange(
     {EventHandlerAMapLocation? onLocationChange}) async {
   final bool? state = await _channel.invokeMethod<bool>('startLocation');
   _channel.setMethodCallHandler((MethodCall call) async {
@@ -88,7 +88,7 @@ Future<bool?> startLocationWithAMap(
 }
 
 ///  停止监听位置改变
-Future<bool?> get stopLocationWithAMap => _channel.invokeMethod('stopLocation');
+Future<bool?> stopAMapLocation() => _channel.invokeMethod('stopLocation');
 
 class AMapLocationQualityReport {
   AMapLocationQualityReport(

@@ -7,7 +7,7 @@ import 'package:permission_handler/permission_handler.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final bool? key = await setKeyWithAMap(
+  final bool? key = await setAMapKey(
       iosKey: 'e0e98395277890e48caa0c4bed423ead',
       androidKey: '77418e726d0eefc0ac79a8619b5f4d97');
   if (key != null && key) print('高德地图ApiKey设置成功');
@@ -58,14 +58,14 @@ class _HomeState extends State<Home> {
       return;
     }
     if (!await getPermissions) return;
-    locationState.value = await getLocationWithAMap(true);
+    locationState.value = await getAMapLocation(true);
   }
 
   Future<void> get init async {
     if (!await getPermissions) return;
 
     /// 初始化AMap
-    final bool? data = await initWithAMap(AMapLocationOption());
+    final bool? data = await initAMap(AMapLocationOption());
     if (data != null && data) {
       isInit = true;
       show('初始化成功');
@@ -91,20 +91,19 @@ class _HomeState extends State<Home> {
             const SizedBox(height: 10),
             ElevatedButton(
                 onPressed: () {
-                  /// dispose 高德地图
-                  disposeWithAMap;
+                  disposeAMap();
                   locationState.value = null;
                   isInit = false;
                   i = 0;
                   show('未初始化');
                 },
-                child: const Text('dispose')),
+                child: const Text('disposeAMap')),
             const SizedBox(height: 10),
             ElevatedButton(
                 onPressed: () => getLocation, child: const Text('直接获取定位')),
             const SizedBox(height: 10),
             ElevatedButton(
-                onPressed: () => startLocationState(),
+                onPressed: startLocationState,
                 child: const Text('开启监听定位')),
             const SizedBox(height: 10),
             ElevatedButton(
@@ -116,7 +115,7 @@ class _HomeState extends State<Home> {
                   text.value = '定位监听关闭';
                   locationState.value = null;
                   i = 0;
-                  stopLocationWithAMap;
+                  stopAMapLocation();
                 },
                 child: const Text('关闭监听定位')),
             const SizedBox(height: 30),
@@ -135,8 +134,8 @@ class _HomeState extends State<Home> {
       return;
     }
     if (!await getPermissions) return;
-    final bool? data =
-        await startLocationWithAMap(onLocationChange: (AMapLocation location) {
+    final bool? data = await startAMapLocationChange(
+        onLocationChange: (AMapLocation location) {
       locationState.value = location;
       i += 1;
       text.value = '位置更新$i次';

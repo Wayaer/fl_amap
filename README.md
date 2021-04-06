@@ -2,7 +2,6 @@
 
 目前实现获取定位和监听定位功能。
 
-
 1、申请一个key
 http://lbs.amap.com/api/ios-sdk/guide/create-project/get-key
 
@@ -24,10 +23,13 @@ http://lbs.amap.com/api/ios-sdk/guide/create-project/get-key
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final bool key = await setKeyWithAMap(
-      iosKey: 'e0e98395277890e48caa0c4bed423ead',
-      androidKey: '77418e726d0eefc0ac79a8619b5f4d97');
+
+  final bool key = await setAMapKey(
+      iosKey: 'ios key',
+      androidKey: 'android key');
+
   if (key != null && key) print('高德地图ApiKey设置成功');
+
   runApp(MaterialApp(
       debugShowCheckedModeBanner: false, title: 'FlAMap', home: Home()));
 }
@@ -37,12 +39,12 @@ Future<void> main() async {
 2.初始化定位参数
 ```dart
 
-  Future<void> get init async {
+  Future<void> init() async {
     /// 获取权限
     if (getPermissions) return;
 
     /// 初始化AMap
-    final bool data = await initWithAMap(AMapLocationOption());
+    final bool data = await initAMap(AMapLocationOption());
     if (data != null && data) {
       show('初始化成功');
     }
@@ -53,10 +55,10 @@ Future<void> main() async {
 
 3.单次获取定位
 ```dart
-  Future<void> get getLocation async {
+  Future<void> getLocation() async {
      /// 务必先初始化 并获取权限
     if (getPermissions) return;
-    AMapLocation location =  await getLocationWithAMap(true);
+    AMapLocation location =  await getAMapLocation(true);
 
   }
 
@@ -69,7 +71,7 @@ Future<void> main() async {
      /// 务必先初始化 并获取权限
     if (getPermissions) return;
     final bool data =
-        await startLocationWithAMap(onLocationChange: (AMapLocation location) {
+        await startAMapLocationChange(onLocationChange: (AMapLocation location) {
       locationState.value = location;
       text.value = '位置更新$i次';
     });
@@ -80,7 +82,12 @@ Future<void> main() async {
 5.关闭定位变化监听
 ```dart
 
-   stopLocationWithAMap
+  void stop(){
+
+     stopAMapLocation();
+
+  }
+
 
 ```
 
@@ -88,10 +95,9 @@ Future<void> main() async {
 
 ```dart
 
-  @override
   void dispose() {
     super.dispose();
-    disposeWithAMap;
+    disposeAMap();
   }
    
 ```

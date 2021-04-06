@@ -1,7 +1,7 @@
 name: fl_amap
 description: AMap location plugin for flutter, supports single positioning
   and continuous positioning
-version: 0.0.6
+version: 0.1.0
 repository: https://github.com/Wayaer/fl_amap.git
 
 environment:
