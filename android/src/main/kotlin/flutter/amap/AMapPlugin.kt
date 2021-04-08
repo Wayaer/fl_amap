@@ -31,6 +31,7 @@ class AMapPlugin : FlutterPlugin {
                         AMapLocationClient.setApiKey(key)
                         result.success(true)
                     }
+                    result.success(false)
                 }
                 "init" -> {
                     //初始化client
