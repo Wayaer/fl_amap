@@ -194,6 +194,5 @@ class AMapPlugin : FlutterPlugin {
         return map
     }
 
-
 }
 

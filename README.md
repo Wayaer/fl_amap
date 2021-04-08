@@ -8,12 +8,12 @@ http://lbs.amap.com/api/ios-sdk/guide/create-project/get-key
 直接在dart文件中设置key
 
 # ios
-2、在info.plist中增加:
+1. 在info.plist中增加:
 ```
 <key>NSLocationWhenInUseUsageDescription</key>
 <string>要用定位</string>
 ```
-要在iOS 9及以上版本使用后台定位功能, 需要保证"Background Modes"中的"Location updates"处于选中状态
+2. iOS 9及以上版本使用后台定位功能, 需要保证"Background Modes"中的"Location updates"处于选中状态
 
 
 ## 开始使用
