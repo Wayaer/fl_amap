@@ -1,3 +1,5 @@
+## [0.1.2]
+  * add Android proguard rules
 ## [0.1.1]
   * normative approach
   * fix bugs

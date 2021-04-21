@@ -38,11 +38,7 @@ android {
         targetSdkVersion 30
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
-//        manifestPlaceholders = [
-//                AMAP_KEY: "77418e726d0eefc0ac79a8619b5f4d97",
-//        ]
     }
-
     signingConfigs {
         release {
             storeFile file("amap.jks")
@@ -53,16 +49,14 @@ android {
     }
     buildTypes {
         release {
+            minifyEnabled true
+            shrinkResources true
             signingConfig signingConfigs.release
-            ndk {
-                abiFilters 'armeabi-v7a' //,'armeabi',  'x86', 'x86_64', 'mips', 'mips64', 'arm64-v8a'
-            }
         }
         debug {
+            minifyEnabled false
+            shrinkResources false
             signingConfig signingConfigs.release
-            ndk {
-                abiFilters 'armeabi', 'armeabi-v7a', 'x86', 'x86_64', 'mips', 'mips64', 'arm64-v8a'
-            }
         }
     }
 }
