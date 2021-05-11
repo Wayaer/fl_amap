@@ -33,7 +33,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.fl.amap.example"
+        applicationId 'com.fl.amap.example'
         minSdkVersion 16
         targetSdkVersion 30
         versionCode flutterVersionCode.toInteger()
@@ -42,9 +42,9 @@ android {
     signingConfigs {
         release {
             storeFile file("amap.jks")
-            storePassword "amap123"
-            keyAlias "amap"
-            keyPassword "amap123"
+            storePassword 'amap123'
+            keyAlias 'amap'
+            keyPassword 'amap123'
         }
     }
     buildTypes {

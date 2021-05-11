@@ -1,3 +1,6 @@
+## [0.1.3]
+ * update Android com.android.tools.build:gradle version
+ * replace jcenter() to mavenCentral()
 ## [0.1.2]
   * add Android proguard rules
 ## [0.1.1]
