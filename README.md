@@ -8,6 +8,7 @@ http://lbs.amap.com/api/ios-sdk/guide/create-project/get-key
 直接在dart文件中设置key
 
 # ios
+
 1. 在info.plist中增加:
 ```
 <key>NSLocationWhenInUseUsageDescription</key>
@@ -15,6 +16,14 @@ http://lbs.amap.com/api/ios-sdk/guide/create-project/get-key
 ```
 2. iOS 9及以上版本使用后台定位功能, 需要保证"Background Modes"中的"Location updates"处于选中状态
 
+3.使用地理围栏
+
+iOS14及以上版本使用地理围栏功能，需要在plist中配置NSLocationTemporaryUsageDescriptionDictionary字典描述，
+且添加自定义Key描述地理围栏的使用场景，此描述会在申请临时精确定位权限的弹窗中展示。
+该回调触发条件：拥有定位权限，但是没有获得精确定位权限的情况下，会触发该回调。此方法实现调用申请临时精确定位权限API即可；
+
+** 需要注意，在iOS9及之后版本的系统中，如果您希望程序在后台持续检测围栏触发行为，需要保证manager的 allowsBackgroundLocationUpdates 为 YES，
+设置为YES的时候必须保证 Background Modes 中的 Location updates 处于选中状态，否则会抛出异常。
 
 ## 开始使用
  

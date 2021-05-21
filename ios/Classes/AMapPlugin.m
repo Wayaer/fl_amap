@@ -3,14 +3,15 @@
 #import <AMapLocationKit/AMapLocationKit.h>
 
 
-@interface AMapPlugin()<AMapLocationManagerDelegate>
+@interface AMapPlugin()<AMapLocationManagerDelegate,AMapGeoFenceManagerDelegate>
 
 @end
 
 @implementation AMapPlugin{
     AMapLocationManager *locationManager;
+    AMapGeoFenceManager *geoFenceManager;
     AMapLocatingCompletionBlock completionBlock;
-    FlutterMethodChannel* channel;
+    FlutterMethodChannel *channel;
 };
 
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
@@ -28,20 +29,19 @@
 }
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
     NSString* method = call.method;
-    
     if([@"setApiKey" isEqualToString:method]){
         [AMapServices sharedServices].apiKey = call.arguments;
         result(@YES);
-    } else if ([@"init" isEqualToString:method]) {
+    } else if ([@"initLocation" isEqualToString:method]) {
         // 初始化定位系统
-        result(@([self init:call.arguments]));
-    }else if([@"dispose" isEqualToString:method]){
+        result(@([self initLocation:call.arguments]));
+    } else if([@"disposeLocation" isEqualToString:method]){
         // 关闭定位系统
-        result(@([self dispose]));
-    }else if([@"getLocation" isEqualToString:method]){
+        result(@([self disposeLocation]));
+    } else if([@"getLocation" isEqualToString:method]){
         // 单次定位
         [self getLocation: [call.arguments boolValue] result:result];
-    }else if([@"startLocation" isEqualToString:method]){
+    } else if([@"startLocation" isEqualToString:method]){
         // 开始监听位置
         if(locationManager){
             [locationManager startUpdatingLocation];
@@ -49,7 +49,7 @@
             return;
         }
         result(@NO);
-    }else if([@"stopLocation" isEqualToString:method]){
+    } else if([@"stopLocation" isEqualToString:method]){
         // 停止监听位置
         if(locationManager){
             [locationManager stopUpdatingLocation];
@@ -57,13 +57,100 @@
             return;
         }
         result(@NO);
-    }else {
+    } else if([@"initGeoFence" isEqualToString:method]){
+        geoFenceManager = [[AMapGeoFenceManager alloc] init];
+        [geoFenceManager setDelegate:self];
+        NSInteger type = [call.arguments[@"action"] intValue];
+        if(type==0)geoFenceManager.activeAction = AMapGeoFenceActiveActionInside;
+        if(type==1)geoFenceManager.activeAction = AMapGeoFenceActiveActionOutside;
+        if(type==2)geoFenceManager.activeAction = AMapGeoFenceActiveActionInside|AMapGeoFenceActiveActionOutside;
+        if(type==3)geoFenceManager.activeAction = AMapGeoFenceActiveActionInside|AMapGeoFenceActiveActionOutside|AMapGeoFenceActiveActionStayed;
+        geoFenceManager.allowsBackgroundLocationUpdates = call.arguments[@"allowsBackgroundLocationUpdates"] ;
+        result(@YES);
+    } else if([@"disposeGeoFence" isEqualToString:method]){
+        result(@([self disposeGeoFence]));
+    } else if([@"addGeoFenceWithPOI" isEqualToString:method]){
+        [geoFenceManager addKeywordPOIRegionForMonitoringWithKeyword:call.arguments[@"keyword"] POIType:call.arguments[@"type"] city:call.arguments[@"city"] size:[call.arguments[@"size"] intValue] customID:call.arguments[@"customID"]];
+        result(@YES);
+    } else if([@"addAMapGeoFenceWithLatLong" isEqualToString:method]){
+        NSInteger latitude = [call.arguments[@"latitude"] doubleValue];
+        NSInteger longitude = [call.arguments[@"longitude"] doubleValue];
+        CLLocationCoordinate2D coordinate = CLLocationCoordinate2DMake(latitude, longitude);
+        [geoFenceManager addAroundPOIRegionForMonitoringWithLocationPoint:coordinate aroundRadius:[call.arguments[@"aroundRadius"] doubleValue] keyword:call.arguments[@"keyword"] POIType:call.arguments[@"type"] size:[call.arguments[@"size"] intValue] customID:call.arguments[@"customID"]];
+        result(@YES);
+    } else if([@"addGeoFenceWithDistrict" isEqualToString:method]){
+        [geoFenceManager addDistrictRegionForMonitoringWithDistrictName:call.arguments[@"keyword"] customID:call.arguments[@"customID"]];
+        result(@YES);
+        
+    } else if([@"addCircleGeoFence" isEqualToString:method]){
+        NSInteger latitude = [call.arguments[@"latitude"] doubleValue];
+        NSInteger longitude = [call.arguments[@"longitude"] doubleValue];
+        CLLocationCoordinate2D coordinate = CLLocationCoordinate2DMake(latitude, longitude);
+        [geoFenceManager addCircleRegionForMonitoringWithCenter:coordinate radius:[call.arguments[@"size"] doubleValue] customID:call.arguments[@"customID"]];
+        result(@YES);
+    } else if([@"addCustomGeoFence" isEqualToString:method]){
+        NSArray *latLongs = call.arguments[@"latLong"];
+        NSInteger count= latLongs.count;
+        CLLocationCoordinate2D *coorArr = malloc(sizeof(CLLocationCoordinate2D) * count);
+        for(int i=0; i<count; i++){
+            NSDictionary *latLong =  latLongs[i];
+            NSInteger latitude = [latLong[@"latitude"] doubleValue];
+            NSInteger longitude = [latLong[@"longitude"] doubleValue];
+            coorArr[i] = CLLocationCoordinate2DMake(latitude, longitude);
+        }
+        free(coorArr);
+        coorArr = NULL;
+        result(@YES);
+    } else if([@"removeTheGeoFence" isEqualToString:method]){
+        //        [geoFenceManager removeTheGeoFenceRegion:];
+    } else if([@"removeGeoFenceWithCustomID" isEqualToString:method]){
+        [geoFenceManager removeGeoFenceRegionsWithCustomID:call.arguments];
+        result(@YES);
+    } else if([@"removeAllGeoFence" isEqualToString:method]){
+        [geoFenceManager removeAllGeoFenceRegions];
+        result(@YES);
+    } else {
         result(FlutterMethodNotImplemented);
     }
 }
+////*****地理围栏******/
+//获取围栏创建后的回调
+- (void)amapGeoFenceManager:(AMapGeoFenceManager *)manager didAddRegionForMonitoringFinished:(NSArray<AMapGeoFenceRegion *> *)regions customID:(NSString *)customID error:(NSError *)error {
+    if (error) {
+        //        result(@NO);
+    } else {
+        //        result(@YES);
+    }
+}
+// 关闭围栏系统
+-(BOOL)disposeGeoFence{
+    if(geoFenceManager){
+        [geoFenceManager removeAllGeoFenceRegions];
+        [geoFenceManager setDelegate:nil];
+        geoFenceManager = nil;
+        return YES;
+    }
+    return NO;
+}
+
+// 围栏状态改变时的回调
+- (void)amapGeoFenceManager:(AMapGeoFenceManager *)manager didGeoFencesStatusChangedForRegion:(AMapGeoFenceRegion *)region customID:(NSString *)customID error:(NSError *)error {
+    if (error) {
+        NSLog(@"status changed error %@",error);
+    }else{
+        NSLog(@"status changed success %@",[region description]);
+    }
+}
+// 地理围栏定位回调
+- (void)amapLocationManager:(AMapGeoFenceManager *)manager doRequireTemporaryFullAccuracyAuth:(CLLocationManager *)locationManager completion:(void (^)(NSError *))completion {
+    
+}
+////*****地理围栏******/
+
+
 
 // 初始化定位参数
--(BOOL)init:(NSDictionary*)args{
+-(BOOL)initLocation:(NSDictionary*)args{
     if(!locationManager){
         locationManager = [[AMapLocationManager alloc] init];
         [locationManager setDelegate:self];
@@ -71,6 +158,16 @@
     return [self initOption:args];
 }
 
+//关闭定位系统
+-(BOOL)disposeLocation{
+    if(locationManager){
+        [locationManager stopUpdatingLocation];
+        [locationManager setDelegate:nil];
+        locationManager = nil;
+        return YES;
+    }
+    return NO;
+}
 // 初始化定位参数
 -(BOOL)initOption:(NSDictionary*)args{
     if(locationManager){
@@ -146,17 +243,6 @@
     [locationManager requestLocationWithReGeocode:withReGeocode completionBlock:completionBlock];
 }
 
--(BOOL)dispose{
-    if(locationManager){
-        //停止定位
-        [locationManager stopUpdatingLocation];
-        [locationManager setDelegate:nil];
-        locationManager = nil;
-        return YES;
-    }
-    return NO;
-    
-}
 
 -(id)checkNull:(NSObject*)value{
     return value == nil ? [NSNull null] : value;

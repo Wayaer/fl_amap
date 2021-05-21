@@ -1,3 +1,4 @@
+## [0.2.0]
 ## [0.1.3]
  * update Android com.android.tools.build:gradle version
  * replace jcenter() to mavenCentral()

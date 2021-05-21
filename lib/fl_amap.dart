@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 
+part 'geo_fence.dart';
+
 typedef EventHandlerAMapLocation = void Function(AMapLocation location);
 
 ///  android网络传输http还是https协议
@@ -44,19 +46,19 @@ enum CLLocationAccuracy {
 const MethodChannel _channel = MethodChannel('fl_amap');
 
 ///  设置ios&android的key
-Future<bool?> setAMapKey(
+Future<bool> setAMapKey(
     {required String iosKey, required String androidKey}) async {
-  if (Platform.isAndroid)
-    return await _channel
-        .invokeMethod('setApiKey', <String, String>{'key': androidKey});
-  if (Platform.isIOS) return await _channel.invokeMethod('setApiKey', iosKey);
-  return Future<bool>.value(false);
+  final bool? state = await _channel.invokeMethod('setApiKey', iosKey);
+  return state ?? false;
 }
 
 ///  初始化定位
 ///  @param options 启动系统所需选项
-Future<bool?> initAMap(AMapLocationOption option) =>
-    _channel.invokeMethod('init', option.toMap());
+Future<bool> initAMapLocation(AMapLocationOption option) async {
+  final bool? isInit =
+      await _channel.invokeMethod('initLocation', option.toMap());
+  return isInit ?? false;
+}
 
 ///  直接获取定位
 ///  @param needsAddress 是否需要详细地址信息 默认false
@@ -68,7 +70,10 @@ Future<AMapLocation?> getAMapLocation([bool needsAddress = false]) async {
 }
 
 /// 销毁定位参数
-Future<bool?> disposeAMap() => _channel.invokeMethod('dispose');
+Future<bool?> disposeAMapLocation() async {
+  final bool? state = await _channel.invokeMethod('disposeLocation');
+  return state ?? false;
+}
 
 /// 启动监听位置改变
 Future<bool?> startAMapLocationChange(
@@ -441,4 +446,26 @@ class AMapLocationOption {
     }
     return null;
   }
+}
+
+class LatLong {
+  LatLong(this.latitude, this.longitude);
+
+  LatLong.fromJson(Map<String, dynamic> json) {
+    final double? lat = json['latitude'] as double?;
+    final double? long = json['longitude'] as double?;
+
+    if (lat != null && long != null) {
+      latitude = lat;
+      latitude = long;
+    }
+  }
+
+  late double latitude;
+  late double longitude;
+
+  Map<String, double> toMap() => <String, double>{
+        'latitude': latitude,
+        'longitude': longitude,
+      };
 }

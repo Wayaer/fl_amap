@@ -21,18 +21,15 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  bool isInit = false;
+  bool isInitLocation = false;
+  bool isInitGeoFence = false;
   late ValueNotifier<String> text = ValueNotifier<String>('未初始化');
   late ValueNotifier<AMapLocation?> locationState =
       ValueNotifier<AMapLocation?>(null);
 
   int i = 0;
 
-  @override
-  void initState() {
-    super.initState();
-  }
-
+  /// 获取定位权限
   Future<bool> get getPermissions async {
     if (Platform.isIOS) {
       if (!await requestPermissions(Permission.locationWhenInUse, '获取定位权限') ||
@@ -53,7 +50,7 @@ class _HomeState extends State<Home> {
   }
 
   Future<void> get getLocation async {
-    if (!isInit) {
+    if (!isInitLocation) {
       show('请先初始化定位');
       return;
     }
@@ -61,75 +58,113 @@ class _HomeState extends State<Home> {
     locationState.value = await getAMapLocation(true);
   }
 
-  Future<void> get init async {
+  /// 初始化定位
+  Future<void> get initLocation async {
     if (!await getPermissions) return;
 
     /// 初始化AMap
-    final bool? data = await initAMap(AMapLocationOption());
+    final bool? data = await initAMapLocation(AMapLocationOption());
     if (data != null && data) {
-      isInit = true;
-      show('初始化成功');
+      isInitLocation = true;
+      show('初始化定位:$data');
+    }
+  }
+
+  /// 初始化地理围栏
+  Future<void> get initGeoFence async {
+    if (!await getPermissions) return;
+    final bool data = await initAMapGeoFence(GeoFenceActivateAction.stayed);
+    if (data) {
+      isInitGeoFence = true;
+      show('初始化地理围栏:$data');
     }
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
       appBar: AppBar(title: const Text('高德地图定位')),
-      body: Center(
-          child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-            Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: ValueListenableBuilder<String>(
-                    valueListenable: text,
-                    builder: (_, String value, __) =>
-                        Text(value, style: const TextStyle(fontSize: 20)))),
-            const SizedBox(height: 30),
-            ElevatedButton(
-                onPressed: () => init, child: const Text('initAMap')),
-            const SizedBox(height: 10),
-            ElevatedButton(
-                onPressed: () {
-                  disposeAMap();
-                  locationState.value = null;
-                  isInit = false;
-                  i = 0;
-                  show('未初始化');
-                },
-                child: const Text('disposeAMap')),
-            const SizedBox(height: 10),
-            ElevatedButton(
-                onPressed: () => getLocation, child: const Text('直接获取定位')),
-            const SizedBox(height: 10),
-            ElevatedButton(
-                onPressed: startLocationState,
-                child: const Text('开启监听定位')),
-            const SizedBox(height: 10),
-            ElevatedButton(
-                onPressed: () {
-                  if (!isInit) {
-                    show('请先初始化定位');
-                    return;
-                  }
-                  text.value = '定位监听关闭';
-                  locationState.value = null;
-                  i = 0;
-                  stopAMapLocation();
-                },
-                child: const Text('关闭监听定位')),
-            const SizedBox(height: 30),
-            Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: ValueListenableBuilder<AMapLocation?>(
-                    valueListenable: locationState,
-                    builder: (_, AMapLocation? value, __) => Text(
-                        getLocationStr(value),
-                        style: const TextStyle(fontSize: 15))))
-          ])));
+      body: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(8.0),
+        child: SingleChildScrollView(
+            child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+              const SizedBox(height: 10),
+              ValueListenableBuilder<String>(
+                  valueListenable: text,
+                  builder: (_, String value, __) =>
+                      Text(value, style: const TextStyle(fontSize: 20))),
+              const SizedBox(height: 20),
+              const Text('高德定位', style: TextStyle(fontSize: 20)),
+              const SizedBox(height: 10),
+              Wrap(
+                  runSpacing: 10,
+                  spacing: 10,
+                  alignment: WrapAlignment.center,
+                  children: <Widget>[
+                    ElevatedButton(
+                        onPressed: () => initLocation,
+                        child: const Text('initAMapLocation')),
+                    ElevatedButton(
+                        onPressed: () {
+                          disposeAMapLocation();
+                          locationState.value = null;
+                          isInitLocation = false;
+                          i = 0;
+                          show('未初始化');
+                        },
+                        child: const Text('disposeAMapLocation')),
+                    ElevatedButton(
+                        onPressed: () => getLocation,
+                        child: const Text('直接获取定位')),
+                    ElevatedButton(
+                        onPressed: startLocationState,
+                        child: const Text('开启监听定位')),
+                    ElevatedButton(
+                        onPressed: () {
+                          if (!isInitLocation) {
+                            show('请先初始化定位');
+                            return;
+                          }
+                          text.value = '定位监听关闭';
+                          locationState.value = null;
+                          i = 0;
+                          stopAMapLocation();
+                        },
+                        child: const Text('关闭监听定位')),
+                  ]),
+              const SizedBox(height: 20),
+              const Text('高德地理围栏', style: TextStyle(fontSize: 20)),
+              const SizedBox(height: 10),
+              Wrap(
+                  runSpacing: 10,
+                  spacing: 10,
+                  alignment: WrapAlignment.center,
+                  children: <Widget>[
+                    ElevatedButton(
+                        onPressed: () => initGeoFence,
+                        child: const Text('initAMapGeoFence')),
+                    ElevatedButton(
+                        onPressed: () {
+                          disposeAMapGeoFence();
+                          isInitGeoFence = false;
+                          show('未初始化');
+                        },
+                        child: const Text('disposeAMapGeoFence')),
+                  ]),
+              Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: ValueListenableBuilder<AMapLocation?>(
+                      valueListenable: locationState,
+                      builder: (_, AMapLocation? value, __) => Text(
+                          getLocationStr(value),
+                          style: const TextStyle(fontSize: 15))))
+            ])),
+      ));
 
   Future<void> startLocationState() async {
-    if (!isInit) {
+    if (!isInitLocation) {
       show('请先初始化定位');
       return;
     }
