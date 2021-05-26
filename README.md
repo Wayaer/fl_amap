@@ -26,7 +26,7 @@ iOS14及以上版本使用地理围栏功能，需要在plist中配置NSLocation
 设置为YES的时候必须保证 Background Modes 中的 Location updates 处于选中状态，否则会抛出异常。
 
 ## 开始使用
- 
+## 高德定位功能
 1.设置key
 ```dart
 
@@ -48,27 +48,25 @@ Future<void> main() async {
 2.初始化定位参数
 ```dart
 
-  Future<void> init() async {
+  Future<void> initAMapLocation() async {
     /// 获取权限
     if (getPermissions) return;
 
     /// 初始化AMap
-    final bool data = await initAMap(AMapLocationOption());
+    final bool data = await initAMapLocation(AMapLocationOption());
     if (data != null && data) {
       show('初始化成功');
     }
   }
 
-
 ```
 
 3.单次获取定位
 ```dart
-  Future<void> getLocation() async {
+  Future<void> getAMapLocation() async {
      /// 务必先初始化 并获取权限
     if (getPermissions) return;
     AMapLocation location =  await getAMapLocation(true);
-
   }
 
 ```
@@ -76,7 +74,7 @@ Future<void> main() async {
 4.开启定位变化监听
 ```dart
 
-  Future<void> startLocationState() async {
+  Future<void> startAMapLocationChange() async {
      /// 务必先初始化 并获取权限
     if (getPermissions) return;
     final bool data =
@@ -90,23 +88,20 @@ Future<void> main() async {
 ```
 5.关闭定位变化监听
 ```dart
-
   void stop(){
-
      stopAMapLocation();
-
   }
-
-
 ```
 
 6.关闭定位系统
 
 ```dart
-
   void dispose() {
     super.dispose();
-    disposeAMap();
+    disposeAMapLocation();
   }
-   
 ```
+
+## 高德地理围栏功能
+
+1.初始化地理围栏

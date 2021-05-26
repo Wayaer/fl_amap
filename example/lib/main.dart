@@ -152,6 +152,33 @@ class _HomeState extends State<Home> {
                           show('未初始化');
                         },
                         child: const Text('disposeAMapGeoFence')),
+                    ElevatedButton(
+                        onPressed: () => getLocation,
+                        child: const Text('添加POI围栏')),
+                    ElevatedButton(
+                        onPressed: () => getLocation,
+                        child: const Text('添加经纬度围栏')),
+                    ElevatedButton(
+                        onPressed: () => getLocation,
+                        child: const Text('添加行政区划围栏')),
+                    ElevatedButton(
+                        onPressed: () => getLocation,
+                        child: const Text('添加圆形围栏')),
+                    ElevatedButton(
+                        onPressed: () => getLocation,
+                        child: const Text('添加多边形围栏')),
+                    ElevatedButton(
+                        onPressed: () => getLocation,
+                        child: const Text('开启围栏状态监听')),
+                    ElevatedButton(
+                        onPressed: () => getLocation,
+                        child: const Text('关闭围栏状态监听')),
+                    ElevatedButton(
+                        onPressed: () => getLocation,
+                        child: const Text('删除所有地理围栏')),
+                    ElevatedButton(
+                        onPressed: () => getLocation,
+                        child: const Text('删除指定地理围栏'))
                   ]),
               Padding(
                   padding: const EdgeInsets.all(20.0),

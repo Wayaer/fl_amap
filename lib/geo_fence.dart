@@ -184,13 +184,30 @@ class AMapGeoFenceModel {
         : AMapGeoFenceModel.fromMap(json['radius'] as Map<dynamic, dynamic>);
   }
 
+  /// 自定义id
   String? customID;
+
+  /// 在ios
+  /// status  = 0,       ///< 未知
+  /// status  = 1,       ///< 在范围内
+  /// status  = 2,       ///< 在范围外
+  /// status  = 3,       ///< 停留(在范围内超过10分钟)
   int? status;
+
+  /// 在ios
+  ///    type   = 0,       /// 圆形地理围栏
+  ///    type   = 1,       /// 多边形地理围栏
+  ///    type   = 2,       /// 兴趣点（POI）地理围栏
+  ///    type   = 3,       /// 行政区划地理围栏
   int? type;
+
+  /// 围栏唯一id
   String? fenceId;
 
-  /// onlyAndroid
+  /// 仅 Android 有数据
   AMapGeoFenceModel? fence;
+
+  /// 仅 Android 有数据
   double? radius;
 }
 

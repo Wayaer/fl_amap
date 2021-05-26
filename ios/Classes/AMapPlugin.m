@@ -130,7 +130,7 @@
 // 围栏状态改变时的回调
 - (void)amapGeoFenceManager:(AMapGeoFenceManager *)manager didGeoFencesStatusChangedForRegion:(AMapGeoFenceRegion *)region customID:(NSString *)customID error:(NSError *)error {
     if (error) {
-        AMapGeoFenceRegionStatus status  =  region.fenceStatus;
+        AMapGeoFenceRegionStatus status = region.fenceStatus;
         NSInteger state=0;
         if(status == AMapGeoFenceRegionStatusInside)state=1;
         if(status == AMapGeoFenceRegionStatusOutside)state=2;
