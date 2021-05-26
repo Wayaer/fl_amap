@@ -1,9 +1,15 @@
 package flutter.amap
 
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.net.ConnectivityManager
+import android.os.Bundle
 import com.amap.api.fence.GeoFence
 import com.amap.api.fence.GeoFenceClient
 import com.amap.api.fence.GeoFenceClient.*
+import com.amap.api.fence.GeoFenceListener
 import com.amap.api.location.AMapLocation
 import com.amap.api.location.AMapLocationClient
 import com.amap.api.location.AMapLocationClientOption
@@ -11,30 +17,36 @@ import com.amap.api.location.DPoint
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
-import java.lang.invoke.MethodHandle
 import java.util.*
 
 
-class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
+class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, GeoFenceListener {
     private lateinit var context: Context
+    private lateinit var result: MethodChannel.Result
     private var channel: MethodChannel? = null
+
+    //定义接收广播的action字符串
+    private val geoFenceBroadcastAction = "com.location.apis.geofencedemo.broadcast"
 
     private var option: AMapLocationClientOption? = null
     private var locationClient: AMapLocationClient? = null
     private var geoFenceClient: GeoFenceClient? = null
 
+    // 是否在定位
     private var isLocation = false
+
+    // 是否开启围栏
+    private var isGeoFence = false
     private var onceLocation = false
 
     override fun onAttachedToEngine(plugin: FlutterPlugin.FlutterPluginBinding) {
         context = plugin.applicationContext
         channel = MethodChannel(plugin.binaryMessenger, "fl_amap")
         channel?.setMethodCallHandler(this)
-
     }
 
-    override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
-
+    override fun onMethodCall(call: MethodCall, _result: MethodChannel.Result) {
+        result = _result
         //显然下面的任何方法都应该放在同步块处理
         when (call.method) {
             "setApiKey" -> {
@@ -123,6 +135,7 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                 if (type == 3) geoFenceClient!!.setActivateAction(
                     GEOFENCE_IN or GEOFENCE_OUT or GEOFENCE_STAYED
                 )
+                geoFenceClient!!.setGeoFenceListener(this)
                 result.success(true)
             }
             "disposeGeoFence" -> {
@@ -143,7 +156,6 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                         call.argument<Int>("size")!!,
                         call.argument("customId")
                     )
-                    result.success(true)
                 } else {
                     result.success(false)
                 }
@@ -163,7 +175,6 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                         call.argument<Int>("size")!!,
                         call.argument("customId")
                     )
-                    result.success(true)
                 } else {
                     result.success(false)
                 }
@@ -173,7 +184,6 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                     val keyword = call.argument<String>("keyword")!!
                     val customId = call.argument<String>("customId")!!
                     geoFenceClient!!.addGeoFence(keyword, customId)
-                    result.success(true)
                 } else {
                     result.success(false)
                 }
@@ -190,7 +200,6 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                         centerPoint, radius.toFloat(),
                         call.argument("customId")
                     )
-                    result.success(true)
                 } else {
                     result.success(false)
                 }
@@ -214,6 +223,26 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                         points,
                         call.argument("customId")
                     )
+                } else {
+                    result.success(false)
+                }
+            }
+            "startGeoFence" -> {
+                if (geoFenceClient != null) {
+                    geoFenceClient!!.createPendingIntent(geoFenceBroadcastAction)
+                    val filter = IntentFilter()
+                    filter.addAction(geoFenceBroadcastAction)
+                    context.registerReceiver(mGeoFenceReceiver, filter)
+                    isGeoFence = true
+                    result.success(true)
+                } else {
+                    result.success(false)
+                }
+            }
+            "stopGeoFence" -> {
+                if (geoFenceClient != null) {
+                    isGeoFence = false
+                    context.unregisterReceiver(mGeoFenceReceiver)
                     result.success(true)
                 } else {
                     result.success(false)
@@ -337,6 +366,49 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
         return map
     }
 
+    override fun onGeoFenceCreateFinished(geoFenceList: MutableList<GeoFence>?, errorCode: Int, p2: String?) {
+        //geoFenceList是已经添加的围栏列表，可据此查看创建的围栏
+        //判断围栏是否创建成功
+        if (errorCode == GeoFence.ADDGEOFENCE_SUCCESS) {
+            // 添加围栏成功
+            result.success(true)
+        } else {
+            // 添加围栏失败
+            result.success(false)
+        }
+    }
 
+    private val mGeoFenceReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent) {
+            if (intent.action.equals(geoFenceBroadcastAction)) {
+                //解析广播内容
+                val bundle: Bundle? = intent.extras
+                if (bundle != null) {
+                    //获取围栏行为：
+                    val status: Int = bundle.getInt(GeoFence.BUNDLE_KEY_FENCESTATUS)
+                    //获取自定义的围栏标识：
+                    val customId: String? = bundle.getString(GeoFence.BUNDLE_KEY_CUSTOMID)
+                    //获取围栏ID:
+                    val fenceId: String? = bundle.getString(GeoFence.BUNDLE_KEY_FENCEID)
+                    //获取当前有触发的围栏对象：
+                    val fence: GeoFence? = bundle.getParcelable(GeoFence.BUNDLE_KEY_FENCE)
+                    val map: MutableMap<String, Any?> = HashMap()
+                    map["status"] = status
+                    map["customId"] = customId
+                    map["fenceId"] = fenceId
+                    if (fence != null) {
+                        val fenceMap: MutableMap<String, Any?> = HashMap()
+                        fenceMap["type"] = fence.type
+                        fenceMap["customId"] = fence.customId
+                        fenceMap["fenceId"] = fence.fenceId
+                        fenceMap["radius"] = fence.radius.toDouble()
+
+                        map["fence"] = fenceMap
+                    }
+                    channel?.invokeMethod("updateGeoFence", map)
+                }
+            }
+        }
+    }
 }
 

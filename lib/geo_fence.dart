@@ -171,3 +171,53 @@ Future<bool> addCustomGeoFence(List<LatLong> latLongs, String customId) async {
   });
   return state ?? false;
 }
+
+class AMapGeoFenceModel {
+  AMapGeoFenceModel.fromMap(Map<dynamic, dynamic> json) {
+    customID = json['customID'] as String?;
+    fenceId = json['fenceId'] as String?;
+    status = json['status'] as int?;
+    type = json['type'] as int?;
+    radius = json['radius'] as double?;
+    fence = json['radius'] == null
+        ? null
+        : AMapGeoFenceModel.fromMap(json['radius'] as Map<dynamic, dynamic>);
+  }
+
+  String? customID;
+  int? status;
+  int? type;
+  String? fenceId;
+
+  /// onlyAndroid
+  AMapGeoFenceModel? fence;
+  double? radius;
+}
+
+typedef EventHandlerAMapGeoFence = void Function(AMapGeoFenceModel location);
+
+/// 开启围栏状态监听
+/// 不需要使用时 一定要调用 [stopGeoFenceChange] 避免内存移出
+Future<bool> startGeoFenceChange(
+    {EventHandlerAMapGeoFence? onGeoFenceChange}) async {
+  final bool? state = await _channel.invokeMethod('startGeoFence');
+  if (state != null && state) {
+    _channel.setMethodCallHandler((MethodCall call) async {
+      switch (call.method) {
+        case 'updateGeoFence':
+          if (onGeoFenceChange == null) return;
+          if (call.arguments == null) return;
+          final Map<dynamic, dynamic> argument =
+              call.arguments as Map<dynamic, dynamic>;
+          return onGeoFenceChange(AMapGeoFenceModel.fromMap(argument));
+      }
+    });
+  }
+  return false;
+}
+
+/// 关闭围栏状态监听
+Future<bool> stopGeoFenceChange() async {
+  final bool? state = await _channel.invokeMethod('startGeoFence');
+  return state ?? false;
+}

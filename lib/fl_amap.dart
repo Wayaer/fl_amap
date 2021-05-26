@@ -70,30 +70,35 @@ Future<AMapLocation?> getAMapLocation([bool needsAddress = false]) async {
 }
 
 /// 销毁定位参数
-Future<bool?> disposeAMapLocation() async {
+Future<bool> disposeAMapLocation() async {
   final bool? state = await _channel.invokeMethod('disposeLocation');
   return state ?? false;
 }
 
 /// 启动监听位置改变
-Future<bool?> startAMapLocationChange(
+Future<bool> startAMapLocationChange(
     {EventHandlerAMapLocation? onLocationChange}) async {
-  final bool? state = await _channel.invokeMethod<bool>('startLocation');
-  _channel.setMethodCallHandler((MethodCall call) async {
-    switch (call.method) {
-      case 'updateLocation':
-        if (onLocationChange == null) return;
-        if (call.arguments == null) return;
-        final Map<dynamic, dynamic> argument =
-            call.arguments as Map<dynamic, dynamic>;
-        return onLocationChange(AMapLocation.fromMap(argument));
-    }
-  });
-  return state;
+  final bool? state = await _channel.invokeMethod<bool?>('startLocation');
+  if (state != null && state) {
+    _channel.setMethodCallHandler((MethodCall call) async {
+      switch (call.method) {
+        case 'updateLocation':
+          if (onLocationChange == null) return;
+          if (call.arguments == null) return;
+          final Map<dynamic, dynamic> argument =
+              call.arguments as Map<dynamic, dynamic>;
+          return onLocationChange(AMapLocation.fromMap(argument));
+      }
+    });
+  }
+  return false;
 }
 
 ///  停止监听位置改变
-Future<bool?> stopAMapLocation() => _channel.invokeMethod('stopLocation');
+Future<bool> stopAMapLocation() async {
+  final bool? state = await _channel.invokeMethod('stopLocation');
+  return state ?? false;
+}
 
 class AMapLocationQualityReport {
   AMapLocationQualityReport(

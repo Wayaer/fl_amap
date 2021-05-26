@@ -12,6 +12,7 @@
     AMapGeoFenceManager *geoFenceManager;
     AMapLocatingCompletionBlock completionBlock;
     FlutterMethodChannel *channel;
+    FlutterResult result;
 };
 
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
@@ -27,7 +28,8 @@
     channel= _channel;
     return self;
 }
-- (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
+- (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)_result {
+    result = _result;
     NSString* method = call.method;
     if([@"setApiKey" isEqualToString:method]){
         [AMapServices sharedServices].apiKey = call.arguments;
@@ -71,23 +73,18 @@
         result(@([self disposeGeoFence]));
     } else if([@"addGeoFenceWithPOI" isEqualToString:method]){
         [geoFenceManager addKeywordPOIRegionForMonitoringWithKeyword:call.arguments[@"keyword"] POIType:call.arguments[@"type"] city:call.arguments[@"city"] size:[call.arguments[@"size"] intValue] customID:call.arguments[@"customID"]];
-        result(@YES);
     } else if([@"addAMapGeoFenceWithLatLong" isEqualToString:method]){
         NSInteger latitude = [call.arguments[@"latitude"] doubleValue];
         NSInteger longitude = [call.arguments[@"longitude"] doubleValue];
         CLLocationCoordinate2D coordinate = CLLocationCoordinate2DMake(latitude, longitude);
         [geoFenceManager addAroundPOIRegionForMonitoringWithLocationPoint:coordinate aroundRadius:[call.arguments[@"aroundRadius"] doubleValue] keyword:call.arguments[@"keyword"] POIType:call.arguments[@"type"] size:[call.arguments[@"size"] intValue] customID:call.arguments[@"customID"]];
-        result(@YES);
     } else if([@"addGeoFenceWithDistrict" isEqualToString:method]){
         [geoFenceManager addDistrictRegionForMonitoringWithDistrictName:call.arguments[@"keyword"] customID:call.arguments[@"customID"]];
-        result(@YES);
-        
     } else if([@"addCircleGeoFence" isEqualToString:method]){
         NSInteger latitude = [call.arguments[@"latitude"] doubleValue];
         NSInteger longitude = [call.arguments[@"longitude"] doubleValue];
         CLLocationCoordinate2D coordinate = CLLocationCoordinate2DMake(latitude, longitude);
         [geoFenceManager addCircleRegionForMonitoringWithCenter:coordinate radius:[call.arguments[@"size"] doubleValue] customID:call.arguments[@"customID"]];
-        result(@YES);
     } else if([@"addCustomGeoFence" isEqualToString:method]){
         NSArray *latLongs = call.arguments[@"latLong"];
         NSInteger count= latLongs.count;
@@ -100,7 +97,6 @@
         }
         free(coorArr);
         coorArr = NULL;
-        result(@YES);
     } else if([@"removeTheGeoFence" isEqualToString:method]){
         //        [geoFenceManager removeTheGeoFenceRegion:];
     } else if([@"removeGeoFenceWithCustomID" isEqualToString:method]){
@@ -114,14 +110,7 @@
     }
 }
 ////*****地理围栏******/
-//获取围栏创建后的回调
-- (void)amapGeoFenceManager:(AMapGeoFenceManager *)manager didAddRegionForMonitoringFinished:(NSArray<AMapGeoFenceRegion *> *)regions customID:(NSString *)customID error:(NSError *)error {
-    if (error) {
-        //        result(@NO);
-    } else {
-        //        result(@YES);
-    }
-}
+
 // 关闭围栏系统
 -(BOOL)disposeGeoFence{
     if(geoFenceManager){
@@ -133,12 +122,35 @@
     return NO;
 }
 
+// 获取围栏创建后的回调
+// 在如下回调中知道创建的围栏是否成功，以及查看所创建围栏的具体内容
+- (void)amapGeoFenceManager:(AMapGeoFenceManager *)manager didAddRegionForMonitoringFinished:(NSArray<AMapGeoFenceRegion *> *)regions customID:(NSString *)customID error:(NSError *)error {
+    result(error ? @NO : @YES);
+}
 // 围栏状态改变时的回调
 - (void)amapGeoFenceManager:(AMapGeoFenceManager *)manager didGeoFencesStatusChangedForRegion:(AMapGeoFenceRegion *)region customID:(NSString *)customID error:(NSError *)error {
     if (error) {
-        NSLog(@"status changed error %@",error);
-    }else{
-        NSLog(@"status changed success %@",[region description]);
+        AMapGeoFenceRegionStatus status  =  region.fenceStatus;
+        NSInteger state=0;
+        if(status == AMapGeoFenceRegionStatusInside)state=1;
+        if(status == AMapGeoFenceRegionStatusOutside)state=2;
+        if(status == AMapGeoFenceRegionStatusStayed)state=3;
+        
+        AMapGeoFenceRegionType regionType = region.regionType;
+        NSInteger type = -1;
+        if(regionType){
+            if(regionType == AMapGeoFenceRegionTypeCircle)type=0;
+            if(regionType == AMapGeoFenceRegionTypePolygon)type=1;
+            if(regionType == AMapGeoFenceRegionTypePOI)type=2;
+            if(regionType == AMapGeoFenceRegionTypeDistrict)type=3;
+        }
+        
+        [channel invokeMethod:@"updateGeoFence" arguments:@{
+            @"customID": customID,
+            @"status": @(status),
+            @"type": @(type),
+            @"fenceId": region.identifier,
+        }];
     }
 }
 // 地理围栏定位回调
