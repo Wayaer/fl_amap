@@ -1,4 +1,5 @@
-part of 'fl_amap.dart';
+import 'package:fl_amap/fl_amap.dart';
+import 'package:flutter/services.dart';
 
 enum GeoFenceActivateAction {
   /// 进入地理围栏
@@ -21,7 +22,7 @@ enum GeoFenceActivateAction {
 Future<bool> initAMapGeoFence(GeoFenceActivateAction action,
     [bool allowsBackgroundLocationUpdates = false]) async {
   final bool? isInit =
-      await _channel.invokeMethod('initGeoFence', <String, dynamic>{
+      await channel.invokeMethod('initGeoFence', <String, dynamic>{
     'action': GeoFenceActivateAction.values.indexOf(action),
     'allowsBackgroundLocationUpdates': allowsBackgroundLocationUpdates
   });
@@ -30,20 +31,20 @@ Future<bool> initAMapGeoFence(GeoFenceActivateAction action,
 
 /// 销毁地理围栏
 Future<bool> disposeAMapGeoFence() async {
-  final bool? state = await _channel.invokeMethod('disposeGeoFence');
+  final bool? state = await channel.invokeMethod('disposeGeoFence');
   return state ?? false;
 }
 
 /// 删除指定地理围栏
-Future<bool> removeGeoFenceWithCustomID(String customID) async {
+Future<bool> removeAMapGeoFenceWithCustomID(String customID) async {
   final bool? state =
-      await _channel.invokeMethod('removeGeoFenceWithCustomID', customID);
+      await channel.invokeMethod('removeGeoFenceWithCustomID', customID);
   return state ?? false;
 }
 
 /// 删除所有地理围栏
-Future<bool> removeAllGeoFence() async {
-  final bool? state = await _channel.invokeMethod('removeAllGeoFence');
+Future<bool> removeAMapAllGeoFence() async {
+  final bool? state = await channel.invokeMethod('removeAllGeoFence');
   return state ?? false;
 }
 
@@ -81,9 +82,9 @@ class AMapPoiModel {
 }
 
 /// 添加高德POI地理围栏
-Future<bool> addGeoFenceWithPOI(AMapPoiModel aMapPoiModel) async {
+Future<bool> addAMapGeoFenceWithPOI(AMapPoiModel aMapPoiModel) async {
   final bool? state =
-      await _channel.invokeMethod('addGeoFenceWithPOI', aMapPoiModel.toMap());
+      await channel.invokeMethod('addGeoFenceWithPOI', aMapPoiModel.toMap());
   return state ?? false;
 }
 
@@ -93,6 +94,7 @@ class AMapLatLongModel {
     required this.poiType,
     required this.aroundRadius,
     required this.size,
+    required this.latLong,
     required this.customId,
   });
 
@@ -128,7 +130,7 @@ class AMapLatLongModel {
 /// 添加高德经纬度地理围栏
 Future<bool> addAMapGeoFenceWithLatLong(
     AMapLatLongModel aMapLatLongModel) async {
-  final bool? state = await _channel.invokeMethod(
+  final bool? state = await channel.invokeMethod(
       'addAMapGeoFenceWithLatLong', aMapLatLongModel.toMap());
   return state ?? false;
 }
@@ -136,8 +138,9 @@ Future<bool> addAMapGeoFenceWithLatLong(
 /// 创建行政区划围栏  根据关键字创建围栏
 ///  keyword 行政区划关键字  例如：朝阳区
 ///  customId 与围栏关联的自有业务Id
-Future<bool> addGeoFenceWithDistrict(String keyword, String customId) async {
-  final bool? state = await _channel.invokeMethod('addGeoFenceWithDistrict',
+Future<bool> addAMapGeoFenceWithDistrict(
+    {required String keyword, required String customId}) async {
+  final bool? state = await channel.invokeMethod('addGeoFenceWithDistrict',
       <String, String>{'keyword': keyword, 'customId': customId});
   return state ?? false;
 }
@@ -146,10 +149,12 @@ Future<bool> addGeoFenceWithDistrict(String keyword, String customId) async {
 ///  latLong 经纬度 围栏中心点
 ///  radius 要创建的围栏半径 ，半径无限制，单位米
 ///  customId 与围栏关联的自有业务Id
-Future<bool> addCircleGeoFence(
-    LatLong latLong, double radius, String customId) async {
+Future<bool> addAMapCircleGeoFence(
+    {required LatLong latLong,
+    required double radius,
+    required String customId}) async {
   final bool? state =
-      await _channel.invokeMethod('addCircleGeoFence', <String, dynamic>{
+      await channel.invokeMethod('addCircleGeoFence', <String, dynamic>{
     'latitude': latLong.latitude,
     'longitude': latLong.longitude,
     'radius': radius,
@@ -162,9 +167,10 @@ Future<bool> addCircleGeoFence(
 ///  latLongs 多个经纬度点 最少3个点
 ///  radius 要创建的围栏半径 ，半径无限制，单位米
 ///  customId 与围栏关联的自有业务Id
-Future<bool> addCustomGeoFence(List<LatLong> latLongs, String customId) async {
+Future<bool> addAMapCustomGeoFence(
+    {required List<LatLong> latLongs, required String customId}) async {
   if (latLongs.length < 3) return false;
-  final bool? state = await _channel.invokeMethod(
+  final bool? state = await channel.invokeMethod(
       'addCustomGeoFence', <String, dynamic>{
     'latLong': latLongs.map((LatLong e) => e.toMap()).toList(),
     'customId': customId
@@ -211,15 +217,15 @@ class AMapGeoFenceModel {
   double? radius;
 }
 
-typedef EventHandlerAMapGeoFence = void Function(AMapGeoFenceModel location);
+typedef EventHandlerAMapGeoFence = void Function(AMapGeoFenceModel geoFence);
 
 /// 开启围栏状态监听
 /// 不需要使用时 一定要调用 [stopGeoFenceChange] 避免内存移出
-Future<bool> startGeoFenceChange(
+Future<bool> startAMapGeoFenceChange(
     {EventHandlerAMapGeoFence? onGeoFenceChange}) async {
-  final bool? state = await _channel.invokeMethod('startGeoFence');
+  final bool? state = await channel.invokeMethod('startGeoFence');
   if (state != null && state) {
-    _channel.setMethodCallHandler((MethodCall call) async {
+    channel.setMethodCallHandler((MethodCall call) async {
       switch (call.method) {
         case 'updateGeoFence':
           if (onGeoFenceChange == null) return;
@@ -234,7 +240,7 @@ Future<bool> startGeoFenceChange(
 }
 
 /// 关闭围栏状态监听
-Future<bool> stopGeoFenceChange() async {
-  final bool? state = await _channel.invokeMethod('startGeoFence');
+Future<bool> stopAMapGeoFenceChange() async {
+  final bool? state = await channel.invokeMethod('startGeoFence');
   return state ?? false;
 }

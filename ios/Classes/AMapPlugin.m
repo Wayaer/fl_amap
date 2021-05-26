@@ -218,25 +218,9 @@
 
 -(void)getLocation:(BOOL)withReGeocode result:(FlutterResult)result{
     completionBlock = ^(CLLocation *location, AMapLocationReGeocode *reGeocode, NSError *error){
-        if (error != nil && error.code == AMapLocationErrorLocateFailed) {
+        if (error != nil) {
             //定位错误：此时location和reGeocode没有返回值，不进行annotation的添加
-            //            NSLog(@"定位错误:{%ld - %@};", (long)error.code, error.localizedDescription);
             result(@{ @"code":@(error.code),@"description":error.localizedDescription, @"success":@NO });
-            return;
-        }  else if (error != nil
-                    && (error.code == AMapLocationErrorReGeocodeFailed
-                        || error.code == AMapLocationErrorTimeOut
-                        || error.code == AMapLocationErrorCannotFindHost
-                        || error.code == AMapLocationErrorBadURL
-                        || error.code == AMapLocationErrorNotConnectedToInternet
-                        || error.code == AMapLocationErrorCannotConnectToHost)) {
-            //逆地理错误：在带逆地理的单次定位中，逆地理过程可能发生错误，此时location有返回值，reGeocode无返回值，进行annotation的添加
-            //            NSLog(@"逆地理错误:{%ld - %@};", (long)error.code, error.localizedDescription);
-        } else if (error != nil && error.code == AMapLocationErrorRiskOfFakeLocation) {
-            //存在虚拟定位的风险：此时location和reGeocode没有返回值，不进行annotation的添加
-            //            NSLog(@"存在虚拟定位的风险:{%ld - %@};", (long)error.code, error.localizedDescription);
-            result(@{ @"code":@(error.code),@"description":error.localizedDescription, @"success":@NO  });
-            return;
         } else {
             //没有错误：location有返回值，reGeocode是否有返回值取决于是否进行逆地理操作，进行annotation的添加
             NSMutableDictionary* md = [[NSMutableDictionary alloc]initWithDictionary: [self location2map:location]  ];
