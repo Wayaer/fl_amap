@@ -107,16 +107,14 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                     ElevatedButton(
                         onPressed: () async {
                           if (!isInit()) return;
-                          final LatLong latLong =
-                              LatLong(30.651411, 103.998638);
+                          final LatLong latLong = LatLong(30.651011, 103.99506);
                           final AMapLatLongModel model = AMapLatLongModel(
                               latLong: latLong,
-                              keyword: '颐和雅居',
+                              keyword: '四川省妇幼儿童医院',
                               poiType: '',
                               customId: '000FATE23（考勤打卡）',
                               size: 10,
                               aroundRadius: 10);
-
                           final bool state =
                               await addAMapGeoFenceWithLatLong(model);
                           show('addAMapGeoFenceWithLatLong : $state');
@@ -160,6 +158,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                           if (!isInit()) return;
                           final bool state = await startAMapGeoFenceChange(
                               onGeoFenceChange: (AMapGeoFenceModel geoFence) {
+                            print('围栏变化监听');
                             geoFenceState.value = geoFence;
                           });
                           show('startAMapGeoFenceChange : $state');

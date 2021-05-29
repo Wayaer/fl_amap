@@ -171,7 +171,7 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                 if (geoFenceClient != null) {
                     val centerPoint = DPoint()
                     centerPoint.latitude = call.argument("latitude")!!
-                    centerPoint.longitude = call.argument("latitude")!!
+                    centerPoint.longitude = call.argument("longitude")!!
                     val aroundRadius =
                             call.argument<Double>("aroundRadius")!!
                     geoFenceClient!!.addGeoFence(
