@@ -152,7 +152,7 @@ class AMapLocation {
         altitude: map['altitude'] as double?,
         longitude: map['longitude'] as double?,
         latitude: map['latitude'] as double?,
-        accuracy: map['accuracy'] as double,
+        accuracy: map['accuracy'] as double?,
         adCode: map['adCode'] as String?,
         aoiName: map['aoiName'] as String?,
         city: map['city'] as String?,

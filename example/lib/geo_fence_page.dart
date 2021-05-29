@@ -49,6 +49,13 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
     }
   }
 
+  bool isInit() {
+    if (!isInitGeoFence) {
+      show('请先调用 => initAMapGeoFence');
+    }
+    return isInitGeoFence;
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
       appBar: AppBar(title: const Text('高德地理围栏')),
@@ -77,6 +84,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                         child: const Text('initAMapGeoFence')),
                     ElevatedButton(
                         onPressed: () {
+                          if (!isInit()) return;
                           disposeAMapGeoFence();
                           isInitGeoFence = false;
                           show('未初始化');
@@ -84,6 +92,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                         child: const Text('disposeAMapGeoFence')),
                     ElevatedButton(
                         onPressed: () async {
+                          if (!isInit()) return;
                           final AMapPoiModel model = AMapPoiModel(
                               keyword: '首开广场',
                               poiType: '写字楼',
@@ -97,12 +106,13 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                         child: const Text('添加POI围栏')),
                     ElevatedButton(
                         onPressed: () async {
+                          if (!isInit()) return;
                           final LatLong latLong =
-                              LatLong(39.941949, 116.435497);
+                              LatLong(30.651411, 103.998638);
                           final AMapLatLongModel model = AMapLatLongModel(
                               latLong: latLong,
-                              keyword: '肯德基',
-                              poiType: '餐饮',
+                              keyword: '颐和雅居',
+                              poiType: '',
                               customId: '000FATE23（考勤打卡）',
                               size: 10,
                               aroundRadius: 10);
@@ -114,6 +124,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                         child: const Text('添加经纬度围栏')),
                     ElevatedButton(
                         onPressed: () async {
+                          if (!isInit()) return;
                           final bool state = await addAMapGeoFenceWithDistrict(
                               keyword: '海淀区', customId: '000FATE23（考勤打卡）');
                           show('addAMapGeoFenceWithDistrict : $state');
@@ -121,6 +132,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                         child: const Text('添加行政区划围栏')),
                     ElevatedButton(
                         onPressed: () async {
+                          if (!isInit()) return;
                           final LatLong latLong =
                               LatLong(39.941949, 116.435497);
                           final bool state = await addAMapCircleGeoFence(
@@ -132,6 +144,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                         child: const Text('添加圆形围栏')),
                     ElevatedButton(
                         onPressed: () async {
+                          if (!isInit()) return;
                           final bool state =
                               await addAMapCustomGeoFence(latLongs: <LatLong>[
                             LatLong(39.933921, 116.372927),
@@ -144,28 +157,31 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                         child: const Text('添加多边形围栏')),
                     ElevatedButton(
                         onPressed: () async {
+                          if (!isInit()) return;
                           final bool state = await startAMapGeoFenceChange(
                               onGeoFenceChange: (AMapGeoFenceModel geoFence) {
-                            show(
-                                'startAMapGeoFenceChange : customID : ${geoFence.customID}  fenceId : ${geoFence.fenceId}');
+                            geoFenceState.value = geoFence;
                           });
                           show('startAMapGeoFenceChange : $state');
                         },
                         child: const Text('开启围栏状态监听')),
                     ElevatedButton(
                         onPressed: () async {
+                          if (!isInit()) return;
                           final bool state = await stopAMapGeoFenceChange();
                           show('stopAMapGeoFenceChange : $state');
                         },
                         child: const Text('关闭围栏状态监听')),
                     ElevatedButton(
                         onPressed: () async {
+                          if (!isInit()) return;
                           final bool state = await removeAMapAllGeoFence();
                           show('removeAMapAllGeoFence : $state');
                         },
                         child: const Text('删除所有地理围栏')),
                     ElevatedButton(
                         onPressed: () async {
+                          if (!isInit()) return;
                           final bool state =
                               await removeAMapGeoFenceWithCustomID('');
                           show('removeAMapGeoFenceWithCustomID : $state');
@@ -187,5 +203,11 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
 
   void show(String str) {
     text.value = str;
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    disposeAMapGeoFence();
   }
 }

@@ -1,5 +1,7 @@
 library fl_amap;
 
+import 'dart:io';
+
 import 'package:flutter/services.dart';
 
 export 'amap_geo_fence.dart';
@@ -10,7 +12,11 @@ const MethodChannel channel = MethodChannel('fl_amap');
 ///  设置ios&android的key
 Future<bool> setAMapKey(
     {required String iosKey, required String androidKey}) async {
-  final bool? state = await channel.invokeMethod('setApiKey', iosKey);
+  String? key;
+  if (Platform.isAndroid) key = androidKey;
+  if (Platform.isIOS) key = iosKey;
+  if (key == null) return false;
+  final bool? state = await channel.invokeMethod('setApiKey', key);
   return state ?? false;
 }
 

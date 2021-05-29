@@ -236,7 +236,7 @@ Future<bool> startAMapGeoFenceChange(
       }
     });
   }
-  return false;
+  return state ?? false;
 }
 
 /// 关闭围栏状态监听

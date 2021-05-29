@@ -105,3 +105,14 @@ Future<void> main() async {
 ## 高德地理围栏功能
 
 1.初始化地理围栏
+```dart
+
+  Future<void> get initGeoFence async {
+    final bool data = await initAMapGeoFence(GeoFenceActivateAction.stayed);
+    if (data) {
+      isInitGeoFence = true;
+      show('初始化地理围栏:$data');
+    }
+  }
+
+```

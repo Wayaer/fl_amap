@@ -11,7 +11,7 @@ dependencies:
     path: ../
   flutter:
     sdk: flutter
-  permission_handler: ^8.0.0+2
+  permission_handler: ^7.2.0
 
 flutter:
   uses-material-design: true

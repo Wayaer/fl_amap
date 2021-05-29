@@ -148,6 +148,7 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
   @override
   void dispose() {
     super.dispose();
+    disposeAMapLocation();
   }
 
   String getLocationStr(AMapLocation? loc) {

@@ -16,7 +16,7 @@ flutter:
   plugin:
     platforms:
       android:
-        package: flutter.amap
+        package: fl.amap
         pluginClass: AMapPlugin
       ios:
         pluginClass: AMapPlugin

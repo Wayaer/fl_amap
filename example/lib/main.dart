@@ -7,7 +7,7 @@ import 'package:permission_handler/permission_handler.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final bool? key = await setAMapKey(
+  final bool key = await setAMapKey(
       iosKey: 'e0e98395277890e48caa0c4bed423ead',
       androidKey: '77418e726d0eefc0ac79a8619b5f4d97');
   if (key != null && key) print('高德地图ApiKey设置成功');
