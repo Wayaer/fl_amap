@@ -35,17 +35,143 @@ Future<bool> disposeAMapGeoFence() async {
   return state ?? false;
 }
 
-/// 删除指定地理围栏
-Future<bool> removeAMapGeoFenceWithCustomID(String customID) async {
-  final bool? state =
-      await channel.invokeMethod('removeGeoFenceWithCustomID', customID);
+/// 暂停监听所有围栏
+/// customID !=null 暂停监听指定customID 的围栏 仅支持ios
+Future<bool> pauseAMapGeoFence({String? customID}) async {
+  final bool? state = await channel.invokeMethod('pauseGeoFence', customID);
   return state ?? false;
 }
 
-/// 删除所有地理围栏
-Future<bool> removeAMapAllGeoFence() async {
-  final bool? state = await channel.invokeMethod('removeAllGeoFence');
+/// 重新开始监听所有围栏
+/// customID !=null 重新开始监听指定customID 的围栏 仅支持ios
+Future<bool> resumeAMapGeoFence({String? customID}) async {
+  final bool? state = await channel.invokeMethod('resumeGeoFence', customID);
   return state ?? false;
+}
+
+/// 删除地理围栏
+/// customID !=null 删除指定围栏 否则删除所有围栏
+Future<bool> removeAMapGeoFence({String? customID}) async {
+  final bool? state = await channel.invokeMethod('removeGeoFence', customID);
+  return state ?? false;
+}
+
+/// 获取所有围栏信息
+/// 在ios  customID !=null 获取指定围栏信息
+Future<List<AMapGeoFenceModel>> getAllAMapGeoFence({String? customID}) async {
+  final List<dynamic>? list =
+      await channel.invokeMethod('getAllGeoFence', customID);
+  if (list != null)
+    return list
+        .map((dynamic e) =>
+            AMapGeoFenceModel.fromMap(e as Map<dynamic, dynamic>))
+        .toList();
+  return <AMapGeoFenceModel>[];
+}
+
+class AMapGeoFenceModel {
+  AMapGeoFenceModel({
+    this.pointList,
+    this.center,
+    this.type,
+    this.radius,
+    this.customId,
+    this.fenceId,
+    this.status,
+  });
+
+  AMapGeoFenceModel.fromMap(Map<dynamic, dynamic> json) {
+    pointList = <List<LatLong>>[];
+    if (json['pointList'] != null) {
+      json['pointList'].forEach((dynamic v) {
+        final List<dynamic> points = v as List<dynamic>;
+        pointList!.add(points
+            .map((dynamic e) => LatLong.fromMap(e as Map<dynamic, dynamic>))
+            .toList());
+      });
+    }
+    center = json['center'] != null
+        ? LatLong.fromMap(json['center'] as Map<dynamic, dynamic>)
+        : null;
+    poiItem = json['poiItem'] != null
+        ? AMapPoiDetailModel.fromMap(json['poiItem'] as Map<dynamic, dynamic>)
+        : null;
+    type = json['type'] as int?;
+    radius = json['radius'] as double?;
+    customId = json['customId'] as String?;
+    fenceId = json['fenceId'] as String?;
+    status = json['status'] as int?;
+  }
+
+  List<List<LatLong>>? pointList;
+  LatLong? center;
+  int? type;
+  double? radius;
+  String? customId;
+  String? fenceId;
+  int? status;
+  AMapPoiDetailModel? poiItem;
+
+  Map<String, dynamic> toMap() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['pointList'] = pointList == null
+        ? null
+        : pointList!
+            .map((List<LatLong> v) => v.map((LatLong e) => e.toMap()).toList())
+            .toList();
+    data['center'] = center == null ? null : center!.toMap();
+    data['poiItem'] = poiItem == null ? null : poiItem!.toMap();
+    data['type'] = type;
+    data['radius'] = radius;
+    data['customId'] = customId;
+    data['fenceId'] = fenceId;
+    data['status'] = status;
+    return data;
+  }
+}
+
+class AMapPoiDetailModel {
+  AMapPoiDetailModel(
+      {this.adName,
+      this.address,
+      this.poiName,
+      this.city,
+      this.poiType,
+      this.latLong,
+      this.poiId});
+
+  AMapPoiDetailModel.fromMap(Map<dynamic, dynamic> json) {
+    adName = json['adName'] as String?;
+    address = json['address'] as String?;
+    poiName = json['poiName'] as String?;
+    city = json['city'] as String?;
+    poiType = json['poiType'] as String?;
+    poiId = json['poiId'] as String?;
+    final double? latitude = json['latitude'] as double?;
+    final double? longitude = json['longitude'] as double?;
+    if (latitude != null && longitude != null)
+      latLong = LatLong(latitude, longitude);
+  }
+
+  String? adName;
+  String? address;
+  String? poiName;
+  String? city;
+  String? poiType;
+  LatLong? latLong;
+  String? poiId;
+
+  Map<String, dynamic> toMap() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['adName'] = adName;
+    data['address'] = address;
+    data['poiName'] = poiName;
+    data['city'] = city;
+    data['poiType'] = poiType;
+    data['latLong'] = latLong == null ? null : latLong!.toMap();
+    data['poiId'] = poiId;
+    return data;
+  }
 }
 
 class AMapPoiModel {
@@ -178,16 +304,26 @@ Future<bool> addAMapCustomGeoFence(
   return state ?? false;
 }
 
-class AMapGeoFenceModel {
-  AMapGeoFenceModel.fromMap(Map<dynamic, dynamic> json) {
+class AMapGeoFenceStatusModel {
+  AMapGeoFenceStatusModel({
+    this.status,
+    this.customID,
+    this.type,
+    this.radius,
+    this.fence,
+    this.fenceId,
+  });
+
+  AMapGeoFenceStatusModel.fromMap(Map<dynamic, dynamic> json) {
     customID = json['customID'] as String?;
     fenceId = json['fenceId'] as String?;
     status = json['status'] as int?;
     type = json['type'] as int?;
     radius = json['radius'] as double?;
-    fence = json['radius'] == null
+    fence = json['fence'] == null
         ? null
-        : AMapGeoFenceModel.fromMap(json['radius'] as Map<dynamic, dynamic>);
+        : AMapGeoFenceStatusModel.fromMap(
+            json['fence'] as Map<dynamic, dynamic>);
   }
 
   /// 自定义id
@@ -211,18 +347,28 @@ class AMapGeoFenceModel {
   String? fenceId;
 
   /// 仅 Android 有数据
-  AMapGeoFenceModel? fence;
+  AMapGeoFenceStatusModel? fence;
 
   /// 仅 Android 有数据
   double? radius;
+
+  Map<String, dynamic> toMap() => <String, dynamic>{
+        'customID': customID,
+        'status': status,
+        'type': type,
+        'fenceId': fenceId,
+        'radius': radius,
+        'fence': fence == null ? null : fence!.toMap(),
+      };
 }
 
-typedef EventHandlerAMapGeoFence = void Function(AMapGeoFenceModel geoFence);
+typedef EventHandlerAMapGeoFenceStatus = void Function(
+    AMapGeoFenceStatusModel geoFence);
 
 /// 开启围栏状态监听
 /// 不需要使用时 一定要调用 [stopGeoFenceChange] 避免内存移出
 Future<bool> startAMapGeoFenceChange(
-    {EventHandlerAMapGeoFence? onGeoFenceChange}) async {
+    {EventHandlerAMapGeoFenceStatus? onGeoFenceChange}) async {
   final bool? state = await channel.invokeMethod('startGeoFence');
   if (state != null && state) {
     channel.setMethodCallHandler((MethodCall call) async {
@@ -232,7 +378,7 @@ Future<bool> startAMapGeoFenceChange(
           if (call.arguments == null) return;
           final Map<dynamic, dynamic> argument =
               call.arguments as Map<dynamic, dynamic>;
-          return onGeoFenceChange(AMapGeoFenceModel.fromMap(argument));
+          return onGeoFenceChange(AMapGeoFenceStatusModel.fromMap(argument));
       }
     });
   }

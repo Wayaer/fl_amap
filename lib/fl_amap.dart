@@ -23,20 +23,15 @@ Future<bool> setAMapKey(
 class LatLong {
   LatLong(this.latitude, this.longitude);
 
-  LatLong.fromMap(Map<String, dynamic> map) {
-    final double? lat = map['latitude'] as double?;
-    final double? long = map['longitude'] as double?;
-
-    if (lat != null && long != null) {
-      latitude = lat;
-      latitude = long;
-    }
+  LatLong.fromMap(Map<dynamic, dynamic> map) {
+    latitude = map['latitude'] as double?;
+    longitude = map['longitude'] as double?;
   }
 
-  late double latitude;
-  late double longitude;
+  double? latitude;
+  double? longitude;
 
-  Map<String, double> toMap() => <String, double>{
+  Map<String, double?> toMap() => <String, double?>{
         'latitude': latitude,
         'longitude': longitude,
       };

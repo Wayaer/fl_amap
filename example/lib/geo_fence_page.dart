@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:amap/main.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_waya/flutter_waya.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:fl_amap/fl_amap.dart';
 
@@ -16,8 +17,9 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
   late ValueNotifier<String> text = ValueNotifier<String>('未初始化');
   bool isInitGeoFence = false;
 
-  late ValueNotifier<AMapGeoFenceModel?> geoFenceState =
-      ValueNotifier<AMapGeoFenceModel?>(null);
+  ValueNotifier<AMapGeoFenceStatusModel?> geoFenceState =
+      ValueNotifier<AMapGeoFenceStatusModel?>(null);
+  ValueNotifier<dynamic> json = ValueNotifier<dynamic>(null);
 
   /// 获取定位权限
   Future<bool> get getPermissions async {
@@ -61,6 +63,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
       appBar: AppBar(title: const Text('高德地理围栏')),
       body: Container(
         width: double.infinity,
+        height: double.infinity,
         padding: const EdgeInsets.all(8.0),
         child: SingleChildScrollView(
             child: Column(
@@ -113,10 +116,11 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                               keyword: '四川省妇幼儿童医院',
                               poiType: '',
                               customId: '000FATE23（考勤打卡）',
-                              size: 10,
-                              aroundRadius: 10);
+                              size: 20,
+                              aroundRadius: 1000);
                           final bool state =
                               await addAMapGeoFenceWithLatLong(model);
+                          print('添加经纬度围栏 $state');
                           show('addAMapGeoFenceWithLatLong : $state');
                         },
                         child: const Text('添加经纬度围栏')),
@@ -132,7 +136,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                         onPressed: () async {
                           if (!isInit()) return;
                           final LatLong latLong =
-                              LatLong(39.941949, 116.435497);
+                              LatLong(30.651411, 103.998638);
                           final bool state = await addAMapCircleGeoFence(
                               latLong: latLong,
                               radius: 10,
@@ -156,8 +160,24 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                     ElevatedButton(
                         onPressed: () async {
                           if (!isInit()) return;
+                          final List<AMapGeoFenceModel> data =
+                              await getAllAMapGeoFence();
+                          if (data.isEmpty) {
+                            json.value = '没有添加围栏信息';
+                          } else {
+                            json.value = data
+                                .map((AMapGeoFenceModel e) => e.toMap())
+                                .toList();
+                          }
+                        },
+                        child: const Text('获取所有围栏信息')),
+                    ElevatedButton(
+                        onPressed: () async {
+                          if (!isInit()) return;
                           final bool state = await startAMapGeoFenceChange(
-                              onGeoFenceChange: (AMapGeoFenceModel geoFence) {
+                              onGeoFenceChange:
+                                  (AMapGeoFenceStatusModel geoFence) {
+                            print(geoFence.toMap());
                             print('围栏变化监听');
                             geoFenceState.value = geoFence;
                           });
@@ -174,31 +194,61 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                     ElevatedButton(
                         onPressed: () async {
                           if (!isInit()) return;
-                          final bool state = await removeAMapAllGeoFence();
+                          final bool state = await removeAMapGeoFence();
                           show('removeAMapAllGeoFence : $state');
+                          json.value = '没有添加围栏信息';
                         },
                         child: const Text('删除所有地理围栏')),
-                    ElevatedButton(
-                        onPressed: () async {
-                          if (!isInit()) return;
-                          final bool state =
-                              await removeAMapGeoFenceWithCustomID('');
-                          show('removeAMapGeoFenceWithCustomID : $state');
-                        },
-                        child: const Text('删除指定地理围栏'))
                   ]),
               Padding(
                   padding: const EdgeInsets.all(20.0),
-                  child: ValueListenableBuilder<AMapGeoFenceModel?>(
+                  child: ValueListenableBuilder<AMapGeoFenceStatusModel?>(
                       valueListenable: geoFenceState,
-                      builder: (_, AMapGeoFenceModel? value, __) => Text(
+                      builder: (_, AMapGeoFenceStatusModel? value, __) => Text(
                           'customID : ${value?.customID}\n'
-                          'type : ${value?.type}\n'
-                          'status : ${value?.status}\n'
-                          'fenceId : ${value?.fenceId}\n',
-                          style: const TextStyle(fontSize: 15))))
+                          '围栏类型 type : ${getType(value?.type)}\n'
+                          '围栏状态 status : ${getStatus(value?.status)}\n'
+                          '围栏ID fenceId : ${value?.fenceId}\n',
+                          style: const TextStyle(fontSize: 15)))),
+              Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: ValueListenableBuilder<dynamic>(
+                      valueListenable: json,
+                      builder: (_, dynamic value, __) {
+                        if (value is Map) return JsonParse(value);
+                        if (value is List) return JsonParse.list(value);
+                        return Text(value.toString());
+                      }))
             ])),
       ));
+
+  String getType(int? type) {
+    switch (type) {
+      case 0:
+        return '圆形地理围栏';
+      case 1:
+        return '多边形地理围栏';
+      case 2:
+        return '(POI）地理围栏';
+      case 3:
+        return '行政区划地理围栏';
+      default:
+        return '未知类型';
+    }
+  }
+
+  String getStatus(int? status) {
+    switch (status) {
+      case 1:
+        return '在范围内';
+      case 2:
+        return '在范围外';
+      case 3:
+        return '停留(在范围内超过10分钟)';
+      default:
+        return '未知状态';
+    }
+  }
 
   void show(String str) {
     text.value = str;
@@ -207,6 +257,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
   @override
   void dispose() {
     super.dispose();
+    removeAMapGeoFence();
     disposeAMapGeoFence();
   }
 }

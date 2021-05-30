@@ -155,10 +155,10 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
     if (loc != null) {
       if (loc.isSuccess ?? false) {
         if (loc.hasAddress ?? false) {
-          return '定位成功: \n时间${loc.timestamp ?? ''}\n经纬度:${loc.latitude ?? ''} ${loc.longitude}\n地址:${loc.formattedAddress ?? ''}\n城市:${loc.city ?? ''}\n省:${loc.province ?? ''}';
+          return '定位成功: \n时间${loc.timestamp ?? ''}\n经纬度:${loc.latLong?.latitude ?? ''} ${loc.latLong?.longitude ?? ''}\n地址:${loc.formattedAddress ?? ''}\n城市:${loc.city ?? ''}\n省:${loc.province ?? ''}';
         } else {
-          return '定位成功: \n时间${loc.timestamp ?? ''}\n经纬度:${loc.latitude ?? ''}'
-              '  ${loc.longitude ?? ''}';
+          return '定位成功: \n时间${loc.timestamp ?? ''}\n经纬度:${loc.latLong?.latitude ?? ''}'
+              '  ${loc.latLong?.longitude ?? ''}';
         }
       } else {
         return '定位失败: \n错误:{code=${loc.code ?? ''},\ndescription=${loc.description ?? ''}';

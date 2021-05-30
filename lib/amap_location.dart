@@ -126,8 +126,7 @@ class AMapLocation {
       this.timestamp,
       this.speed,
       this.altitude,
-      this.longitude,
-      this.latitude,
+      this.latLong,
       this.accuracy,
       this.adCode,
       this.aoiName,
@@ -144,38 +143,42 @@ class AMapLocation {
       this.locationType,
       this.success});
 
-  factory AMapLocation.fromMap(Map<dynamic, dynamic> map) => AMapLocation(
-        description: map['description'] as String?,
-        code: map['code'] as int?,
-        timestamp: map['timestamp'] as double?,
-        speed: map['speed'] as double?,
-        altitude: map['altitude'] as double?,
-        longitude: map['longitude'] as double?,
-        latitude: map['latitude'] as double?,
-        accuracy: map['accuracy'] as double?,
-        adCode: map['adCode'] as String?,
-        aoiName: map['aoiName'] as String?,
-        city: map['city'] as String?,
-        cityCode: map['cityCode'] as String?,
-        country: map['country'] as String?,
-        district: map['district'] as String?,
-        formattedAddress: map['formattedAddress'] as String?,
-        number: map['number'] as String?,
-        poiName: map['poiName'] as String?,
-        provider: map['provider'] as String?,
-        province: map['province'] as String?,
-        street: map['street'] as String?,
-        locationType: map['locationType'] as int?,
-        success: map['success'] as bool?,
-      );
+  factory AMapLocation.fromMap(Map<dynamic, dynamic> map) {
+    final double? latitude = map['latitude'] as double?;
+    final double? longitude = map['longitude'] as double?;
+    LatLong? latLong;
+    if (latitude != null && longitude != null)
+      latLong = LatLong(latitude, longitude);
+    return AMapLocation(
+      description: map['description'] as String?,
+      code: map['code'] as int?,
+      latLong: latLong,
+      timestamp: map['timestamp'] as double?,
+      speed: map['speed'] as double?,
+      altitude: map['altitude'] as double?,
+      accuracy: map['accuracy'] as double?,
+      adCode: map['adCode'] as String?,
+      aoiName: map['aoiName'] as String?,
+      city: map['city'] as String?,
+      cityCode: map['cityCode'] as String?,
+      country: map['country'] as String?,
+      district: map['district'] as String?,
+      formattedAddress: map['formattedAddress'] as String?,
+      number: map['number'] as String?,
+      poiName: map['poiName'] as String?,
+      provider: map['provider'] as String?,
+      province: map['province'] as String?,
+      street: map['street'] as String?,
+      locationType: map['locationType'] as int?,
+      success: map['success'] as bool?,
+    );
+  }
 
   final double? accuracy;
   final double? altitude;
   final double? speed;
   final double? timestamp;
-  final double? latitude;
-  final double? longitude;
-
+  final LatLong? latLong;
   final String? formattedAddress;
   final String? country;
   final String? province;
@@ -239,6 +242,30 @@ class AMapLocation {
 
   ///  是否有详细地址
   bool? get hasAddress => formattedAddress != null;
+
+  Map<String, dynamic> toMap() => <String, dynamic>{
+        'accuracy': accuracy,
+        'description': description,
+        'code': code,
+        'timestamp': timestamp,
+        'speed': speed,
+        'altitude': altitude,
+        'latLong': latLong == null ? null : latLong!.toMap(),
+        'adCode': adCode,
+        'aoiName': aoiName,
+        'poiName': poiName,
+        'city': city,
+        'cityCode': cityCode,
+        'country': country,
+        'district': district,
+        'formattedAddress': formattedAddress,
+        'number': number,
+        'provider': provider,
+        'province': province,
+        'street': street,
+        'locationType': locationType,
+        'success': success,
+      };
 }
 
 class AMapLocationOption {

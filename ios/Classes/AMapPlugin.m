@@ -71,6 +71,22 @@
         result(@YES);
     } else if([@"disposeGeoFence" isEqualToString:method]){
         result(@([self disposeGeoFence]));
+    } else if([@"pauseGeoFence" isEqualToString:method]){
+        NSString *customID =call.arguments;
+        NSArray *fences = [geoFenceManager pauseGeoFenceRegionsWithCustomID:customID];
+        
+        result(@YES);
+        
+    } else if([@"resumeGeoFence" isEqualToString:method]){
+        NSString *customID =call.arguments;
+        NSArray *fences = [geoFenceManager startGeoFenceRegionsWithCustomID:customID];
+        
+        result(@YES);
+    } else if([@"getAllGeoFence" isEqualToString:method]){
+        NSString * customID = call.arguments;
+        
+        NSArray *fences = [geoFenceManager geoFenceRegionsWithCustomID:customID==nil?nil:customID];
+        result(@YES);
     } else if([@"addGeoFenceWithPOI" isEqualToString:method]){
         [geoFenceManager addKeywordPOIRegionForMonitoringWithKeyword:call.arguments[@"keyword"] POIType:call.arguments[@"type"] city:call.arguments[@"city"] size:[call.arguments[@"size"] intValue] customID:call.arguments[@"customID"]];
     } else if([@"addAMapGeoFenceWithLatLong" isEqualToString:method]){
@@ -99,11 +115,13 @@
         coorArr = NULL;
     } else if([@"removeTheGeoFence" isEqualToString:method]){
         //        [geoFenceManager removeTheGeoFenceRegion:];
-    } else if([@"removeGeoFenceWithCustomID" isEqualToString:method]){
-        [geoFenceManager removeGeoFenceRegionsWithCustomID:call.arguments];
-        result(@YES);
-    } else if([@"removeAllGeoFence" isEqualToString:method]){
-        [geoFenceManager removeAllGeoFenceRegions];
+    } else if([@"removeGeoFence" isEqualToString:method]){
+        NSString *customID =call.arguments;
+        if(customID){
+            [geoFenceManager removeGeoFenceRegionsWithCustomID:customID];
+        }else{
+            [geoFenceManager removeAllGeoFenceRegions];
+        }
         result(@YES);
     } else {
         result(FlutterMethodNotImplemented);
