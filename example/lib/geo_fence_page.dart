@@ -1,10 +1,10 @@
 import 'dart:io';
 
 import 'package:amap/main.dart';
+import 'package:fl_amap/fl_amap.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_waya/flutter_waya.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:fl_amap/fl_amap.dart';
 
 class AMapGeoFencePage extends StatefulWidget {
   const AMapGeoFencePage({Key? key}) : super(key: key);
@@ -16,6 +16,7 @@ class AMapGeoFencePage extends StatefulWidget {
 class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
   late ValueNotifier<String> text = ValueNotifier<String>('未初始化');
   bool isInitGeoFence = false;
+  String customID = 'TestCustomID';
 
   ValueNotifier<AMapGeoFenceStatusModel?> geoFenceState =
       ValueNotifier<AMapGeoFenceStatusModel?>(null);
@@ -101,7 +102,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                               poiType: '写字楼',
                               city: '北京',
                               size: 1,
-                              customId: '000FATE23（考勤打卡）');
+                              customID: customID);
                           final bool state =
                               await addAMapGeoFenceWithPOI(model);
                           show('addAMapGeoFenceWithPOI : $state');
@@ -115,7 +116,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                               latLong: latLong,
                               keyword: '四川省妇幼儿童医院',
                               poiType: '',
-                              customId: '000FATE23（考勤打卡）',
+                              customID: customID,
                               size: 20,
                               aroundRadius: 1000);
                           final bool state =
@@ -128,7 +129,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                         onPressed: () async {
                           if (!isInit()) return;
                           final bool state = await addAMapGeoFenceWithDistrict(
-                              keyword: '海淀区', customId: '000FATE23（考勤打卡）');
+                              keyword: '海淀区', customID: customID);
                           show('addAMapGeoFenceWithDistrict : $state');
                         },
                         child: const Text('添加行政区划围栏')),
@@ -138,9 +139,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                           final LatLong latLong =
                               LatLong(30.651411, 103.998638);
                           final bool state = await addAMapCircleGeoFence(
-                              latLong: latLong,
-                              radius: 10,
-                              customId: '000FATE23（考勤打卡）');
+                              latLong: latLong, radius: 10, customID: customID);
                           show('addAMapCircleGeoFence : $state');
                         },
                         child: const Text('添加圆形围栏')),
@@ -153,7 +152,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                             LatLong(39.907261, 116.376532),
                             LatLong(39.900611, 116.418161),
                             LatLong(39.941949, 116.435497),
-                          ], customId: '000FATE23（考勤打卡）');
+                          ], customID: customID);
                           show('addAMapCustomGeoFence : $state');
                         },
                         child: const Text('添加多边形围栏')),
@@ -174,7 +173,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                     ElevatedButton(
                         onPressed: () async {
                           if (!isInit()) return;
-                          final bool state = await startAMapGeoFenceChange(
+                          final bool state = await registerAMapGeoFenceService(
                               onGeoFenceChange:
                                   (AMapGeoFenceStatusModel geoFence) {
                             print(geoFence.toMap());
@@ -183,14 +182,31 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                           });
                           show('startAMapGeoFenceChange : $state');
                         },
-                        child: const Text('开启围栏状态监听')),
+                        child: const Text('开启监听服务')),
                     ElevatedButton(
                         onPressed: () async {
                           if (!isInit()) return;
-                          final bool state = await stopAMapGeoFenceChange();
+                          final bool state =
+                              await unregisterAMapGeoFenceService();
                           show('stopAMapGeoFenceChange : $state');
                         },
-                        child: const Text('关闭围栏状态监听')),
+                        child: const Text('关闭监听服务')),
+                    ElevatedButton(
+                        onPressed: () async {
+                          if (!isInit()) return;
+                          final bool state =
+                              await resumeAMapGeoFence(customID: customID);
+                          show('resumeAMapGeoFence : $state');
+                        },
+                        child: const Text('开始围栏监听')),
+                    ElevatedButton(
+                        onPressed: () async {
+                          if (!isInit()) return;
+                          final bool state =
+                              await pauseAMapGeoFence(customID: customID);
+                          show('pauseAMapGeoFence : $state');
+                        },
+                        child: const Text('暂停围栏监听')),
                     ElevatedButton(
                         onPressed: () async {
                           if (!isInit()) return;
@@ -208,7 +224,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                           'customID : ${value?.customID}\n'
                           '围栏类型 type : ${getType(value?.type)}\n'
                           '围栏状态 status : ${getStatus(value?.status)}\n'
-                          '围栏ID fenceId : ${value?.fenceId}\n',
+                          '围栏ID fenceID : ${value?.fenceID}\n',
                           style: const TextStyle(fontSize: 15)))),
               Padding(
                   padding: const EdgeInsets.all(20.0),

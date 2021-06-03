@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:fl_amap/fl_amap.dart';
 import 'package:flutter/services.dart';
 
@@ -35,16 +37,18 @@ Future<bool> disposeAMapGeoFence() async {
   return state ?? false;
 }
 
-/// 暂停监听所有围栏
+/// 暂停监听围栏
 /// customID !=null 暂停监听指定customID 的围栏 仅支持ios
 Future<bool> pauseAMapGeoFence({String? customID}) async {
+  if (Platform.isIOS) assert(customID != null, 'ios 平台 customID 必须不为null');
   final bool? state = await channel.invokeMethod('pauseGeoFence', customID);
   return state ?? false;
 }
 
-/// 重新开始监听所有围栏
+/// 重新开始监听围栏
 /// customID !=null 重新开始监听指定customID 的围栏 仅支持ios
 Future<bool> resumeAMapGeoFence({String? customID}) async {
+  if (Platform.isIOS) assert(customID != null, 'ios 平台 customID 必须不为null');
   final bool? state = await channel.invokeMethod('resumeGeoFence', customID);
   return state ?? false;
 }
@@ -61,6 +65,8 @@ Future<bool> removeAMapGeoFence({String? customID}) async {
 Future<List<AMapGeoFenceModel>> getAllAMapGeoFence({String? customID}) async {
   final List<dynamic>? list =
       await channel.invokeMethod('getAllGeoFence', customID);
+  print('获取所有围栏信息');
+  print(list?.length);
   if (list != null)
     return list
         .map((dynamic e) =>
@@ -75,8 +81,8 @@ class AMapGeoFenceModel {
     this.center,
     this.type,
     this.radius,
-    this.customId,
-    this.fenceId,
+    this.customID,
+    this.fenceID,
     this.status,
   });
 
@@ -98,8 +104,8 @@ class AMapGeoFenceModel {
         : null;
     type = json['type'] as int?;
     radius = json['radius'] as double?;
-    customId = json['customId'] as String?;
-    fenceId = json['fenceId'] as String?;
+    customID = json['customID'] as String?;
+    fenceID = json['fenceID'] as String?;
     status = json['status'] as int?;
   }
 
@@ -107,8 +113,8 @@ class AMapGeoFenceModel {
   LatLong? center;
   int? type;
   double? radius;
-  String? customId;
-  String? fenceId;
+  String? customID;
+  String? fenceID;
   int? status;
   AMapPoiDetailModel? poiItem;
 
@@ -123,8 +129,8 @@ class AMapGeoFenceModel {
     data['poiItem'] = poiItem == null ? null : poiItem!.toMap();
     data['type'] = type;
     data['radius'] = radius;
-    data['customId'] = customId;
-    data['fenceId'] = fenceId;
+    data['customID'] = customID;
+    data['fenceID'] = fenceID;
     data['status'] = status;
     return data;
   }
@@ -180,7 +186,7 @@ class AMapPoiModel {
     required this.poiType,
     required this.city,
     required this.size,
-    required this.customId,
+    required this.customID,
   });
 
   /// POI关键字  (北京大学)
@@ -196,14 +202,14 @@ class AMapPoiModel {
   late int size;
 
   /// 与围栏关联的自有业务ID
-  late String customId;
+  late String customID;
 
   Map<String, dynamic> toMap() => <String, dynamic>{
         'keyword': keyword,
         'poiType': poiType,
         'city': city,
         'size': size,
-        'customId': customId
+        'customID': customID
       };
 }
 
@@ -221,7 +227,7 @@ class AMapLatLongModel {
     required this.aroundRadius,
     required this.size,
     required this.latLong,
-    required this.customId,
+    required this.customID,
   });
 
   /// POI关键字  (北京大学)
@@ -240,7 +246,7 @@ class AMapLatLongModel {
   late int size;
 
   /// 与围栏关联的自有业务ID
-  late String customId;
+  late String customID;
 
   Map<String, dynamic> toMap() => <String, dynamic>{
         'keyword': keyword,
@@ -249,7 +255,7 @@ class AMapLatLongModel {
         'longitude': latLong.longitude,
         'aroundRadius': aroundRadius,
         'size': size,
-        'customId': customId
+        'customID': customID
       };
 }
 
@@ -258,49 +264,57 @@ Future<bool> addAMapGeoFenceWithLatLong(
     AMapLatLongModel aMapLatLongModel) async {
   final bool? state = await channel.invokeMethod(
       'addAMapGeoFenceWithLatLong', aMapLatLongModel.toMap());
+  print('addAMapGeoFenceWithLatLong');
+  print(state);
   return state ?? false;
 }
 
 /// 创建行政区划围栏  根据关键字创建围栏
 ///  keyword 行政区划关键字  例如：朝阳区
-///  customId 与围栏关联的自有业务Id
+///  customID 与围栏关联的自有业务Id
 Future<bool> addAMapGeoFenceWithDistrict(
-    {required String keyword, required String customId}) async {
+    {required String keyword, required String customID}) async {
   final bool? state = await channel.invokeMethod('addGeoFenceWithDistrict',
-      <String, String>{'keyword': keyword, 'customId': customId});
+      <String, String>{'keyword': keyword, 'customID': customID});
+  print('addAMapGeoFenceWithDistrict');
+  print(state);
   return state ?? false;
 }
 
 /// 创建圆形围栏
 ///  latLong 经纬度 围栏中心点
 ///  radius 要创建的围栏半径 ，半径无限制，单位米
-///  customId 与围栏关联的自有业务Id
+///  customID 与围栏关联的自有业务Id
 Future<bool> addAMapCircleGeoFence(
     {required LatLong latLong,
     required double radius,
-    required String customId}) async {
+    required String customID}) async {
   final bool? state =
       await channel.invokeMethod('addCircleGeoFence', <String, dynamic>{
     'latitude': latLong.latitude,
     'longitude': latLong.longitude,
     'radius': radius,
-    'customId': customId
+    'customID': customID
   });
+  print('addAMapCircleGeoFence');
+  print(state);
   return state ?? false;
 }
 
 /// 创建多边形围栏
 ///  latLongs 多个经纬度点 最少3个点
 ///  radius 要创建的围栏半径 ，半径无限制，单位米
-///  customId 与围栏关联的自有业务Id
+///  customID 与围栏关联的自有业务Id
 Future<bool> addAMapCustomGeoFence(
-    {required List<LatLong> latLongs, required String customId}) async {
+    {required List<LatLong> latLongs, required String customID}) async {
   if (latLongs.length < 3) return false;
   final bool? state = await channel.invokeMethod(
       'addCustomGeoFence', <String, dynamic>{
     'latLong': latLongs.map((LatLong e) => e.toMap()).toList(),
-    'customId': customId
+    'customID': customID
   });
+  print('addAMapCustomGeoFence');
+  print(state);
   return state ?? false;
 }
 
@@ -311,12 +325,12 @@ class AMapGeoFenceStatusModel {
     this.type,
     this.radius,
     this.fence,
-    this.fenceId,
+    this.fenceID,
   });
 
   AMapGeoFenceStatusModel.fromMap(Map<dynamic, dynamic> json) {
     customID = json['customID'] as String?;
-    fenceId = json['fenceId'] as String?;
+    fenceID = json['fenceID'] as String?;
     status = json['status'] as int?;
     type = json['type'] as int?;
     radius = json['radius'] as double?;
@@ -344,7 +358,7 @@ class AMapGeoFenceStatusModel {
   int? type;
 
   /// 围栏唯一id
-  String? fenceId;
+  String? fenceID;
 
   /// 仅 Android 有数据
   AMapGeoFenceStatusModel? fence;
@@ -356,7 +370,7 @@ class AMapGeoFenceStatusModel {
         'customID': customID,
         'status': status,
         'type': type,
-        'fenceId': fenceId,
+        'fenceID': fenceID,
         'radius': radius,
         'fence': fence == null ? null : fence!.toMap(),
       };
@@ -365,11 +379,11 @@ class AMapGeoFenceStatusModel {
 typedef EventHandlerAMapGeoFenceStatus = void Function(
     AMapGeoFenceStatusModel geoFence);
 
-/// 开启围栏状态监听
-/// 不需要使用时 一定要调用 [stopGeoFenceChange] 避免内存移出
-Future<bool> startAMapGeoFenceChange(
+/// 开启围栏状态监听服务
+/// 不需要使用时 一定要调用 [unregisterAMapGeoFenceService]
+Future<bool> registerAMapGeoFenceService(
     {EventHandlerAMapGeoFenceStatus? onGeoFenceChange}) async {
-  final bool? state = await channel.invokeMethod('startGeoFence');
+  final bool? state = await channel.invokeMethod('registerGeoFenceService');
   if (state != null && state) {
     channel.setMethodCallHandler((MethodCall call) async {
       switch (call.method) {
@@ -385,8 +399,8 @@ Future<bool> startAMapGeoFenceChange(
   return state ?? false;
 }
 
-/// 关闭围栏状态监听
-Future<bool> stopAMapGeoFenceChange() async {
-  final bool? state = await channel.invokeMethod('startGeoFence');
+/// 关闭围栏状态监听服务
+Future<bool> unregisterAMapGeoFenceService() async {
+  final bool? state = await channel.invokeMethod('unregisterGeoFenceService');
   return state ?? false;
 }

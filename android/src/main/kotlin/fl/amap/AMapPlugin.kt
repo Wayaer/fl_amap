@@ -16,7 +16,6 @@ import com.amap.api.location.DPoint
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
-import java.lang.Exception
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -173,7 +172,7 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                     call.argument("poiType"),
                     call.argument("city"),
                     call.argument<Int>("size")!!,
-                    call.argument("customId")
+                    call.argument("customID")
                 )
             }
             "addAMapGeoFenceWithLatLong" -> {
@@ -189,13 +188,13 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                     centerPoint,
                     aroundRadius.toFloat(),
                     call.argument<Int>("size")!!,
-                    call.argument("customId")
+                    call.argument("customID")
                 )
             }
             "addGeoFenceWithDistrict" -> {
                 if (resultFalse()) return
                 val keyword = call.argument<String>("keyword")!!
-                val customId = call.argument<String>("customId")!!
+                val customId = call.argument<String>("customID")!!
                 geoFenceClient!!.addGeoFence(keyword, customId)
             }
             "addCircleGeoFence" -> {
@@ -207,7 +206,7 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                     call.argument<Double>("radius")!!
                 geoFenceClient!!.addGeoFence(
                     centerPoint, radius.toFloat(),
-                    call.argument("customId")
+                    call.argument("customID")
                 )
             }
             "addCustomGeoFence" -> {
@@ -226,25 +225,32 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
 
                 geoFenceClient!!.addGeoFence(
                     points,
-                    call.argument("customId")
+                    call.argument("customID")
                 )
             }
             "startGeoFence" -> {
                 if (resultFalse()) return
-                geoFenceClient!!.createPendingIntent(geoFenceBroadcastAction)
-                val filter = IntentFilter()
-                filter.addAction(geoFenceBroadcastAction)
-                context.registerReceiver(mGeoFenceReceiver, filter)
-                isGeoFence = true
-                result.success(true)
+                if (!isGeoFence) {
+                    geoFenceClient!!.createPendingIntent(geoFenceBroadcastAction)
+                    val filter = IntentFilter()
+                    filter.addAction(geoFenceBroadcastAction)
+                    context.registerReceiver(mGeoFenceReceiver, filter)
+                    isGeoFence = true
+                    result.success(true)
+                }
+                result.success(false)
             }
-            "stopGeoFence" -> {
+            "registerGeoFenceService" -> {
                 if (resultFalse()) return
-                isGeoFence = false
-                context.unregisterReceiver(mGeoFenceReceiver)
-                result.success(true)
+                if (isGeoFence) {
+                    context.unregisterReceiver(mGeoFenceReceiver)
+                    isGeoFence = false
+                    result.success(true)
+                }
+                result.success(false)
+
             }
-            "removeGeoFence" -> {
+            "unregisterGeoFenceService" -> {
                 if (resultFalse()) return
                 val customId = call.arguments as String?
                 if (customId == null) {
@@ -275,8 +281,8 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
         geoFences.forEach { geoFence: GeoFence? ->
             if (geoFence != null) {
                 val map: MutableMap<String, Any?> = HashMap()
-                map["customId"] = geoFence.customId
-                map["fenceId"] = geoFence.fenceId
+                map["customID"] = geoFence.customId
+                map["fenceID"] = geoFence.fenceId
                 map["type"] = geoFence.type
                 map["radius"] = geoFence.radius.toDouble()
                 map["status"] = geoFence.status
@@ -456,13 +462,13 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                     val fence: GeoFence? = bundle.getParcelable(GeoFence.BUNDLE_KEY_FENCE)
                     val map: MutableMap<String, Any?> = HashMap()
                     map["status"] = status
-                    map["customId"] = customId
-                    map["fenceId"] = fenceId
+                    map["customID"] = customId
+                    map["fenceID"] = fenceId
                     if (fence != null) {
                         val fenceMap: MutableMap<String, Any?> = HashMap()
                         fenceMap["type"] = fence.type
-                        fenceMap["customId"] = fence.customId
-                        fenceMap["fenceId"] = fence.fenceId
+                        fenceMap["customID"] = fence.customId
+                        fenceMap["fenceID"] = fence.fenceId
                         fenceMap["radius"] = fence.radius.toDouble()
 
                         map["fence"] = fenceMap

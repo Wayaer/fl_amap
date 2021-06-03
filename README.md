@@ -116,3 +116,123 @@ Future<void> main() async {
   }
 
 ```
+2.关闭围栏系统
+
+```dart
+  void dispose() {
+    super.dispose();
+    disposeAMapGeoFence();
+  }
+```
+
+3.根据POI添加围栏
+```dart
+  Future<void> fun() async {
+  final AMapPoiModel model = AMapPoiModel(
+                              keyword: '首开广场',
+                              poiType: '写字楼',
+                              city: '北京',
+                              size: 1,
+                              customId: '000FATE23（考勤打卡）');
+  final bool state = await addAMapGeoFenceWithPOI(model);
+  }
+```
+
+4.根据坐标关键字添加围栏
+```dart
+  Future<void> fun() async {
+  final LatLong latLong = LatLong(39.933921, 116.372927);
+                          final AMapLatLongModel model = AMapLatLongModel(
+                              latLong: latLong,
+                              keyword: '首开广场',
+                              poiType: '',
+                              customId: '000FATE23（考勤打卡）',
+                              size: 20,
+                              aroundRadius: 1000);
+    final bool state = await addAMapGeoFenceWithLatLong(model);
+  }
+```
+
+5.添加行政区划围栏
+```dart
+  Future<void> fun() async {
+  final bool state = await addAMapGeoFenceWithDistrict(
+                               keyword: '海淀区', customId: '000FATE23（考勤打卡）');
+  }
+```
+
+6.添加圆形围栏
+```dart
+  Future<void> fun() async {
+  final LatLong latLong = LatLong(30.651411, 103.998638);
+  final bool state = await addAMapCircleGeoFence(
+                              latLong: latLong,
+                              radius: 10,
+                              customId: '000FATE23（考勤打卡）');
+  }
+```
+
+7.添加多边形围栏
+```dart
+  Future<void> fun() async {
+  final bool state = await addAMapCustomGeoFence(latLongs: <LatLong>[
+                            LatLong(39.933921, 116.372927),
+                            LatLong(39.907261, 116.376532),
+                            LatLong(39.900611, 116.418161),
+                            LatLong(39.941949, 116.435497),
+                          ], customId: '000FATE23（考勤打卡）');
+  }
+```
+
+8.获取所有围栏信息
+```dart
+  Future<void> fun() async {
+  /// 传入 customID 获取指定标识的围栏信息 仅支持ios
+  final List<AMapGeoFenceModel> data = await getAllAMapGeoFence();
+  }
+```
+
+9.删除地理围栏
+```dart
+  Future<void> fun() async {
+  /// 传入 customID 删除指定标识的围栏
+  /// 不传 删除所有围栏
+  final bool state = await removeAMapGeoFence();
+  }
+```
+10.暂停监听围栏
+```dart
+  Future<void> fun() async {
+  /// 传入 customID 暂停指定标识的围栏
+  /// 不传 暂停所有围栏
+  final bool state = await pauseAMapGeoFence();
+  }
+```
+11.重新开始监听围栏
+```dart
+  Future<void> fun() async {
+  /// 传入 customID 重新开始指定标识的围栏
+  /// 不传 重新开始所有围栏
+  final bool state = await resumeAMapGeoFence();
+  }
+```
+
+12.开启监听服务
+```dart
+  Future<void> fun() async {
+  final bool state = await registerAMapGeoFenceService(
+                              onGeoFenceChange:
+                                  (AMapGeoFenceStatusModel geoFence) {
+
+                            print('围栏变化监听');
+                     
+                          });
+  }
+```
+
+13.关闭监听服务
+```dart
+  Future<void> fun() async {
+  final bool state = await stopAMapGeoFenceChange();
+  }
+```
