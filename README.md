@@ -208,7 +208,7 @@ Future<void> main() async {
   final bool state = await pauseAMapGeoFence();
   }
 ```
-11.重新开始监听围栏
+11.开始监听围栏
 ```dart
   Future<void> fun() async {
   /// 传入 customID 重新开始指定标识的围栏
