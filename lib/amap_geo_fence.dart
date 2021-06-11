@@ -65,8 +65,6 @@ Future<bool> removeAMapGeoFence({String? customID}) async {
 Future<List<AMapGeoFenceModel>> getAllAMapGeoFence({String? customID}) async {
   final List<dynamic>? list =
       await channel.invokeMethod('getAllGeoFence', customID);
-  print('获取所有围栏信息');
-  print(list?.length);
   if (list != null)
     return list
         .map((dynamic e) =>
@@ -264,8 +262,6 @@ Future<bool> addAMapGeoFenceWithLatLong(
     AMapLatLongModel aMapLatLongModel) async {
   final bool? state = await channel.invokeMethod(
       'addAMapGeoFenceWithLatLong', aMapLatLongModel.toMap());
-  print('addAMapGeoFenceWithLatLong');
-  print(state);
   return state ?? false;
 }
 
@@ -276,8 +272,6 @@ Future<bool> addAMapGeoFenceWithDistrict(
     {required String keyword, required String customID}) async {
   final bool? state = await channel.invokeMethod('addGeoFenceWithDistrict',
       <String, String>{'keyword': keyword, 'customID': customID});
-  print('addAMapGeoFenceWithDistrict');
-  print(state);
   return state ?? false;
 }
 
@@ -296,8 +290,6 @@ Future<bool> addAMapCircleGeoFence(
     'radius': radius,
     'customID': customID
   });
-  print('addAMapCircleGeoFence');
-  print(state);
   return state ?? false;
 }
 
@@ -313,8 +305,6 @@ Future<bool> addAMapCustomGeoFence(
     'latLong': latLongs.map((LatLong e) => e.toMap()).toList(),
     'customID': customID
   });
-  print('addAMapCustomGeoFence');
-  print(state);
   return state ?? false;
 }
 

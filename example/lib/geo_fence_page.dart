@@ -180,7 +180,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                             print('围栏变化监听');
                             geoFenceState.value = geoFence;
                           });
-                          show('startAMapGeoFenceChange : $state');
+                          show('registerAMapGeoFenceService : $state');
                         },
                         child: const Text('开启监听服务')),
                     ElevatedButton(
@@ -188,7 +188,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                           if (!isInit()) return;
                           final bool state =
                               await unregisterAMapGeoFenceService();
-                          show('stopAMapGeoFenceChange : $state');
+                          show('unregisterAMapGeoFenceService : $state');
                         },
                         child: const Text('关闭监听服务')),
                     ElevatedButton(
@@ -211,7 +211,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                         onPressed: () async {
                           if (!isInit()) return;
                           final bool state = await removeAMapGeoFence();
-                          show('removeAMapAllGeoFence : $state');
+                          show('removeAMapGeoFence : $state');
                           json.value = '没有添加围栏信息';
                         },
                         child: const Text('删除所有地理围栏')),

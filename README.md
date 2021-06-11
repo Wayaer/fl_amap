@@ -233,6 +233,6 @@ Future<void> main() async {
 13.关闭监听服务
 ```dart
   Future<void> fun() async {
-  final bool state = await stopAMapGeoFenceChange();
+  final bool state = await unregisterAMapGeoFenceService();
   }
 ```
