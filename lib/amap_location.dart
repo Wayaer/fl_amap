@@ -1,8 +1,4 @@
-import 'dart:async';
-import 'dart:io';
-
-import 'package:fl_amap/fl_amap.dart';
-import 'package:flutter/services.dart';
+part of 'fl_amap.dart';
 
 typedef EventHandlerAMapLocation = void Function(AMapLocation location);
 
@@ -45,7 +41,7 @@ enum CLLocationAccuracy {
 ///  初始化定位
 ///  @param options 启动系统所需选项
 Future<bool> initAMapLocation(AMapLocationOption option) async {
-  if (!supportPlatform) return false;
+  if (!_supportPlatform) return false;
   final bool? isInit =
       await channel.invokeMethod('initLocation', option.toMap());
   return isInit ?? false;
@@ -54,7 +50,7 @@ Future<bool> initAMapLocation(AMapLocationOption option) async {
 ///  直接获取定位
 ///  @param needsAddress 是否需要详细地址信息 默认false
 Future<AMapLocation?> getAMapLocation([bool needsAddress = false]) async {
-  if (!supportPlatform) return null;
+  if (!_supportPlatform) return null;
   final Map<dynamic, dynamic>? location =
       await channel.invokeMethod('getLocation', needsAddress);
   if (location == null) return null;
@@ -63,7 +59,7 @@ Future<AMapLocation?> getAMapLocation([bool needsAddress = false]) async {
 
 /// 销毁定位参数
 Future<bool> disposeAMapLocation() async {
-  if (!supportPlatform) return false;
+  if (!_supportPlatform) return false;
   final bool? state = await channel.invokeMethod('disposeLocation');
   return state ?? false;
 }
@@ -71,7 +67,7 @@ Future<bool> disposeAMapLocation() async {
 /// 启动监听位置改变
 Future<bool> startAMapLocationChange(
     {EventHandlerAMapLocation? onLocationChange}) async {
-  if (!supportPlatform) return false;
+  if (!_supportPlatform) return false;
   final bool? state = await channel.invokeMethod<bool?>('startLocation');
   if (state != null && state) {
     channel.setMethodCallHandler((MethodCall call) async {
@@ -90,7 +86,7 @@ Future<bool> startAMapLocationChange(
 
 ///  停止监听位置改变
 Future<bool> stopAMapLocation() async {
-  if (!supportPlatform) return false;
+  if (!_supportPlatform) return false;
   final bool? state = await channel.invokeMethod('stopLocation');
   return state ?? false;
 }

@@ -5,15 +5,16 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
-export 'amap_geo_fence.dart';
-export 'amap_location.dart';
+part 'amap_geo_fence.dart';
+
+part 'amap_location.dart';
 
 const MethodChannel channel = MethodChannel('fl_amap');
 
 ///  设置ios&android的key
 Future<bool> setAMapKey(
     {required String iosKey, required String androidKey}) async {
-  if (!supportPlatform) return false;
+  if (!_supportPlatform) return false;
   String? key;
   if (Platform.isAndroid) key = androidKey;
   if (Platform.isIOS) key = iosKey;
@@ -22,11 +23,15 @@ Future<bool> setAMapKey(
   return state ?? false;
 }
 
-bool get supportPlatform {
-  if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) return true;
+bool get _supportPlatform {
+  if (!kIsWeb && (_isAndroid || _isIOS)) return true;
   print('not support Platform');
   return false;
 }
+
+bool get _isAndroid => defaultTargetPlatform == TargetPlatform.android;
+
+bool get _isIOS => defaultTargetPlatform == TargetPlatform.iOS;
 
 class LatLong {
   LatLong(this.latitude, this.longitude);
