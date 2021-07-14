@@ -1,5 +1,7 @@
+## [0.2.1]
+ * add platform restrictions
 ## [0.2.0]
-  add AMapGeoFence
+ * add AMapGeoFence
 ## [0.1.3]
  * update Android com.android.tools.build:gradle version
  * replace jcenter() to mavenCentral()

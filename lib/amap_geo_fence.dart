@@ -23,6 +23,7 @@ enum GeoFenceActivateAction {
 ///  设置为YES的时候必须保证 Background Modes 中的 Location updates 处于选中状态，否则会抛出异常。
 Future<bool> initAMapGeoFence(GeoFenceActivateAction action,
     [bool allowsBackgroundLocationUpdates = false]) async {
+  if (!supportPlatform) return false;
   final bool? isInit =
       await channel.invokeMethod('initGeoFence', <String, dynamic>{
     'action': GeoFenceActivateAction.values.indexOf(action),
@@ -33,6 +34,7 @@ Future<bool> initAMapGeoFence(GeoFenceActivateAction action,
 
 /// 销毁地理围栏
 Future<bool> disposeAMapGeoFence() async {
+  if (!supportPlatform) return false;
   final bool? state = await channel.invokeMethod('disposeGeoFence');
   return state ?? false;
 }
@@ -40,6 +42,7 @@ Future<bool> disposeAMapGeoFence() async {
 /// 暂停监听围栏
 /// customID !=null 暂停监听指定customID 的围栏 仅支持ios
 Future<bool> pauseAMapGeoFence({String? customID}) async {
+  if (!supportPlatform) return false;
   if (Platform.isIOS) assert(customID != null, 'ios 平台 customID 必须不为null');
   final bool? state = await channel.invokeMethod('pauseGeoFence', customID);
   return state ?? false;
@@ -48,6 +51,7 @@ Future<bool> pauseAMapGeoFence({String? customID}) async {
 /// 重新开始监听围栏
 /// customID !=null 重新开始监听指定customID 的围栏 仅支持ios
 Future<bool> resumeAMapGeoFence({String? customID}) async {
+  if (!supportPlatform) return false;
   if (Platform.isIOS) assert(customID != null, 'ios 平台 customID 必须不为null');
   final bool? state = await channel.invokeMethod('resumeGeoFence', customID);
   return state ?? false;
@@ -56,6 +60,7 @@ Future<bool> resumeAMapGeoFence({String? customID}) async {
 /// 删除地理围栏
 /// customID !=null 删除指定围栏 否则删除所有围栏
 Future<bool> removeAMapGeoFence({String? customID}) async {
+  if (!supportPlatform) return false;
   final bool? state = await channel.invokeMethod('removeGeoFence', customID);
   return state ?? false;
 }
@@ -63,6 +68,7 @@ Future<bool> removeAMapGeoFence({String? customID}) async {
 /// 获取所有围栏信息
 /// 在ios  customID !=null 获取指定围栏信息
 Future<List<AMapGeoFenceModel>> getAllAMapGeoFence({String? customID}) async {
+  if (!supportPlatform) return <AMapGeoFenceModel>[];
   final List<dynamic>? list =
       await channel.invokeMethod('getAllGeoFence', customID);
   if (list != null)
@@ -213,6 +219,7 @@ class AMapPoiModel {
 
 /// 添加高德POI地理围栏
 Future<bool> addAMapGeoFenceWithPOI(AMapPoiModel aMapPoiModel) async {
+  if (!supportPlatform) return false;
   final bool? state =
       await channel.invokeMethod('addGeoFenceWithPOI', aMapPoiModel.toMap());
   return state ?? false;
@@ -260,6 +267,7 @@ class AMapLatLongModel {
 /// 添加高德经纬度地理围栏
 Future<bool> addAMapGeoFenceWithLatLong(
     AMapLatLongModel aMapLatLongModel) async {
+  if (!supportPlatform) return false;
   final bool? state = await channel.invokeMethod(
       'addAMapGeoFenceWithLatLong', aMapLatLongModel.toMap());
   return state ?? false;
@@ -270,6 +278,7 @@ Future<bool> addAMapGeoFenceWithLatLong(
 ///  customID 与围栏关联的自有业务Id
 Future<bool> addAMapGeoFenceWithDistrict(
     {required String keyword, required String customID}) async {
+  if (!supportPlatform) return false;
   final bool? state = await channel.invokeMethod('addGeoFenceWithDistrict',
       <String, String>{'keyword': keyword, 'customID': customID});
   return state ?? false;
@@ -283,6 +292,7 @@ Future<bool> addAMapCircleGeoFence(
     {required LatLong latLong,
     required double radius,
     required String customID}) async {
+  if (!supportPlatform) return false;
   final bool? state =
       await channel.invokeMethod('addCircleGeoFence', <String, dynamic>{
     'latitude': latLong.latitude,
@@ -299,6 +309,7 @@ Future<bool> addAMapCircleGeoFence(
 ///  customID 与围栏关联的自有业务Id
 Future<bool> addAMapCustomGeoFence(
     {required List<LatLong> latLongs, required String customID}) async {
+  if (!supportPlatform) return false;
   if (latLongs.length < 3) return false;
   final bool? state = await channel.invokeMethod(
       'addCustomGeoFence', <String, dynamic>{
@@ -373,6 +384,7 @@ typedef EventHandlerAMapGeoFenceStatus = void Function(
 /// 不需要使用时 一定要调用 [unregisterAMapGeoFenceService]
 Future<bool> registerAMapGeoFenceService(
     {EventHandlerAMapGeoFenceStatus? onGeoFenceChange}) async {
+  if (!supportPlatform) return false;
   final bool? state = await channel.invokeMethod('registerGeoFenceService');
   if (state != null && state) {
     channel.setMethodCallHandler((MethodCall call) async {
@@ -391,6 +403,7 @@ Future<bool> registerAMapGeoFenceService(
 
 /// 关闭围栏状态监听服务
 Future<bool> unregisterAMapGeoFenceService() async {
+  if (!supportPlatform) return false;
   final bool? state = await channel.invokeMethod('unregisterGeoFenceService');
   return state ?? false;
 }
