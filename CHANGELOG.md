@@ -1,4 +1,5 @@
 ## [0.2.1]
+ * upgrade Android AMap SDK version
  * add platform restrictions
 ## [0.2.0]
  * add AMapGeoFence
