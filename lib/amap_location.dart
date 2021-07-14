@@ -438,7 +438,7 @@ class AMapLocationOption {
   }
 
   Map<String, dynamic>? toMap() {
-    if (Platform.isAndroid) {
+    if (_isAndroid) {
       return <String, dynamic>{
         'locationMode': getLocationMode(),
         'gpsFirst': gpsFirst,
@@ -453,7 +453,7 @@ class AMapLocationOption {
         'locationCacheEnable': locationCacheEnable,
         'geoLanguage': getGeoLanguage()
       };
-    } else if (Platform.isIOS) {
+    } else if (_isIOS) {
       return <String, dynamic>{
         'allowsBackgroundLocationUpdates': allowsBackgroundLocationUpdates,
         'desiredAccuracy': getDesiredAccuracy(),

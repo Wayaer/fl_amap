@@ -40,7 +40,7 @@ Future<bool> disposeAMapGeoFence() async {
 /// customID !=null 暂停监听指定customID 的围栏 仅支持ios
 Future<bool> pauseAMapGeoFence({String? customID}) async {
   if (!_supportPlatform) return false;
-  if (Platform.isIOS) assert(customID != null, 'ios 平台 customID 必须不为null');
+  if (_isIOS) assert(customID != null, 'ios 平台 customID 必须不为null');
   final bool? state = await channel.invokeMethod('pauseGeoFence', customID);
   return state ?? false;
 }
@@ -49,7 +49,7 @@ Future<bool> pauseAMapGeoFence({String? customID}) async {
 /// customID !=null 重新开始监听指定customID 的围栏 仅支持ios
 Future<bool> resumeAMapGeoFence({String? customID}) async {
   if (!_supportPlatform) return false;
-  if (Platform.isIOS) assert(customID != null, 'ios 平台 customID 必须不为null');
+  if (_isIOS) assert(customID != null, 'ios 平台 customID 必须不为null');
   final bool? state = await channel.invokeMethod('resumeGeoFence', customID);
   return state ?? false;
 }

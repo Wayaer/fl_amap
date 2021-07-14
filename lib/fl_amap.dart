@@ -1,7 +1,3 @@
-library fl_amap;
-
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -16,8 +12,8 @@ Future<bool> setAMapKey(
     {required String iosKey, required String androidKey}) async {
   if (!_supportPlatform) return false;
   String? key;
-  if (Platform.isAndroid) key = androidKey;
-  if (Platform.isIOS) key = iosKey;
+  if (_isAndroid) key = androidKey;
+  if (_isIOS) key = iosKey;
   if (key == null) return false;
   final bool? state = await channel.invokeMethod('setApiKey', key);
   return state ?? false;
@@ -25,7 +21,7 @@ Future<bool> setAMapKey(
 
 bool get _supportPlatform {
   if (!kIsWeb && (_isAndroid || _isIOS)) return true;
-  print('not support Platform');
+  print('Not support platform for $defaultTargetPlatform');
   return false;
 }
 
