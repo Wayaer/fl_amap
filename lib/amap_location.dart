@@ -38,57 +38,72 @@ enum CLLocationAccuracy {
   kCLLocationAccuracyThreeKilometers
 }
 
-///  初始化定位
-///  @param options 启动系统所需选项
-Future<bool> initAMapLocation(AMapLocationOption option) async {
-  if (!_supportPlatform) return false;
-  final bool? isInit =
-      await channel.invokeMethod('initLocation', option.toMap());
-  return isInit ?? false;
-}
+class FlAMapLocation {
+  factory FlAMapLocation() => _getInstance();
 
-///  直接获取定位
-///  @param needsAddress 是否需要详细地址信息 默认false
-Future<AMapLocation?> getAMapLocation([bool needsAddress = false]) async {
-  if (!_supportPlatform) return null;
-  final Map<dynamic, dynamic>? location =
-      await channel.invokeMethod('getLocation', needsAddress);
-  if (location == null) return null;
-  return AMapLocation.fromMap(location);
-}
+  FlAMapLocation._internal();
 
-/// 销毁定位参数
-Future<bool> disposeAMapLocation() async {
-  if (!_supportPlatform) return false;
-  final bool? state = await channel.invokeMethod('disposeLocation');
-  return state ?? false;
-}
+  static FlAMapLocation get instance => _getInstance();
 
-/// 启动监听位置改变
-Future<bool> startAMapLocationChange(
-    {EventHandlerAMapLocation? onLocationChange}) async {
-  if (!_supportPlatform) return false;
-  final bool? state = await channel.invokeMethod<bool?>('startLocation');
-  if (state != null && state) {
-    channel.setMethodCallHandler((MethodCall call) async {
-      switch (call.method) {
-        case 'updateLocation':
-          if (onLocationChange == null) return;
-          if (call.arguments == null) return;
-          final Map<dynamic, dynamic> argument =
-              call.arguments as Map<dynamic, dynamic>;
-          return onLocationChange(AMapLocation.fromMap(argument));
-      }
-    });
+  static FlAMapLocation? _instance;
+
+  static FlAMapLocation _getInstance() {
+    _instance ??= FlAMapLocation._internal();
+    return _instance!;
   }
-  return false;
-}
 
-///  停止监听位置改变
-Future<bool> stopAMapLocation() async {
-  if (!_supportPlatform) return false;
-  final bool? state = await channel.invokeMethod('stopLocation');
-  return state ?? false;
+  ///  初始化定位
+  ///  @param options 启动系统所需选项
+  Future<bool> initialize(AMapLocationOption option) async {
+    if (!_supportPlatform) return false;
+    final bool? isInit =
+        await channel.invokeMethod('initLocation', option.toMap());
+    return isInit ?? false;
+  }
+
+  ///  直接获取定位
+  ///  @param needsAddress 是否需要详细地址信息 默认false
+  Future<AMapLocation?> getLocation([bool needsAddress = false]) async {
+    if (!_supportPlatform) return null;
+    final Map<dynamic, dynamic>? location =
+        await channel.invokeMethod('getLocation', needsAddress);
+    if (location == null) return null;
+    return AMapLocation.fromMap(location);
+  }
+
+  /// 销毁定位参数
+  Future<bool> dispose() async {
+    if (!_supportPlatform) return false;
+    final bool? state = await channel.invokeMethod('disposeLocation');
+    return state ?? false;
+  }
+
+  /// 启动监听位置改变
+  Future<bool> startLocationChange(
+      {EventHandlerAMapLocation? onLocationChange}) async {
+    if (!_supportPlatform) return false;
+    final bool? state = await channel.invokeMethod<bool?>('startLocation');
+    if (state != null && state) {
+      channel.setMethodCallHandler((MethodCall call) async {
+        switch (call.method) {
+          case 'updateLocation':
+            if (onLocationChange == null) return;
+            if (call.arguments == null) return;
+            final Map<dynamic, dynamic> argument =
+                call.arguments as Map<dynamic, dynamic>;
+            return onLocationChange(AMapLocation.fromMap(argument));
+        }
+      });
+    }
+    return false;
+  }
+
+  ///  停止监听位置改变
+  Future<bool> stopLocation() async {
+    if (!_supportPlatform) return false;
+    final bool? state = await channel.invokeMethod('stopLocation');
+    return state ?? false;
+  }
 }
 
 class AMapLocationQualityReport {

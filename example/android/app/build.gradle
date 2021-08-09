@@ -52,14 +52,12 @@ android {
             minifyEnabled true
             shrinkResources true
             signingConfig signingConfigs.release
-            consumerProguardFiles 'consumer-rules.pro'
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'consumer-rules.pro'
         }
         debug {
             minifyEnabled true
             shrinkResources true
             signingConfig signingConfigs.release
-            consumerProguardFiles 'consumer-rules.pro'
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'consumer-rules.pro'
         }
     }

@@ -27,7 +27,7 @@ iOS14及以上版本使用地理围栏功能，需要在plist中配置NSLocation
 
 ## 开始使用
 ## 高德定位功能
-1.设置key
+- 设置key
 ```dart
 
 Future<void> main() async {
@@ -45,15 +45,15 @@ Future<void> main() async {
 
 ```
 
-2.初始化定位参数
+- 初始化定位参数
 ```dart
 
-  Future<void> initAMapLocation() async {
+  Future<void> initialize() async {
     /// 获取权限
     if (getPermissions) return;
 
     /// 初始化AMap
-    final bool data = await initAMapLocation(AMapLocationOption());
+    final bool data = await FlAMapLocation.instance.initialize(AMapLocationOption());
     if (data != null && data) {
       show('初始化成功');
     }
@@ -61,24 +61,24 @@ Future<void> main() async {
 
 ```
 
-3.单次获取定位
+- 单次获取定位
 ```dart
-  Future<void> getAMapLocation() async {
+  Future<void> getLocation() async {
      /// 务必先初始化 并获取权限
     if (getPermissions) return;
-    AMapLocation location =  await getAMapLocation(true);
+    AMapLocation location =  await FlAMapLocation.instance.getLocation(true);
   }
 
 ```
 
-4.开启定位变化监听
+- 开启定位变化监听
 ```dart
 
-  Future<void> startAMapLocationChange() async {
+  Future<void> startLocationChange() async {
      /// 务必先初始化 并获取权限
     if (getPermissions) return;
     final bool data =
-        await startAMapLocationChange(onLocationChange: (AMapLocation location) {
+        await FlAMapLocation.instance.startLocationChange(onLocationChange: (AMapLocation location) {
       locationState.value = location;
       text.value = '位置更新$i次';
     });
@@ -86,29 +86,29 @@ Future<void> main() async {
   }
 
 ```
-5.关闭定位变化监听
+- 关闭定位变化监听
 ```dart
-  void stop(){
-     stopAMapLocation();
+  void stopLocation(){
+  FlAMapLocation.instance.stopLocation();
   }
 ```
 
-6.关闭定位系统
+- 关闭定位系统
 
 ```dart
   void dispose() {
     super.dispose();
-    disposeAMapLocation();
+    FlAMapLocation.instance.dispose();
   }
 ```
 
 ## 高德地理围栏功能
 
-1.初始化地理围栏
+- 初始化地理围栏
 ```dart
 
-  Future<void> get initGeoFence async {
-    final bool data = await initAMapGeoFence(GeoFenceActivateAction.stayed);
+  Future<void> get initialize async {
+    final bool data = await FlAMapGeoFence.instance.initialize(GeoFenceActivateAction.stayed);
     if (data) {
       isInitGeoFence = true;
       show('初始化地理围栏:$data');
@@ -116,31 +116,31 @@ Future<void> main() async {
   }
 
 ```
-2.关闭围栏系统
+- 关闭围栏系统
 
 ```dart
   void dispose() {
     super.dispose();
-    disposeAMapGeoFence();
+    FlAMapGeoFence.instance.dispose();
   }
 ```
 
-3.根据POI添加围栏
+- 根据POI添加围栏
 ```dart
-  Future<void> fun() async {
+  Future<void> addPOI() async {
   final AMapPoiModel model = AMapPoiModel(
                               keyword: '首开广场',
                               poiType: '写字楼',
                               city: '北京',
                               size: 1,
                               customId: '000FATE23（考勤打卡）');
-  final bool state = await addAMapGeoFenceWithPOI(model);
+  final bool state = await FlAMapGeoFence.instance.addPOI(model);
   }
 ```
 
-4.根据坐标关键字添加围栏
+- 根据坐标关键字添加围栏
 ```dart
-  Future<void> fun() async {
+  Future<void> addLatLong() async {
   final LatLong latLong = LatLong(39.933921, 116.372927);
                           final AMapLatLongModel model = AMapLatLongModel(
                               latLong: latLong,
@@ -149,33 +149,33 @@ Future<void> main() async {
                               customId: '000FATE23（考勤打卡）',
                               size: 20,
                               aroundRadius: 1000);
-    final bool state = await addAMapGeoFenceWithLatLong(model);
+    final bool state = await FlAMapGeoFence.instance.addLatLong(model);
   }
 ```
 
-5.添加行政区划围栏
+- 添加行政区划围栏
 ```dart
-  Future<void> fun() async {
-  final bool state = await addAMapGeoFenceWithDistrict(
+  Future<void> addDistrict() async {
+  final bool state = await FlAMapGeoFence.instance.addDistrict(
                                keyword: '海淀区', customId: '000FATE23（考勤打卡）');
   }
 ```
 
-6.添加圆形围栏
+- 添加圆形围栏
 ```dart
-  Future<void> fun() async {
+  Future<void> addCircle() async {
   final LatLong latLong = LatLong(30.651411, 103.998638);
-  final bool state = await addAMapCircleGeoFence(
+  final bool state = await FlAMapGeoFence.instance.addCircle(
                               latLong: latLong,
                               radius: 10,
                               customId: '000FATE23（考勤打卡）');
   }
 ```
 
-7.添加多边形围栏
+- 添加多边形围栏
 ```dart
-  Future<void> fun() async {
-  final bool state = await addAMapCustomGeoFence(latLongs: <LatLong>[
+  Future<void> addCustom() async {
+  final bool state = await FlAMapGeoFence.instance.addCustom(latLongs: <LatLong>[
                             LatLong(39.933921, 116.372927),
                             LatLong(39.907261, 116.376532),
                             LatLong(39.900611, 116.418161),
@@ -184,55 +184,53 @@ Future<void> main() async {
   }
 ```
 
-8.获取所有围栏信息
+- 获取所有围栏信息
 ```dart
-  Future<void> fun() async {
+  Future<void> getAll() async {
   /// 传入 customID 获取指定标识的围栏信息 仅支持ios
-  final List<AMapGeoFenceModel> data = await getAllAMapGeoFence();
+  final List<AMapGeoFenceModel> data = await FlAMapGeoFence.instance.getAll();
   }
 ```
 
-9.删除地理围栏
+- 删除地理围栏
 ```dart
-  Future<void> fun() async {
+  Future<void> remove() async {
   /// 传入 customID 删除指定标识的围栏
   /// 不传 删除所有围栏
-  final bool state = await removeAMapGeoFence();
+  final bool state = await FlAMapGeoFence.instance.remove();
   }
 ```
-10.暂停监听围栏
+- 暂停监听围栏
 ```dart
-  Future<void> fun() async {
+  Future<void> pause() async {
   /// 传入 customID 暂停指定标识的围栏
   /// 不传 暂停所有围栏
-  final bool state = await pauseAMapGeoFence();
+  final bool state = await FlAMapGeoFence.instance.pause();
   }
 ```
-11.开始监听围栏
+- 开始监听围栏
 ```dart
-  Future<void> fun() async {
+  Future<void> resume() async {
   /// 传入 customID 重新开始指定标识的围栏
   /// 不传 重新开始所有围栏
-  final bool state = await resumeAMapGeoFence();
+  final bool state = await FlAMapGeoFence.instance.resume();
   }
 ```
 
-12.开启监听服务
+- 开启监听服务
 ```dart
   Future<void> fun() async {
-  final bool state = await registerAMapGeoFenceService(
+  final bool state = await FlAMapGeoFence.instance.registerService(
                               onGeoFenceChange:
                                   (AMapGeoFenceStatusModel geoFence) {
-
                             print('围栏变化监听');
-                     
                           });
   }
 ```
 
-13.关闭监听服务
+- 关闭监听服务
 ```dart
   Future<void> fun() async {
-  final bool state = await unregisterAMapGeoFenceService();
+  final bool state = await FlAMapGeoFence.instance.unregisterService();
   }
 ```

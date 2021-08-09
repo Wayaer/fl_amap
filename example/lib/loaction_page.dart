@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'package:amap/main.dart';
+import 'package:fl_amap/fl_amap.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:fl_amap/fl_amap.dart';
 
 class AMapLocationPage extends StatefulWidget {
   const AMapLocationPage({Key? key}) : super(key: key);
@@ -47,7 +47,7 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
       return;
     }
     if (!await getPermissions) return;
-    locationState.value = await getAMapLocation(true);
+    locationState.value = await FlAMapLocation.instance.getLocation(true);
   }
 
   /// 初始化定位
@@ -55,7 +55,8 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
     if (!await getPermissions) return;
 
     /// 初始化AMap
-    final bool? data = await initAMapLocation(AMapLocationOption());
+    final bool? data =
+        await FlAMapLocation.instance.initialize(AMapLocationOption());
     if (data != null && data) {
       isInitLocation = true;
       show('初始化定位:$data');
@@ -87,16 +88,16 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
                   children: <Widget>[
                     ElevatedButton(
                         onPressed: () => initLocation,
-                        child: const Text('initAMapLocation')),
+                        child: const Text('initialize')),
                     ElevatedButton(
                         onPressed: () {
-                          disposeAMapLocation();
+                          FlAMapLocation.instance.dispose();
                           locationState.value = null;
                           isInitLocation = false;
                           i = 0;
                           show('未初始化');
                         },
-                        child: const Text('disposeAMapLocation')),
+                        child: const Text('dispose')),
                     ElevatedButton(
                         onPressed: () => getLocation,
                         child: const Text('直接获取定位')),
@@ -112,7 +113,7 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
                           text.value = '定位监听关闭';
                           locationState.value = null;
                           i = 0;
-                          stopAMapLocation();
+                          FlAMapLocation.instance.stopLocation();
                         },
                         child: const Text('关闭监听定位')),
                   ]),
@@ -132,7 +133,7 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
       return;
     }
     if (!await getPermissions) return;
-    final bool? data = await startAMapLocationChange(
+    final bool? data = await FlAMapLocation.instance.startLocationChange(
         onLocationChange: (AMapLocation location) {
       locationState.value = location;
       i += 1;
@@ -148,7 +149,7 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
   @override
   void dispose() {
     super.dispose();
-    disposeAMapLocation();
+    FlAMapLocation.instance.dispose();
   }
 
   String getLocationStr(AMapLocation? loc) {

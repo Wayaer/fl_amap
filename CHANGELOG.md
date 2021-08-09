@@ -1,3 +1,7 @@
+## [1.0.0]
+ * add Singleton Pattern
+ * upgrade Android Gradle
+ * upgrade Android AMap SDK version
 ## [0.2.1]
  * upgrade Android AMap SDK version
  * add platform restrictions
