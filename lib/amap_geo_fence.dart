@@ -15,18 +15,14 @@ enum GeoFenceActivateAction {
 }
 
 class FlAMapGeoFence {
-  factory FlAMapGeoFence() => _getInstance();
-
-  FlAMapGeoFence._internal();
-
-  static FlAMapGeoFence get instance => _getInstance();
-
-  static FlAMapGeoFence? _instance;
-
-  static FlAMapGeoFence _getInstance() {
-    _instance ??= FlAMapGeoFence._internal();
-    return _instance!;
+  factory FlAMapGeoFence() {
+    _singleton ??= FlAMapGeoFence._();
+    return _singleton!;
   }
+
+  FlAMapGeoFence._();
+
+  static FlAMapGeoFence? _singleton;
 
   ///  初始化地理围栏
   ///  allowsBackgroundLocationUpdates 仅支持 ios 在iOS9及之后版本的系统中，

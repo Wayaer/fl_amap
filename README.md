@@ -53,7 +53,7 @@ Future<void> main() async {
     if (getPermissions) return;
 
     /// 初始化AMap
-    final bool data = await FlAMapLocation.instance.initialize(AMapLocationOption());
+    final bool data = await FlAMapLocation().initialize(AMapLocationOption());
     if (data != null && data) {
       show('初始化成功');
     }
@@ -66,7 +66,7 @@ Future<void> main() async {
   Future<void> getLocation() async {
      /// 务必先初始化 并获取权限
     if (getPermissions) return;
-    AMapLocation location =  await FlAMapLocation.instance.getLocation(true);
+    AMapLocation location =  await FlAMapLocation().getLocation(true);
   }
 
 ```
@@ -78,7 +78,7 @@ Future<void> main() async {
      /// 务必先初始化 并获取权限
     if (getPermissions) return;
     final bool data =
-        await FlAMapLocation.instance.startLocationChange(onLocationChange: (AMapLocation location) {
+        await FlAMapLocation().startLocationChange(onLocationChange: (AMapLocation location) {
       locationState.value = location;
       text.value = '位置更新$i次';
     });
@@ -89,7 +89,7 @@ Future<void> main() async {
 - 关闭定位变化监听
 ```dart
   void stopLocation(){
-  FlAMapLocation.instance.stopLocation();
+  FlAMapLocation().stopLocation();
   }
 ```
 
@@ -98,7 +98,7 @@ Future<void> main() async {
 ```dart
   void dispose() {
     super.dispose();
-    FlAMapLocation.instance.dispose();
+    FlAMapLocation().dispose();
   }
 ```
 
@@ -108,7 +108,7 @@ Future<void> main() async {
 ```dart
 
   Future<void> get initialize async {
-    final bool data = await FlAMapGeoFence.instance.initialize(GeoFenceActivateAction.stayed);
+    final bool data = await FlAMapGeoFence().initialize(GeoFenceActivateAction.stayed);
     if (data) {
       isInitGeoFence = true;
       show('初始化地理围栏:$data');
@@ -121,7 +121,7 @@ Future<void> main() async {
 ```dart
   void dispose() {
     super.dispose();
-    FlAMapGeoFence.instance.dispose();
+    FlAMapGeoFence().dispose();
   }
 ```
 
@@ -134,7 +134,7 @@ Future<void> main() async {
                               city: '北京',
                               size: 1,
                               customId: '000FATE23（考勤打卡）');
-  final bool state = await FlAMapGeoFence.instance.addPOI(model);
+  final bool state = await FlAMapGeoFence().addPOI(model);
   }
 ```
 
@@ -149,14 +149,14 @@ Future<void> main() async {
                               customId: '000FATE23（考勤打卡）',
                               size: 20,
                               aroundRadius: 1000);
-    final bool state = await FlAMapGeoFence.instance.addLatLong(model);
+    final bool state = await FlAMapGeoFence().addLatLong(model);
   }
 ```
 
 - 添加行政区划围栏
 ```dart
   Future<void> addDistrict() async {
-  final bool state = await FlAMapGeoFence.instance.addDistrict(
+  final bool state = await FlAMapGeoFence().addDistrict(
                                keyword: '海淀区', customId: '000FATE23（考勤打卡）');
   }
 ```
@@ -165,7 +165,7 @@ Future<void> main() async {
 ```dart
   Future<void> addCircle() async {
   final LatLong latLong = LatLong(30.651411, 103.998638);
-  final bool state = await FlAMapGeoFence.instance.addCircle(
+  final bool state = await FlAMapGeoFence().addCircle(
                               latLong: latLong,
                               radius: 10,
                               customId: '000FATE23（考勤打卡）');
@@ -175,7 +175,7 @@ Future<void> main() async {
 - 添加多边形围栏
 ```dart
   Future<void> addCustom() async {
-  final bool state = await FlAMapGeoFence.instance.addCustom(latLongs: <LatLong>[
+  final bool state = await FlAMapGeoFence().addCustom(latLongs: <LatLong>[
                             LatLong(39.933921, 116.372927),
                             LatLong(39.907261, 116.376532),
                             LatLong(39.900611, 116.418161),
@@ -188,7 +188,7 @@ Future<void> main() async {
 ```dart
   Future<void> getAll() async {
   /// 传入 customID 获取指定标识的围栏信息 仅支持ios
-  final List<AMapGeoFenceModel> data = await FlAMapGeoFence.instance.getAll();
+  final List<AMapGeoFenceModel> data = await FlAMapGeoFence().getAll();
   }
 ```
 
@@ -197,7 +197,7 @@ Future<void> main() async {
   Future<void> remove() async {
   /// 传入 customID 删除指定标识的围栏
   /// 不传 删除所有围栏
-  final bool state = await FlAMapGeoFence.instance.remove();
+  final bool state = await FlAMapGeoFence().remove();
   }
 ```
 - 暂停监听围栏
@@ -205,7 +205,7 @@ Future<void> main() async {
   Future<void> pause() async {
   /// 传入 customID 暂停指定标识的围栏
   /// 不传 暂停所有围栏
-  final bool state = await FlAMapGeoFence.instance.pause();
+  final bool state = await FlAMapGeoFence().pause();
   }
 ```
 - 开始监听围栏
@@ -213,14 +213,14 @@ Future<void> main() async {
   Future<void> resume() async {
   /// 传入 customID 重新开始指定标识的围栏
   /// 不传 重新开始所有围栏
-  final bool state = await FlAMapGeoFence.instance.resume();
+  final bool state = await FlAMapGeoFence().resume();
   }
 ```
 
 - 开启监听服务
 ```dart
   Future<void> fun() async {
-  final bool state = await FlAMapGeoFence.instance.registerService(
+  final bool state = await FlAMapGeoFence().registerService(
                               onGeoFenceChange:
                                   (AMapGeoFenceStatusModel geoFence) {
                             print('围栏变化监听');
@@ -231,6 +231,6 @@ Future<void> main() async {
 - 关闭监听服务
 ```dart
   Future<void> fun() async {
-  final bool state = await FlAMapGeoFence.instance.unregisterService();
+  final bool state = await FlAMapGeoFence().unregisterService();
   }
 ```

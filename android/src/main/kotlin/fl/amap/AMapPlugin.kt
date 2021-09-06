@@ -26,7 +26,8 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
     private var channel: MethodChannel? = null
 
     //定义接收广播的action字符串
-    private val geoFenceBroadcastAction = "com.location.apis.geofencedemo.broadcast"
+    private val geoFenceBroadcastAction =
+        "com.location.apis.geofencedemo.broadcast"
 
     private var option: AMapLocationClientOption? = null
     private var locationClient: AMapLocationClient? = null
@@ -77,7 +78,7 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
             }
             "getLocation" -> {
                 if (isLocation) {
-                    result.success(false)
+                    result.success(null)
                 } else {
                     if (locationClient == null) result.success(null)
                     val needsAddress = call.arguments as Boolean
@@ -307,9 +308,11 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                 map["poiItem"] = poi
 
                 val pointList = geoFence.pointList
-                val pointListMap: MutableList<MutableList<MutableMap<String, Any?>>> = ArrayList()
+                val pointListMap: MutableList<MutableList<MutableMap<String, Any?>>> =
+                    ArrayList()
                 pointList.forEach { points ->
-                    val pointsMap: MutableList<MutableMap<String, Any?>> = ArrayList()
+                    val pointsMap: MutableList<MutableMap<String, Any?>> =
+                        ArrayList()
                     points.forEach { point ->
                         val pointMap: MutableMap<String, Any?> = HashMap()
                         pointMap["latitude"] = point.latitude
@@ -446,37 +449,42 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
         }
 
 
-    private val mGeoFenceReceiver: BroadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent) {
-            if (intent.action.equals(geoFenceBroadcastAction)) {
-                //解析广播内容
-                val bundle: Bundle? = intent.extras
-                if (bundle != null) {
-                    //获取围栏行为：
-                    val status: Int = bundle.getInt(GeoFence.BUNDLE_KEY_FENCESTATUS)
-                    //获取自定义的围栏标识：
-                    val customId: String? = bundle.getString(GeoFence.BUNDLE_KEY_CUSTOMID)
-                    //获取围栏ID:
-                    val fenceId: String? = bundle.getString(GeoFence.BUNDLE_KEY_FENCEID)
-                    //获取当前有触发的围栏对象：
-                    val fence: GeoFence? = bundle.getParcelable(GeoFence.BUNDLE_KEY_FENCE)
-                    val map: MutableMap<String, Any?> = HashMap()
-                    map["status"] = status
-                    map["customID"] = customId
-                    map["fenceID"] = fenceId
-                    if (fence != null) {
-                        val fenceMap: MutableMap<String, Any?> = HashMap()
-                        fenceMap["type"] = fence.type
-                        fenceMap["customID"] = fence.customId
-                        fenceMap["fenceID"] = fence.fenceId
-                        fenceMap["radius"] = fence.radius.toDouble()
+    private val mGeoFenceReceiver: BroadcastReceiver =
+        object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent) {
+                if (intent.action.equals(geoFenceBroadcastAction)) {
+                    //解析广播内容
+                    val bundle: Bundle? = intent.extras
+                    if (bundle != null) {
+                        //获取围栏行为：
+                        val status: Int =
+                            bundle.getInt(GeoFence.BUNDLE_KEY_FENCESTATUS)
+                        //获取自定义的围栏标识：
+                        val customId: String? =
+                            bundle.getString(GeoFence.BUNDLE_KEY_CUSTOMID)
+                        //获取围栏ID:
+                        val fenceId: String? =
+                            bundle.getString(GeoFence.BUNDLE_KEY_FENCEID)
+                        //获取当前有触发的围栏对象：
+                        val fence: GeoFence? =
+                            bundle.getParcelable(GeoFence.BUNDLE_KEY_FENCE)
+                        val map: MutableMap<String, Any?> = HashMap()
+                        map["status"] = status
+                        map["customID"] = customId
+                        map["fenceID"] = fenceId
+                        if (fence != null) {
+                            val fenceMap: MutableMap<String, Any?> = HashMap()
+                            fenceMap["type"] = fence.type
+                            fenceMap["customID"] = fence.customId
+                            fenceMap["fenceID"] = fence.fenceId
+                            fenceMap["radius"] = fence.radius.toDouble()
 
-                        map["fence"] = fenceMap
+                            map["fence"] = fenceMap
+                        }
+                        channel?.invokeMethod("updateGeoFence", map)
                     }
-                    channel?.invokeMethod("updateGeoFence", map)
                 }
             }
         }
-    }
 }
 

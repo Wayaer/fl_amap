@@ -47,7 +47,7 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
       return;
     }
     if (!await getPermissions) return;
-    locationState.value = await FlAMapLocation.instance.getLocation(true);
+    locationState.value = await FlAMapLocation().getLocation(true);
   }
 
   /// 初始化定位
@@ -55,8 +55,7 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
     if (!await getPermissions) return;
 
     /// 初始化AMap
-    final bool? data =
-        await FlAMapLocation.instance.initialize(AMapLocationOption());
+    final bool? data = await FlAMapLocation().initialize(AMapLocationOption());
     if (data != null && data) {
       isInitLocation = true;
       show('初始化定位:$data');
@@ -91,7 +90,7 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
                         child: const Text('initialize')),
                     ElevatedButton(
                         onPressed: () {
-                          FlAMapLocation.instance.dispose();
+                          FlAMapLocation().dispose();
                           locationState.value = null;
                           isInitLocation = false;
                           i = 0;
@@ -113,7 +112,7 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
                           text.value = '定位监听关闭';
                           locationState.value = null;
                           i = 0;
-                          FlAMapLocation.instance.stopLocation();
+                          FlAMapLocation().stopLocation();
                         },
                         child: const Text('关闭监听定位')),
                   ]),
@@ -133,7 +132,7 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
       return;
     }
     if (!await getPermissions) return;
-    final bool? data = await FlAMapLocation.instance.startLocationChange(
+    final bool? data = await FlAMapLocation().startLocationChange(
         onLocationChange: (AMapLocation location) {
       locationState.value = location;
       i += 1;
@@ -149,7 +148,7 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
   @override
   void dispose() {
     super.dispose();
-    FlAMapLocation.instance.dispose();
+    FlAMapLocation().dispose();
   }
 
   String getLocationStr(AMapLocation? loc) {

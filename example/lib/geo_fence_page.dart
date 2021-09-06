@@ -46,7 +46,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
   Future<void> get initGeoFence async {
     if (!await getPermissions) return;
     final bool data =
-        await FlAMapGeoFence.instance.initialize(GeoFenceActivateAction.stayed);
+        await FlAMapGeoFence().initialize(GeoFenceActivateAction.stayed);
     if (data) {
       isInitGeoFence = true;
       show('初始化地理围栏:$data');
@@ -90,7 +90,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                     ElevatedButton(
                         onPressed: () {
                           if (!isInit()) return;
-                          FlAMapGeoFence.instance.dispose();
+                          FlAMapGeoFence().dispose();
                           isInitGeoFence = false;
                           show('未初始化');
                         },
@@ -105,7 +105,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                               size: 1,
                               customID: customID);
                           final bool state =
-                              await FlAMapGeoFence.instance.addPOI(model);
+                              await FlAMapGeoFence().addPOI(model);
                           show('addPOI : $state');
                         },
                         child: const Text('添加POI围栏')),
@@ -121,7 +121,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                               size: 20,
                               aroundRadius: 1000);
                           final bool state =
-                              await FlAMapGeoFence.instance.addLatLong(model);
+                              await FlAMapGeoFence().addLatLong(model);
                           print('添加经纬度围栏 $state');
                           show('addLatLong : $state');
                         },
@@ -129,7 +129,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                     ElevatedButton(
                         onPressed: () async {
                           if (!isInit()) return;
-                          final bool state = await FlAMapGeoFence.instance
+                          final bool state = await FlAMapGeoFence()
                               .addDistrict(keyword: '海淀区', customID: customID);
                           show('addDistrict : $state');
                         },
@@ -139,18 +139,15 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                           if (!isInit()) return;
                           final LatLong latLong =
                               LatLong(30.651411, 103.998638);
-                          final bool state = await FlAMapGeoFence.instance
-                              .addCircle(
-                                  latLong: latLong,
-                                  radius: 10,
-                                  customID: customID);
+                          final bool state = await FlAMapGeoFence().addCircle(
+                              latLong: latLong, radius: 10, customID: customID);
                           show('addCircle : $state');
                         },
                         child: const Text('添加圆形围栏')),
                     ElevatedButton(
                         onPressed: () async {
                           if (!isInit()) return;
-                          final bool state = await FlAMapGeoFence.instance
+                          final bool state = await FlAMapGeoFence()
                               .addCustom(latLongs: <LatLong>[
                             LatLong(39.933921, 116.372927),
                             LatLong(39.907261, 116.376532),
@@ -164,7 +161,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                         onPressed: () async {
                           if (!isInit()) return;
                           final List<AMapGeoFenceModel> data =
-                              await FlAMapGeoFence.instance.getAll();
+                              await FlAMapGeoFence().getAll();
                           if (data.isEmpty) {
                             json.value = '没有添加围栏信息';
                           } else {
@@ -177,7 +174,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                     ElevatedButton(
                         onPressed: () async {
                           if (!isInit()) return;
-                          final bool state = await FlAMapGeoFence.instance
+                          final bool state = await FlAMapGeoFence()
                               .registerService(onGeoFenceChange:
                                   (AMapGeoFenceStatusModel geoFence) {
                             print(geoFence.toMap());
@@ -191,31 +188,30 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                         onPressed: () async {
                           if (!isInit()) return;
                           final bool state =
-                              await FlAMapGeoFence.instance.unregisterService();
+                              await FlAMapGeoFence().unregisterService();
                           show('unregisterService : $state');
                         },
                         child: const Text('关闭监听服务')),
                     ElevatedButton(
                         onPressed: () async {
                           if (!isInit()) return;
-                          final bool state = await FlAMapGeoFence.instance
-                              .resume(customID: customID);
+                          final bool state =
+                              await FlAMapGeoFence().resume(customID: customID);
                           show('resume : $state');
                         },
                         child: const Text('开始围栏监听')),
                     ElevatedButton(
                         onPressed: () async {
                           if (!isInit()) return;
-                          final bool state = await FlAMapGeoFence.instance
-                              .pause(customID: customID);
+                          final bool state =
+                              await FlAMapGeoFence().pause(customID: customID);
                           show('pause : $state');
                         },
                         child: const Text('暂停围栏监听')),
                     ElevatedButton(
                         onPressed: () async {
                           if (!isInit()) return;
-                          final bool state =
-                              await FlAMapGeoFence.instance.remove();
+                          final bool state = await FlAMapGeoFence().remove();
                           show('remove : $state');
                           json.value = '没有添加围栏信息';
                         },
@@ -278,7 +274,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
   @override
   void dispose() {
     super.dispose();
-    FlAMapGeoFence.instance.remove();
-    FlAMapGeoFence.instance.dispose();
+    FlAMapGeoFence().remove();
+    FlAMapGeoFence().dispose();
   }
 }

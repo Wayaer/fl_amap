@@ -39,18 +39,14 @@ enum CLLocationAccuracy {
 }
 
 class FlAMapLocation {
-  factory FlAMapLocation() => _getInstance();
-
-  FlAMapLocation._internal();
-
-  static FlAMapLocation get instance => _getInstance();
-
-  static FlAMapLocation? _instance;
-
-  static FlAMapLocation _getInstance() {
-    _instance ??= FlAMapLocation._internal();
-    return _instance!;
+  factory FlAMapLocation() {
+    _singleton ??= FlAMapLocation._();
+    return _singleton!;
   }
+
+  FlAMapLocation._();
+
+  static FlAMapLocation? _singleton;
 
   ///  初始化定位
   ///  @param options 启动系统所需选项
@@ -166,28 +162,27 @@ class AMapLocation {
     if (latitude != null && longitude != null)
       latLong = LatLong(latitude, longitude);
     return AMapLocation(
-      description: map['description'] as String?,
-      code: map['code'] as int?,
-      latLong: latLong,
-      timestamp: map['timestamp'] as double?,
-      speed: map['speed'] as double?,
-      altitude: map['altitude'] as double?,
-      accuracy: map['accuracy'] as double?,
-      adCode: map['adCode'] as String?,
-      aoiName: map['aoiName'] as String?,
-      city: map['city'] as String?,
-      cityCode: map['cityCode'] as String?,
-      country: map['country'] as String?,
-      district: map['district'] as String?,
-      formattedAddress: map['formattedAddress'] as String?,
-      number: map['number'] as String?,
-      poiName: map['poiName'] as String?,
-      provider: map['provider'] as String?,
-      province: map['province'] as String?,
-      street: map['street'] as String?,
-      locationType: map['locationType'] as int?,
-      success: map['success'] as bool?,
-    );
+        description: map['description'] as String?,
+        code: map['code'] as int?,
+        success: map['success'] as bool?,
+        latLong: latLong,
+        timestamp: map['timestamp'] as double?,
+        speed: map['speed'] as double?,
+        altitude: map['altitude'] as double?,
+        accuracy: map['accuracy'] as double?,
+        adCode: map['adCode'] as String?,
+        aoiName: map['aoiName'] as String?,
+        city: map['city'] as String?,
+        cityCode: map['cityCode'] as String?,
+        country: map['country'] as String?,
+        district: map['district'] as String?,
+        formattedAddress: map['formattedAddress'] as String?,
+        number: map['number'] as String?,
+        poiName: map['poiName'] as String?,
+        provider: map['provider'] as String?,
+        province: map['province'] as String?,
+        street: map['street'] as String?,
+        locationType: map['locationType'] as int?);
   }
 
   final double? accuracy;
