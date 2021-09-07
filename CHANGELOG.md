@@ -1,3 +1,5 @@
+## 1.2.0
+ * fix bugs
 ## 1.1.0
  * remove instance , direct initialization
  * update gradle version

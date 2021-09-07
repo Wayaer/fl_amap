@@ -4,7 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.os.Bundle
+import android.os.Handler
 import com.amap.api.fence.GeoFence
 import com.amap.api.fence.GeoFenceClient
 import com.amap.api.fence.GeoFenceClient.*
@@ -23,11 +23,10 @@ import kotlin.collections.ArrayList
 class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
     private lateinit var context: Context
     private lateinit var result: MethodChannel.Result
-    private var channel: MethodChannel? = null
+    private lateinit var channel: MethodChannel
+    private lateinit var handler: Handler
 
-    //定义接收广播的action字符串
-    private val geoFenceBroadcastAction =
-        "com.location.apis.geofencedemo.broadcast"
+    private val geoFenceBroadcastAction = "com.location.apis.geofence.broadcast"
 
     private var option: AMapLocationClientOption? = null
     private var locationClient: AMapLocationClient? = null
@@ -40,16 +39,19 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
     // 是否开启围栏
     private var isGeoFence = false
 
-
     override fun onAttachedToEngine(plugin: FlutterPlugin.FlutterPluginBinding) {
         context = plugin.applicationContext
+        handler = Handler(context.mainLooper)
         channel = MethodChannel(plugin.binaryMessenger, "fl_amap")
-        channel?.setMethodCallHandler(this)
+        channel.setMethodCallHandler(this)
+    }
+
+    override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+        channel.setMethodCallHandler(null)
     }
 
     override fun onMethodCall(call: MethodCall, _result: MethodChannel.Result) {
         result = _result
-        //显然下面的任何方法都应该放在同步块处理
         when (call.method) {
             "setApiKey" -> {
                 val key = call.arguments as String
@@ -104,9 +106,9 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                     result.success(false)
                 } else {
                     option!!.isOnceLocation = false
-                    locationClient?.setLocationOption(option)
+                    locationClient!!.setLocationOption(option)
                     locationClient!!.setLocationListener { location ->
-                        channel!!.invokeMethod(
+                        channel.invokeMethod(
                             "updateLocation",
                             resultToMap(location)
                         )
@@ -115,7 +117,6 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                     isLocation = true
                     result.success(true)
                 }
-
             }
             "stopLocation" -> {
                 //停止定位
@@ -142,11 +143,13 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                 if (type == 3) geoFenceClient!!.setActivateAction(
                     GEOFENCE_IN or GEOFENCE_OUT or GEOFENCE_STAYED
                 )
-                geoFenceClient!!.setGeoFenceListener(onGeoFenceCreateFinished)
+                geoFenceClient!!.setGeoFenceListener(onGeoFenceListener)
                 result.success(true)
             }
             "disposeGeoFence" -> {
                 if (resultFalse()) return
+                context.unregisterReceiver(mGeoFenceReceiver)
+                isGeoFence = false
                 geoFenceClient?.removeGeoFence()
                 geoFenceClient = null
                 result.success(true)
@@ -156,16 +159,7 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                 val geoFences = geoFenceClient!!.allGeoFence
                 result.success(getAllGeoFence(geoFences))
             }
-            "pauseGeoFence" -> {
-                if (resultFalse()) return
-                geoFenceClient!!.pauseGeoFence()
-                result.success(true)
-            }
-            "resumeGeoFence" -> {
-                if (resultFalse()) return
-                geoFenceClient!!.resumeGeoFence()
-                result.success(true)
-            }
+
             "addGeoFenceWithPOI" -> {
                 if (resultFalse()) return
                 geoFenceClient!!.addGeoFence(
@@ -223,35 +217,12 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                     dPoint.longitude = latLong["longitude"]!!
                     points.add(dPoint)
                 }
-
                 geoFenceClient!!.addGeoFence(
                     points,
                     call.argument("customID")
                 )
             }
-            "startGeoFence" -> {
-                if (resultFalse()) return
-                if (!isGeoFence) {
-                    geoFenceClient!!.createPendingIntent(geoFenceBroadcastAction)
-                    val filter = IntentFilter()
-                    filter.addAction(geoFenceBroadcastAction)
-                    context.registerReceiver(mGeoFenceReceiver, filter)
-                    isGeoFence = true
-                    result.success(true)
-                }
-                result.success(false)
-            }
-            "registerGeoFenceService" -> {
-                if (resultFalse()) return
-                if (isGeoFence) {
-                    context.unregisterReceiver(mGeoFenceReceiver)
-                    isGeoFence = false
-                    result.success(true)
-                }
-                result.success(false)
-
-            }
-            "unregisterGeoFenceService" -> {
+            "removeGeoFence" -> {
                 if (resultFalse()) return
                 val customId = call.arguments as String?
                 if (customId == null) {
@@ -263,11 +234,27 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                 }
                 result.success(true)
             }
-            else -> {
-                result.notImplemented()
+            "pauseGeoFence" -> {
+                if (resultFalse()) return
+                geoFenceClient!!.pauseGeoFence()
+                result.success(true)
             }
+            "startGeoFence" -> {
+                if (resultFalse()) return
+                if (!isGeoFence) {
+                    geoFenceClient!!.createPendingIntent(geoFenceBroadcastAction)
+                    val filter = IntentFilter()
+                    filter.addAction(geoFenceBroadcastAction)
+                    context.registerReceiver(mGeoFenceReceiver, filter)
+                    isGeoFence = true
+                }
+                geoFenceClient!!.resumeGeoFence()
+                result.success(true)
+            }
+            else -> result.notImplemented()
         }
     }
+
 
     private fun resultFalse(): Boolean {
         if (geoFenceClient == null) {
@@ -277,90 +264,6 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
         return false
     }
 
-    private fun getAllGeoFence(geoFences: List<GeoFence>): MutableList<MutableMap<String, Any?>> {
-        val list: MutableList<MutableMap<String, Any?>> = ArrayList()
-        geoFences.forEach { geoFence: GeoFence? ->
-            if (geoFence != null) {
-                val map: MutableMap<String, Any?> = HashMap()
-                map["customID"] = geoFence.customId
-                map["fenceID"] = geoFence.fenceId
-                map["type"] = geoFence.type
-                map["radius"] = geoFence.radius.toDouble()
-                map["status"] = geoFence.status
-
-                val dPoint = geoFence.center
-                val center: MutableMap<String, Any?> = HashMap()
-                center["latitude"] = dPoint.latitude
-                center["longitude"] = dPoint.longitude
-
-                map["center"] = center
-
-                val poi: MutableMap<String, Any?> = HashMap()
-                val poiItem = geoFence.poiItem
-                poi["address"] = poiItem?.address
-                poi["poiName"] = poiItem?.poiName
-                poi["adName"] = poiItem?.adname
-                poi["city"] = poiItem?.city
-                poi["poiId"] = poiItem?.poiId
-                poi["poiType"] = poiItem?.poiType
-                poi["latitude"] = poiItem?.latitude
-                poi["longitude"] = poiItem?.longitude
-                map["poiItem"] = poi
-
-                val pointList = geoFence.pointList
-                val pointListMap: MutableList<MutableList<MutableMap<String, Any?>>> =
-                    ArrayList()
-                pointList.forEach { points ->
-                    val pointsMap: MutableList<MutableMap<String, Any?>> =
-                        ArrayList()
-                    points.forEach { point ->
-                        val pointMap: MutableMap<String, Any?> = HashMap()
-                        pointMap["latitude"] = point.latitude
-                        pointMap["longitude"] = point.longitude
-                        pointsMap.add(pointMap)
-                    }
-                    pointListMap.add(pointsMap)
-                }
-
-                map["pointList"] = pointListMap
-                list.add(map)
-            }
-        }
-        return list
-    }
-
-
-    override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-        channel?.setMethodCallHandler(null)
-        channel = null
-    }
-
-    /**
-     * this.locationMode : AMapLocationMode.Hight_Accuracy,
-     * this.gpsFirst:false,
-     * this.httpTimeOut:10000,             //30有点长，特殊情况才需要这么长，改成10
-     * this.interval:2000,
-     * this.needsAddress : true,
-     * this.onceLocation : false,
-     * this.onceLocationLatest : false,
-     * this.locationProtocol : AMapLocationProtocol.HTTP,
-     * this.sensorEnable : false,
-     * this.wifiScan : true,
-     * this.locationCacheEnable : true,
-     *
-     *
-     * this.allowsBackgroundLocationUpdates : false,
-     * this.desiredAccuracy : CLLocationAccuracy.kCLLocationAccuracyBest,
-     * this.locatingWithReGeocode : false,
-     * this.locationTimeout : 10000,     //30有点长，特殊情况才需要这么长，改成10
-     * this.pausesLocationUpdatesAutomatically : false,
-     * this.reGeocodeTimeout : 5000,
-     *
-     * this.geoLanguage : GeoLanguage.DEFAULT,
-     *
-     * @param arguments
-     * @return
-     */
     private fun parseOptions(
         option: AMapLocationClientOption?,
         arguments: Map<*, *>
@@ -399,89 +302,125 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
     }
 
 
-    private fun resultToMap(a: AMapLocation?): Map<*, *> {
+    private fun resultToMap(location: AMapLocation?): Map<*, *> {
         val map: MutableMap<String, Any> = HashMap()
-        if (a != null) {
-            if (a.errorCode != 0) {
+        if (location != null) {
+            if (location.errorCode != 0) {
                 //错误信息
-                map["description"] = a.errorInfo
+                map["description"] = location.errorInfo
                 map["success"] = false
             } else {
                 map["success"] = true
-                map["accuracy"] = a.accuracy
-                map["altitude"] = a.altitude
-                map["speed"] = a.speed
-                map["timestamp"] = a.time.toDouble() / 1000
-                map["latitude"] = a.latitude
-                map["longitude"] = a.longitude
-                map["locationType"] = a.locationType
-                map["provider"] = a.provider
-                map["formattedAddress"] = a.address
-                map["country"] = a.country
-                map["province"] = a.province
-                map["city"] = a.city
-                map["district"] = a.district
-                map["cityCode"] = a.cityCode
-                map["adCode"] = a.adCode
-                map["street"] = a.street
-                map["number"] = a.streetNum
-                map["poiName"] = a.poiName
-                map["aoiName"] = a.aoiName
+                map["accuracy"] = location.accuracy
+                map["altitude"] = location.altitude
+                map["speed"] = location.speed
+                map["timestamp"] = location.time.toDouble() / 1000
+                map["latitude"] = location.latitude
+                map["longitude"] = location.longitude
+                map["locationType"] = location.locationType
+                map["provider"] = location.provider
+                map["formattedAddress"] = location.address
+                map["country"] = location.country
+                map["province"] = location.province
+                map["city"] = location.city
+                map["district"] = location.district
+                map["cityCode"] = location.cityCode
+                map["adCode"] = location.adCode
+                map["street"] = location.street
+                map["number"] = location.streetNum
+                map["poiName"] = location.poiName
+                map["aoiName"] = location.aoiName
             }
-            map["code"] = a.errorCode
+            map["code"] = location.errorCode
         }
         return map
     }
 
+    private fun getAllGeoFence(geoFences: List<GeoFence>): MutableList<MutableMap<String, Any?>> {
+        val list: MutableList<MutableMap<String, Any?>> = ArrayList()
+        geoFences.forEach { geoFence: GeoFence? ->
+            if (geoFence != null) {
+                val map: MutableMap<String, Any?> = HashMap()
+                map["customID"] = geoFence.customId
+                map["fenceID"] = geoFence.fenceId
+                map["type"] = geoFence.type
+                map["radius"] = geoFence.radius.toDouble()
+                map["status"] = geoFence.status
+                val dPoint = geoFence.center
+                val center: MutableMap<String, Any?> = HashMap()
+                center["latitude"] = dPoint.latitude
+                center["longitude"] = dPoint.longitude
+                map["center"] = center
+                val poi: MutableMap<String, Any?> = HashMap()
+                val poiItem = geoFence.poiItem
+                poi["address"] = poiItem?.address
+                poi["poiName"] = poiItem?.poiName
+                poi["adName"] = poiItem?.adname
+                poi["city"] = poiItem?.city
+                poi["poiId"] = poiItem?.poiId
+                poi["poiType"] = poiItem?.poiType
+                poi["latitude"] = poiItem?.latitude
+                poi["longitude"] = poiItem?.longitude
+                map["poiItem"] = poi
+                val pointList = geoFence.pointList
+                val pointListMap: MutableList<MutableList<MutableMap<String, Any?>>> =
+                    ArrayList()
+                pointList.forEach { points ->
+                    val pointsMap: MutableList<MutableMap<String, Any?>> =
+                        ArrayList()
+                    points.forEach { point ->
+                        val pointMap: MutableMap<String, Any?> = HashMap()
+                        pointMap["latitude"] = point.latitude
+                        pointMap["longitude"] = point.longitude
+                        pointsMap.add(pointMap)
+                    }
+                    pointListMap.add(pointsMap)
+                }
+                map["pointList"] = pointListMap
+                list.add(map)
+            }
+        }
+        return list
+    }
 
-    private val onGeoFenceCreateFinished =
+
+    private val onGeoFenceListener =
         GeoFenceListener { _: MutableList<GeoFence>?, errorCode: Int, _: String? ->
             //geoFenceList是已经添加的围栏列表，可据此查看创建的围栏
-            //判断围栏是否创建成功
-            if (errorCode == GeoFence.ADDGEOFENCE_SUCCESS) {
-                // 添加围栏成功
-                result.success(true)
-            } else {
-                // 添加围栏失败
-                result.success(false)
-            }
-
+            result.success(errorCode == GeoFence.ADDGEOFENCE_SUCCESS)
         }
-
 
     private val mGeoFenceReceiver: BroadcastReceiver =
         object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent) {
                 if (intent.action.equals(geoFenceBroadcastAction)) {
                     //解析广播内容
-                    val bundle: Bundle? = intent.extras
+                    val bundle = intent.extras
                     if (bundle != null) {
+                        val map: MutableMap<String, Any?> = HashMap()
                         //获取围栏行为：
-                        val status: Int =
+                        map["status"] =
                             bundle.getInt(GeoFence.BUNDLE_KEY_FENCESTATUS)
                         //获取自定义的围栏标识：
-                        val customId: String? =
+                        map["customID"] =
                             bundle.getString(GeoFence.BUNDLE_KEY_CUSTOMID)
                         //获取围栏ID:
-                        val fenceId: String? =
+                        map["fenceID"] =
                             bundle.getString(GeoFence.BUNDLE_KEY_FENCEID)
                         //获取当前有触发的围栏对象：
                         val fence: GeoFence? =
                             bundle.getParcelable(GeoFence.BUNDLE_KEY_FENCE)
-                        val map: MutableMap<String, Any?> = HashMap()
-                        map["status"] = status
-                        map["customID"] = customId
-                        map["fenceID"] = fenceId
                         if (fence != null) {
                             val fenceMap: MutableMap<String, Any?> = HashMap()
                             fenceMap["type"] = fence.type
                             fenceMap["customID"] = fence.customId
                             fenceMap["fenceID"] = fence.fenceId
                             fenceMap["radius"] = fence.radius.toDouble()
-
                             map["fence"] = fenceMap
                         }
-                        channel?.invokeMethod("updateGeoFence", map)
+                        handler.post {
+                            channel.invokeMethod("updateGeoFence", map)
+                        }
                     }
                 }
             }

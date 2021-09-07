@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:amap/main.dart';
 import 'package:fl_amap/fl_amap.dart';
 import 'package:flutter/material.dart';
@@ -13,8 +11,6 @@ class AMapLocationPage extends StatefulWidget {
 }
 
 class _AMapLocationPageState extends State<AMapLocationPage> {
-  bool isInitLocation = false;
-
   late ValueNotifier<String> text = ValueNotifier<String>('未初始化');
   late ValueNotifier<AMapLocation?> locationState =
       ValueNotifier<AMapLocation?>(null);
@@ -23,41 +19,25 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
 
   /// 获取定位权限
   Future<bool> get getPermissions async {
-    if (Platform.isIOS) {
-      if (!await requestPermissions(Permission.locationWhenInUse, '获取定位权限') ||
-          !await requestPermissions(Permission.locationWhenInUse, '获取定位权限')) {
-        show('未获取到定位权限');
-        return false;
-      }
-      return true;
-    } else if (Platform.isAndroid) {
-      if (!await requestPermissions(Permission.location, '获取定位权限') ||
-          !await requestPermissions(Permission.phone, '获取定位权限')) {
-        show('未获取到定位权限');
-        return false;
-      }
-      return true;
+    if (!await getPermission(Permission.locationWhenInUse)) {
+      show('未获取到定位权限');
+      return false;
     }
-    return false;
+    return true;
   }
 
-  Future<void> get getLocation async {
-    if (!isInitLocation) {
-      show('请先初始化定位');
-      return;
-    }
+  Future<void> getLocation() async {
     if (!await getPermissions) return;
     locationState.value = await FlAMapLocation().getLocation(true);
   }
 
   /// 初始化定位
-  Future<void> get initLocation async {
+  Future<void> initLocation() async {
     if (!await getPermissions) return;
 
     /// 初始化AMap
     final bool? data = await FlAMapLocation().initialize(AMapLocationOption());
     if (data != null && data) {
-      isInitLocation = true;
       show('初始化定位:$data');
     }
   }
@@ -85,36 +65,25 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
                   spacing: 10,
                   alignment: WrapAlignment.center,
                   children: <Widget>[
-                    ElevatedButton(
-                        onPressed: () => initLocation,
-                        child: const Text('initialize')),
-                    ElevatedButton(
+                    ElevatedText(onPressed: initLocation, text: 'initialize'),
+                    ElevatedText(
                         onPressed: () {
                           FlAMapLocation().dispose();
                           locationState.value = null;
-                          isInitLocation = false;
                           i = 0;
                           show('未初始化');
                         },
-                        child: const Text('dispose')),
-                    ElevatedButton(
-                        onPressed: () => getLocation,
-                        child: const Text('直接获取定位')),
-                    ElevatedButton(
-                        onPressed: startLocationState,
-                        child: const Text('开启监听定位')),
-                    ElevatedButton(
+                        text: 'dispose'),
+                    ElevatedText(onPressed: getLocation, text: '直接获取定位'),
+                    ElevatedText(onPressed: startLocationState, text: '开启监听定位'),
+                    ElevatedText(
                         onPressed: () {
-                          if (!isInitLocation) {
-                            show('请先初始化定位');
-                            return;
-                          }
                           text.value = '定位监听关闭';
                           locationState.value = null;
                           i = 0;
                           FlAMapLocation().stopLocation();
                         },
-                        child: const Text('关闭监听定位')),
+                        text: '关闭监听定位'),
                   ]),
               Padding(
                   padding: const EdgeInsets.all(20.0),
@@ -127,12 +96,8 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
       ));
 
   Future<void> startLocationState() async {
-    if (!isInitLocation) {
-      show('请先初始化定位');
-      return;
-    }
     if (!await getPermissions) return;
-    final bool? data = await FlAMapLocation().startLocationChange(
+    final bool? data = await FlAMapLocation().startLocationChanged(
         onLocationChange: (AMapLocation location) {
       locationState.value = location;
       i += 1;

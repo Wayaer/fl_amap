@@ -5,7 +5,7 @@ part 'amap_geo_fence.dart';
 
 part 'amap_location.dart';
 
-const MethodChannel channel = MethodChannel('fl_amap');
+const MethodChannel _channel = MethodChannel('fl_amap');
 
 ///  设置ios&android的key
 Future<bool> setAMapKey(
@@ -15,7 +15,7 @@ Future<bool> setAMapKey(
   if (_isAndroid) key = androidKey;
   if (_isIOS) key = iosKey;
   if (key == null) return false;
-  final bool? state = await channel.invokeMethod('setApiKey', key);
+  final bool? state = await _channel.invokeMethod('setApiKey', key);
   return state ?? false;
 }
 

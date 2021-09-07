@@ -36,7 +36,6 @@
     <application>
         <!-- 定位需要的服务 -->
         <service android:name="com.amap.api.location.APSService" />
-
     </application>
 
 </manifest>

@@ -48,39 +48,42 @@ class FlAMapLocation {
 
   static FlAMapLocation? _singleton;
 
+  bool _isInitialize = false;
+
   ///  初始化定位
   ///  @param options 启动系统所需选项
   Future<bool> initialize(AMapLocationOption option) async {
     if (!_supportPlatform) return false;
     final bool? isInit =
-        await channel.invokeMethod('initLocation', option.toMap());
+        await _channel.invokeMethod('initLocation', option.toMap());
+    if (isInit == true) _isInitialize = isInit!;
     return isInit ?? false;
   }
 
   ///  直接获取定位
   ///  @param needsAddress 是否需要详细地址信息 默认false
   Future<AMapLocation?> getLocation([bool needsAddress = false]) async {
-    if (!_supportPlatform) return null;
+    if (!_supportPlatform || !_isInitialize) return null;
     final Map<dynamic, dynamic>? location =
-        await channel.invokeMethod('getLocation', needsAddress);
+        await _channel.invokeMethod('getLocation', needsAddress);
     if (location == null) return null;
     return AMapLocation.fromMap(location);
   }
 
   /// 销毁定位参数
   Future<bool> dispose() async {
-    if (!_supportPlatform) return false;
-    final bool? state = await channel.invokeMethod('disposeLocation');
+    if (!_supportPlatform || !_isInitialize) return false;
+    final bool? state = await _channel.invokeMethod('disposeLocation');
     return state ?? false;
   }
 
   /// 启动监听位置改变
-  Future<bool> startLocationChange(
+  Future<bool> startLocationChanged(
       {EventHandlerAMapLocation? onLocationChange}) async {
-    if (!_supportPlatform) return false;
-    final bool? state = await channel.invokeMethod<bool?>('startLocation');
+    if (!_supportPlatform || !_isInitialize) return false;
+    final bool? state = await _channel.invokeMethod<bool?>('startLocation');
     if (state != null && state) {
-      channel.setMethodCallHandler((MethodCall call) async {
+      _channel.setMethodCallHandler((MethodCall call) async {
         switch (call.method) {
           case 'updateLocation':
             if (onLocationChange == null) return;
@@ -91,13 +94,17 @@ class FlAMapLocation {
         }
       });
     }
-    return false;
+    return state ?? false;
   }
 
   ///  停止监听位置改变
   Future<bool> stopLocation() async {
-    if (!_supportPlatform) return false;
-    final bool? state = await channel.invokeMethod('stopLocation');
+    if (!_supportPlatform || !_isInitialize) return false;
+    final bool? state = await _channel.invokeMethod('stopLocation');
+    if (state == true) {
+      _isInitialize = false;
+      _channel.setMethodCallHandler(null);
+    }
     return state ?? false;
   }
 }
