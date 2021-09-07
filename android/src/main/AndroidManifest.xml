@@ -35,7 +35,12 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <application>
         <!-- 定位需要的服务 -->
-        <service android:name="com.amap.api.location.APSService" />
+        <service
+            android:name="com.amap.api.location.APSService"
+            android:exported="false" />
+        <meta-data
+            android:name="com.amap.api.v2.apikey"
+            android:value="${AMAP_APIKEY}" />
     </application>
 
 </manifest>
