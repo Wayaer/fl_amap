@@ -98,7 +98,7 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
   Future<void> startLocationState() async {
     if (!await getPermissions) return;
     final bool? data = await FlAMapLocation().startLocationChanged(
-        onLocationChange: (AMapLocation location) {
+        onLocationChanged: (AMapLocation location) {
       locationState.value = location;
       i += 1;
       text.value = '位置更新$i次';

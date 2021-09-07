@@ -79,18 +79,18 @@ class FlAMapLocation {
 
   /// 启动监听位置改变
   Future<bool> startLocationChanged(
-      {EventHandlerAMapLocation? onLocationChange}) async {
+      {EventHandlerAMapLocation? onLocationChanged}) async {
     if (!_supportPlatform || !_isInitialize) return false;
     final bool? state = await _channel.invokeMethod<bool?>('startLocation');
     if (state != null && state) {
       _channel.setMethodCallHandler((MethodCall call) async {
         switch (call.method) {
           case 'updateLocation':
-            if (onLocationChange == null) return;
+            if (onLocationChanged == null) return;
             if (call.arguments == null) return;
             final Map<dynamic, dynamic> argument =
                 call.arguments as Map<dynamic, dynamic>;
-            return onLocationChange(AMapLocation.fromMap(argument));
+            return onLocationChanged(AMapLocation.fromMap(argument));
         }
       });
     }

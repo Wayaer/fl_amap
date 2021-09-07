@@ -47,14 +47,13 @@ Future<void> main() async {
 
 - 初始化定位参数
 ```dart
-
   Future<void> initialize() async {
     /// 获取权限
     if (getPermissions) return;
 
     /// 初始化AMap
     final bool data = await FlAMapLocation().initialize(AMapLocationOption());
-    if (data != null && data) {
+    if (data) {
       show('初始化成功');
     }
   }
@@ -73,16 +72,16 @@ Future<void> main() async {
 
 - 开启定位变化监听
 ```dart
-
   Future<void> startLocationChange() async {
      /// 务必先初始化 并获取权限
     if (getPermissions) return;
     final bool data =
-        await FlAMapLocation().startLocationChange(onLocationChange: (AMapLocation location) {
+        await FlAMapLocation().startLocationChanged(onLocationChanged: 
+            (AMapLocation location) {
       locationState.value = location;
       text.value = '位置更新$i次';
     });
-   print((data == null || !data) ? '开启成功' : '开启失败');
+   print(!data ? '开启成功' : '开启失败');
   }
 
 ```
@@ -93,7 +92,7 @@ Future<void> main() async {
   }
 ```
 
-- 关闭定位系统
+- 关闭定位服务
 
 ```dart
   void dispose() {
@@ -110,13 +109,12 @@ Future<void> main() async {
   Future<void> get initialize async {
     final bool data = await FlAMapGeoFence().initialize(GeoFenceActivateAction.stayed);
     if (data) {
-      isInitGeoFence = true;
-      show('初始化地理围栏:$data');
+     show('初始化地理围栏:$data');
     }
   }
 
 ```
-- 关闭围栏系统
+- 关闭围栏服务
 
 ```dart
   void dispose() {
@@ -211,26 +209,8 @@ Future<void> main() async {
 - 开始监听围栏
 ```dart
   Future<void> resume() async {
-  /// 传入 customID 重新开始指定标识的围栏
-  /// 不传 重新开始所有围栏
-  final bool state = await FlAMapGeoFence().resume();
-  }
-```
-
-- 开启监听服务
-```dart
-  Future<void> fun() async {
-  final bool state = await FlAMapGeoFence().registerService(
-                              onGeoFenceChange:
-                                  (AMapGeoFenceStatusModel geoFence) {
-                            print('围栏变化监听');
-                          });
-  }
-```
-
-- 关闭监听服务
-```dart
-  Future<void> fun() async {
-  final bool state = await FlAMapGeoFence().unregisterService();
+  /// 传入 customID 开始指定标识的围栏
+  /// 不传 开始所有围栏
+  final bool state = await FlAMapGeoFence().start();
   }
 ```
