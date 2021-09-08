@@ -57,11 +57,14 @@ class ElevatedText extends StatelessWidget {
 }
 
 Future<bool> getPermission(Permission permission) async {
-  PermissionStatus status = await permission.status;
-  if (status.isGranted) {
-    return true;
-  } else {
-    status = await permission.request();
-    return status.isGranted;
+  final PermissionStatus status = await permission.status;
+  if (status != PermissionStatus.granted) {
+    final Map<Permission, PermissionStatus> statuses =
+        await <Permission>[permission].request();
+    if (!(statuses[permission] == PermissionStatus.granted)) {
+      openAppSettings();
+    }
+    return statuses[permission] == PermissionStatus.granted;
   }
+  return true;
 }

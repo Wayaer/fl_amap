@@ -153,8 +153,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                     final bool state = await FlAMapGeoFence().start(
                         customID: customID,
                         onGeoFenceChanged: (AMapGeoFenceStatusModel geoFence) {
-                          print(geoFence.toMap());
-                          print('围栏变化监听');
+                          show('围栏状态 : ${getStatus(geoFence.status)}');
                           geoFenceState.value = geoFence;
                         });
                     show('start : $state');

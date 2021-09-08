@@ -1,4 +1,6 @@
 ## 1.2.0
+ * change IOS OC to swift
+ * simplify geofencing services
  * fix bugs
 ## 1.1.0
  * remove instance , direct initialization

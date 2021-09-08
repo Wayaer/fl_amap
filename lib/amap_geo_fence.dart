@@ -25,7 +25,8 @@ class FlAMapGeoFence {
   static FlAMapGeoFence? _singleton;
 
   bool _isInitialize = false;
-  bool _isStart = false;
+
+  bool _hasListener = false;
 
   ///  初始化地理围栏
   ///  allowsBackgroundLocationUpdates 仅支持 ios 在iOS9及之后版本的系统中，
@@ -50,10 +51,8 @@ class FlAMapGeoFence {
   Future<bool> dispose() async {
     if (!_supportPlatform || !_isInitialize) return false;
     final bool? state = await _channel.invokeMethod<bool?>('disposeGeoFence');
-    if (state == true) {
-      _isInitialize = !state!;
-      _isStart = !state;
-    }
+    if (state == true) _isInitialize = !state!;
+    _hasListener = false;
     return state ?? false;
   }
 
@@ -146,13 +145,11 @@ class FlAMapGeoFence {
   /// android 不会关闭广播
   /// ios 不会关闭代理
   Future<bool> pause({String? customID}) async {
-    if (!_supportPlatform || !_isInitialize || !_isStart) return false;
+    if (!_supportPlatform || !_isInitialize || !_hasListener) return false;
     if (_isIOS) assert(customID != null, 'ios 平台 customID 必须不为null');
     final bool? state = await _channel.invokeMethod('pauseGeoFence', customID);
-    if (state == true) {
-      _channel.setMethodCallHandler(null);
-      _isStart = !state!;
-    }
+    if (state == true) _channel.setMethodCallHandler(null);
+    _hasListener = false;
     return state ?? false;
   }
 
@@ -162,19 +159,21 @@ class FlAMapGeoFence {
   Future<bool> start(
       {String? customID,
       EventHandlerAMapGeoFenceStatus? onGeoFenceChanged}) async {
-    if (!_supportPlatform || !_isInitialize || _isStart) return false;
-    _channel.setMethodCallHandler((MethodCall call) async {
-      switch (call.method) {
-        case 'updateGeoFence':
-          if (onGeoFenceChanged == null) return;
-          if (call.arguments == null) return;
-          onGeoFenceChanged(AMapGeoFenceStatusModel.fromMap(
-              call.arguments as Map<dynamic, dynamic>));
-      }
-    });
+    if (!_supportPlatform || !_isInitialize || _hasListener) return false;
     if (_isIOS) assert(customID != null, 'ios 平台 customID 必须不为null');
     final bool? state = await _channel.invokeMethod('startGeoFence', customID);
-    if (state == true) _isStart = state!;
+    if (state == true) {
+      _hasListener = true;
+      _channel.setMethodCallHandler((MethodCall call) async {
+        switch (call.method) {
+          case 'updateGeoFence':
+            if (onGeoFenceChanged == null) return;
+            if (call.arguments == null) return;
+            onGeoFenceChanged(AMapGeoFenceStatusModel.fromMap(
+                call.arguments as Map<dynamic, dynamic>));
+        }
+      });
+    }
     return state ?? false;
   }
 }

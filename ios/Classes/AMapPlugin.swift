@@ -37,6 +37,7 @@ public class AMapPlugin: NSObject, FlutterPlugin {
                 locationManager!.stopUpdatingLocation()
                 locationManagerDelegate = nil
                 locationManager!.delegate = nil
+                locationManager = nil
             }
             result(locationManager == nil)
         case "getLocation":
@@ -70,6 +71,7 @@ public class AMapPlugin: NSObject, FlutterPlugin {
                 geoFenceManager!.removeAllGeoFenceRegions()
                 geoFenceManagerDelegate = nil
                 geoFenceManager!.delegate = nil
+                geoFenceManager = nil
             }
             result(geoFenceManager == nil)
         case "getAllGeoFence":
@@ -119,11 +121,11 @@ public class AMapPlugin: NSObject, FlutterPlugin {
             }
             result(geoFenceManager != nil)
         case "startGeoFence":
-            let fences = geoFenceManager?.startGeoFenceRegions(withCustomID: call.arguments as? String)
-            result(fences == nil)
+            geoFenceManager?.startGeoFenceRegions(withCustomID: call.arguments as? String)
+            result(true)
         case "pauseGeoFence":
-            let fences = geoFenceManager?.pauseGeoFenceRegions(withCustomID: call.arguments as? String)
-            result(fences == nil)
+            geoFenceManager?.pauseGeoFenceRegions(withCustomID: call.arguments as? String)
+            result(true)
         default:
             result(FlutterMethodNotImplemented)
         }

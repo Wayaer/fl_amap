@@ -208,7 +208,7 @@ Future<void> main() async {
 ```
 - 开始监听围栏
 ```dart
-  Future<void> resume() async {
+  Future<void> start() async {
   /// 传入 customID 开始指定标识的围栏
   /// 不传 开始所有围栏
   final bool state = await FlAMapGeoFence().start();
