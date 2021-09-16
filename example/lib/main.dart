@@ -12,7 +12,7 @@ Future<void> main() async {
     iosKey: 'e0e98395277890e48caa0c4bed423ead',
     androidKey: '77418e726d0eefc0ac79a8619b5f4d97',
   );
-  if (key) print('高德地图ApiKey设置成功');
+  if (key) debugPrint('高德地图ApiKey设置成功');
   runApp(const MaterialApp(
       debugShowCheckedModeBanner: false, title: 'FlAMap', home: App()));
 }

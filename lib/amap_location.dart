@@ -11,13 +11,13 @@ enum GeoLanguage { none, zh, en }
 ///  android 定位模式
 enum AMapLocationMode {
   /// 低功耗
-  BatterySaving,
+  batterySaving,
 
   /// 仅使用设备
-  DeviceSensors,
+  deviceSensors,
 
   /// 高精度
-  HeightAccuracy
+  heightAccuracy
 }
 
 ///  ios定位精度
@@ -166,8 +166,9 @@ class AMapLocation {
     final double? latitude = map['latitude'] as double?;
     final double? longitude = map['longitude'] as double?;
     LatLong? latLong;
-    if (latitude != null && longitude != null)
+    if (latitude != null && longitude != null) {
       latLong = LatLong(latitude, longitude);
+    }
     return AMapLocation(
         description: map['description'] as String?,
         code: map['code'] as int?,
@@ -292,7 +293,7 @@ class AMapLocationOption {
   /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// ///
 
   AMapLocationOption({
-    this.locationMode = AMapLocationMode.BatterySaving,
+    this.locationMode = AMapLocationMode.batterySaving,
     this.gpsFirst = false,
 
     /// 30有点长，特殊情况才需要这么长，改成5
@@ -426,11 +427,11 @@ class AMapLocationOption {
 
   String getLocationMode() {
     switch (locationMode) {
-      case AMapLocationMode.HeightAccuracy:
+      case AMapLocationMode.heightAccuracy:
         return 'Hight_Accuracy';
-      case AMapLocationMode.BatterySaving:
+      case AMapLocationMode.batterySaving:
         return 'Battery_Saving';
-      case AMapLocationMode.DeviceSensors:
+      case AMapLocationMode.deviceSensors:
         return 'Device_Sensors';
       default:
         return 'unknown';

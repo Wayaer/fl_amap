@@ -70,11 +70,12 @@ class FlAMapGeoFence {
     if (!_supportPlatform || !_isInitialize) return <AMapGeoFenceModel>[];
     final List<dynamic>? list =
         await _channel.invokeMethod('getAllGeoFence', customID);
-    if (list != null)
+    if (list != null) {
       return list
           .map((dynamic e) =>
               AMapGeoFenceModel.fromMap(e as Map<dynamic, dynamic>))
           .toList();
+    }
     return <AMapGeoFenceModel>[];
   }
 
@@ -258,8 +259,9 @@ class AMapPoiDetailModel {
     poiId = json['poiId'] as String?;
     final double? latitude = json['latitude'] as double?;
     final double? longitude = json['longitude'] as double?;
-    if (latitude != null && longitude != null)
+    if (latitude != null && longitude != null) {
       latLong = LatLong(latitude, longitude);
+    }
   }
 
   String? adName;
@@ -357,7 +359,7 @@ class AMapLatLongModel {
 
 class AMapGeoFenceStatusModel {
   AMapGeoFenceStatusModel({
-    this.status = GenFenceStatus.NONE,
+    this.status = GenFenceStatus.none,
     this.customID,
     this.type,
     this.radius,
@@ -426,16 +428,16 @@ enum GenFenceType {
 }
 enum GenFenceStatus {
   /// 未知
-  NONE,
+  none,
 
   /// 在范围内
-  IN,
+  inside,
 
   /// 在范围外
-  OUT,
+  outside,
 
   ///  停留(在范围内超过10分钟)
-  STAYED
+  stayed
 }
 
 typedef EventHandlerAMapGeoFenceStatus = void Function(

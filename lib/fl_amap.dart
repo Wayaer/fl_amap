@@ -21,7 +21,7 @@ Future<bool> setAMapKey(
 
 bool get _supportPlatform {
   if (!kIsWeb && (_isAndroid || _isIOS)) return true;
-  print('Not support platform for $defaultTargetPlatform');
+  debugPrint('Not support platform for $defaultTargetPlatform');
   return false;
 }
 

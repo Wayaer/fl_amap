@@ -14,5 +14,8 @@ dependencies:
   flutter_waya: ^1.13.1
   permission_handler: ^7.2.0
 
+dev_dependencies:
+  flutter_lints: ^1.0.4
+
 flutter:
   uses-material-design: true
