@@ -15,10 +15,7 @@ enum GeoFenceActivateAction {
 }
 
 class FlAMapGeoFence {
-  factory FlAMapGeoFence() {
-    _singleton ??= FlAMapGeoFence._();
-    return _singleton!;
-  }
+  factory FlAMapGeoFence() => _singleton ??= FlAMapGeoFence._();
 
   FlAMapGeoFence._();
 

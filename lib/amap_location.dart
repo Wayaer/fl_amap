@@ -39,10 +39,7 @@ enum CLLocationAccuracy {
 }
 
 class FlAMapLocation {
-  factory FlAMapLocation() {
-    _singleton ??= FlAMapLocation._();
-    return _singleton!;
-  }
+  factory FlAMapLocation() => _singleton ??= FlAMapLocation._();
 
   FlAMapLocation._();
 

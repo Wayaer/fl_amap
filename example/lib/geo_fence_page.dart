@@ -205,9 +205,9 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
 
   String getStatus(GenFenceStatus? status) {
     switch (status) {
-      case GenFenceStatus.IN:
+      case GenFenceStatus.inside:
         return '在范围内';
-      case GenFenceStatus.out:
+      case GenFenceStatus.outside:
         return '在范围外';
       case GenFenceStatus.stayed:
         return '停留(在范围内超过10分钟)';
