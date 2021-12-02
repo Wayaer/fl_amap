@@ -19,7 +19,7 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
 
   /// 获取定位权限
   Future<bool> get getPermissions async {
-    if (!await getPermission(Permission.locationWhenInUse)) {
+    if (!await getPermission(Permission.location)) {
       show('未获取到定位权限');
       return false;
     }

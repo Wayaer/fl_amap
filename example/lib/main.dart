@@ -9,10 +9,12 @@ import 'package:permission_handler/permission_handler.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final bool key = await setAMapKey(
-    iosKey: 'e0e98395277890e48caa0c4bed423ead',
-    androidKey: '77418e726d0eefc0ac79a8619b5f4d97',
-  );
-  if (key) debugPrint('高德地图ApiKey设置成功');
+      iosKey: 'e0e98395277890e48caa0c4bed423ead',
+      androidKey: '77418e726d0eefc0ac79a8619b5f4d97',
+      isAgree: true,
+      isContains: true,
+      isShow: true);
+  debugPrint('高德地图ApiKey设置$key');
   runApp(const MaterialApp(
       debugShowCheckedModeBanner: false, title: 'FlAMap', home: App()));
 }

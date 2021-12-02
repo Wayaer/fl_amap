@@ -54,7 +54,12 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
         result = _result
         when (call.method) {
             "setApiKey" -> {
-                val key = call.arguments as String
+                val key = call.argument<String>("key")!!
+                val isAgree = call.argument<Boolean>("isAgree")!!
+                val isContains = call.argument<Boolean>("isContains")!!
+                val isShow = call.argument<Boolean>("isShow")!!
+                AMapLocationClient.updatePrivacyAgree(context, isAgree)
+                AMapLocationClient.updatePrivacyShow(context, isContains, isShow)
                 AMapLocationClient.setApiKey(key)
                 result.success(true)
             }

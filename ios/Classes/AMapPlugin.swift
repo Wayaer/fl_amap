@@ -11,7 +11,7 @@ public class AMapPlugin: NSObject, FlutterPlugin {
 
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: "fl_amap", binaryMessenger:
-            registrar.messenger())
+        registrar.messenger())
         let instance = AMapPlugin(channel)
         registrar.addMethodCallDelegate(instance, channel: channel)
     }
@@ -25,7 +25,14 @@ public class AMapPlugin: NSObject, FlutterPlugin {
         geoFenceManagerDelegate?.result = result
         switch call.method {
         case "setApiKey":
-            AMapServices.shared().apiKey = (call.arguments as! String)
+            let args = call.arguments as! [String: Any?]
+            let key = args["key"] as! String
+            let isAgree = args["isAgree"] as! Bool
+            let isContains = args["isContains"] as! Bool
+            let isShow = args["isShow"] as! Bool
+            AMapLocationManager.updatePrivacyAgree(isAgree ? .didAgree : .notAgree)
+            AMapLocationManager.updatePrivacyShow(isShow ? .didShow : .notShow, privacyInfo: isContains ? .didContain : .notContain)
+            AMapServices.shared().apiKey = key
             result(true)
         case "initLocation":
             if locationManager == nil {
@@ -108,7 +115,7 @@ public class AMapPlugin: NSObject, FlutterPlugin {
             var coordinates = [CLLocationCoordinate2D]()
             for latLong in latLongs {
                 coordinates.append(CLLocationCoordinate2D(
-                    latitude: latLong["latitude"]!, longitude: latLong["longitude"]!
+                        latitude: latLong["latitude"]!, longitude: latLong["longitude"]!
                 ))
             }
             geoFenceManager?.addPolygonRegionForMonitoring(withCoordinates: &coordinates, count: latLongs.count, customID: args["customID"] as? String)
@@ -160,7 +167,9 @@ public class AMapPlugin: NSObject, FlutterPlugin {
     }
 
     func initLocationOption(_ call: FlutterMethodCall) -> Bool {
-        if locationManager == nil { return false }
+        if locationManager == nil {
+            return false
+        }
 
         let args = call.arguments as! [AnyHashable: Any]
         locationManager!.desiredAccuracy = getDesiredAccuracy(args["desiredAccuracy"] as! String)
@@ -196,7 +205,9 @@ public class AMapPlugin: NSObject, FlutterPlugin {
     }
 
     func initGeoFenceOption(_ call: FlutterMethodCall) -> Bool {
-        if geoFenceManager == nil { return false }
+        if geoFenceManager == nil {
+            return false
+        }
         let args = call.arguments as! [AnyHashable: Any]
         switch args["action"] as! Int {
         case 0:
@@ -243,7 +254,8 @@ class LocationManagerDelegate: NSObject, AMapLocationManagerDelegate {
      *  @param manager 定位 AMapLocationManager 类。
      *  @param status 定位权限状态。
      */
-    public func amapLocationManager(_ manager: AMapLocationManager!, locationManagerDidChangeAuthorization locationManager: CLLocationManager!) {}
+    public func amapLocationManager(_ manager: AMapLocationManager!, locationManagerDidChangeAuthorization locationManager: CLLocationManager!) {
+    }
 
     /**
      *  @brief 当定位发生错误时，会调用代理的此方法。
@@ -270,7 +282,8 @@ class GeoFenceManagerDelegate: NSObject, AMapGeoFenceManagerDelegate {
     }
 
     // 地理围栏定位回调
-    func amapLocationManager(_ manager: AMapGeoFenceManager!, doRequireTemporaryFullAccuracyAuth locationManager: CLLocationManager!, completion: ((Error?) -> Void)!) {}
+    func amapLocationManager(_ manager: AMapGeoFenceManager!, doRequireTemporaryFullAccuracyAuth locationManager: CLLocationManager!, completion: ((Error?) -> Void)!) {
+    }
 
     // 获取围栏创建后的回调
     // 在如下回调中知道创建的围栏是否成功，以及查看所创建围栏的具体内容
@@ -286,8 +299,7 @@ class GeoFenceManagerDelegate: NSObject, AMapGeoFenceManagerDelegate {
 
 extension Dictionary {
     mutating func merge<S>(_ other: S)
-        where S: Sequence, S.Iterator.Element == (key: Key, value: Value)
-    {
+            where S: Sequence, S.Iterator.Element == (key: Key, value: Value) {
         for (k, v) in other {
             self[k] = v
         }
