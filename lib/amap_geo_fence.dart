@@ -368,10 +368,8 @@ class AMapGeoFenceStatusModel {
     customID = json['customID'] as String?;
     fenceID = json['fenceID'] as String?;
     status = GenFenceStatus.values[(json['status'] as int?) ?? 0];
-    final int? _type = json['type'] as int?;
-    if (_type != null) {
-      type = GenFenceType.values[_type];
-    }
+    final int? t = json['type'] as int?;
+    if (t != null) type = GenFenceType.values[t];
     radius = json['radius'] as double?;
     fence = json['fence'] == null
         ? null
@@ -423,6 +421,7 @@ enum GenFenceType {
   /// 行政区划地理围栏
   district
 }
+
 enum GenFenceStatus {
   /// 未知
   none,

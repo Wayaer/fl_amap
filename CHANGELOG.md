@@ -1,3 +1,8 @@
+## 2.1.0
+
+* Upgrade the Android AMap locating SDK
+* Compatible with flutter 3.0.0
+
 ## 2.0.0
 
 * Upgrade the Android AMap locating SDK to 5.6.0

@@ -175,13 +175,13 @@ public class AMapPlugin: NSObject, FlutterPlugin {
         locationManager!.desiredAccuracy = getDesiredAccuracy(args["desiredAccuracy"] as! String)
         locationManager!.pausesLocationUpdatesAutomatically = args["pausesLocationUpdatesAutomatically"] as! Bool
         locationManager!.distanceFilter = args["distanceFilter"] as! Double
-        // 设置在能不能再后台定位
+        /// 设置在能不能再后台定位
         locationManager!.allowsBackgroundLocationUpdates = args["allowsBackgroundLocationUpdates"] as! Bool
-        // 设置定位超时时间
+        /// 设置定位超时时间
         locationManager!.locationTimeout = args["locationTimeout"] as! Int
-        // 设置逆地理超时时间
+        /// 设置逆地理超时时间
         locationManager!.reGeocodeTimeout = args["reGeocodeTimeout"] as! Int
-        // 定位是否需要逆地理信息
+        /// 定位是否需要逆地理信息
         locationManager!.locatingWithReGeocode = args["locatingWithReGeocode"] as! Bool
         /// 检测是否存在虚拟定位风险，默认为NO，不检测。
         /// 注意:设置为YES时，单次定位通过 AMapLocatingCompletionBlock 的error给出虚拟定位风险提示；连续定位通过 amapLocationManager:didFailWithError: 方法的error给出虚拟定位风险提示。error格式为error.domain==AMapLocationErrorDomain; error.code==AMapLocationErrorRiskOfFakeLocation;
@@ -281,17 +281,17 @@ class GeoFenceManagerDelegate: NSObject, AMapGeoFenceManagerDelegate {
         super.init()
     }
 
-    // 地理围栏定位回调
+    /// 地理围栏定位回调
     func amapLocationManager(_ manager: AMapGeoFenceManager!, doRequireTemporaryFullAccuracyAuth locationManager: CLLocationManager!, completion: ((Error?) -> Void)!) {
     }
 
-    // 获取围栏创建后的回调
-    // 在如下回调中知道创建的围栏是否成功，以及查看所创建围栏的具体内容
+    /// 获取围栏创建后的回调
+    /// 在如下回调中知道创建的围栏是否成功，以及查看所创建围栏的具体内容
     public func amapGeoFenceManager(_ manager: AMapGeoFenceManager!, didAddRegionForMonitoringFinished regions: [AMapGeoFenceRegion]!, customID: String!, error: Error!) {
         result!(error == nil)
     }
 
-    //  围栏状态改变时的回调
+    ///  围栏状态改变时的回调
     public func amapGeoFenceManager(_ manager: AMapGeoFenceManager!, didGeoFencesStatusChangedFor region: AMapGeoFenceRegion!, customID: String!, error: Error!) {
         channel.invokeMethod("updateGeoFence", arguments: region.data)
     }

@@ -11,7 +11,7 @@ dependencies:
     path: ../
   flutter:
     sdk: flutter
-  flutter_waya: ^1.13.1
+  flutter_waya: ^2.0.0+1
   permission_handler: ^7.2.0
 
 dev_dependencies:

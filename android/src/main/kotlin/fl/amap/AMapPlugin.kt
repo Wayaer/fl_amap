@@ -16,8 +16,6 @@ import com.amap.api.location.DPoint
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
-import java.util.*
-import kotlin.collections.ArrayList
 
 
 class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
@@ -38,6 +36,9 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
 
     // 是否开启围栏
     private var isGeoFence = false
+
+    // 是否注册监听
+    private var isRegisterReceiver = false
 
     override fun onAttachedToEngine(plugin: FlutterPlugin.FlutterPluginBinding) {
         context = plugin.applicationContext
@@ -65,8 +66,7 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
             }
             "initLocation" -> {
                 //初始化client
-                if (locationClient == null) locationClient =
-                    AMapLocationClient(context)
+                if (locationClient == null) locationClient = AMapLocationClient(context)
                 //设置定位参数
                 if (option == null) option = AMapLocationClientOption()
                 parseOptions(option, call.arguments as Map<*, *>)
@@ -84,7 +84,7 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                 }
             }
             "getLocation" -> {
-                if (isLocation) {
+                if (isLocation || option == null) {
                     result.success(null)
                 } else {
                     if (locationClient == null) result.success(null)
@@ -114,8 +114,7 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                     locationClient!!.setLocationOption(option)
                     locationClient!!.setLocationListener { location ->
                         channel.invokeMethod(
-                            "updateLocation",
-                            resultToMap(location)
+                            "updateLocation", resultToMap(location)
                         )
                     }
                     locationClient?.startLocation()
@@ -153,7 +152,8 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
             }
             "disposeGeoFence" -> {
                 if (resultFalse()) return
-                context.unregisterReceiver(mGeoFenceReceiver)
+                if (isRegisterReceiver) context.unregisterReceiver(mGeoFenceReceiver)
+                isRegisterReceiver = false
                 isGeoFence = false
                 geoFenceClient?.removeGeoFence()
                 geoFenceClient = null
@@ -180,8 +180,7 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                 val centerPoint = DPoint()
                 centerPoint.latitude = call.argument("latitude")!!
                 centerPoint.longitude = call.argument("longitude")!!
-                val aroundRadius =
-                    call.argument<Double>("aroundRadius")!!
+                val aroundRadius = call.argument<Double>("aroundRadius")!!
                 geoFenceClient!!.addGeoFence(
                     call.argument("keyword"),
                     call.argument("poiType"),
@@ -202,20 +201,17 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                 val centerPoint = DPoint()
                 centerPoint.latitude = call.argument("latitude")!!
                 centerPoint.longitude = call.argument("longitude")!!
-                val radius =
-                    call.argument<Double>("radius")!!
+                val radius = call.argument<Double>("radius")!!
                 geoFenceClient!!.addGeoFence(
-                    centerPoint, radius.toFloat(),
-                    call.argument("customID")
+                    centerPoint, radius.toFloat(), call.argument("customID")
                 )
             }
             "addCustomGeoFence" -> {
                 if (resultFalse()) return
                 val points: MutableList<DPoint> = ArrayList()
-                val latLongs =
-                    call.argument<MutableList<MutableMap<String, Double>>>(
-                        "latLong"
-                    )!!
+                val latLongs = call.argument<MutableList<MutableMap<String, Double>>>(
+                    "latLong"
+                )!!
                 latLongs.forEach { latLong ->
                     val dPoint = DPoint()
                     dPoint.latitude = latLong["latitude"]!!
@@ -223,8 +219,7 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                     points.add(dPoint)
                 }
                 geoFenceClient!!.addGeoFence(
-                    points,
-                    call.argument("customID")
+                    points, call.argument("customID")
                 )
             }
             "removeGeoFence" -> {
@@ -251,6 +246,7 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                     val filter = IntentFilter()
                     filter.addAction(geoFenceBroadcastAction)
                     context.registerReceiver(mGeoFenceReceiver, filter)
+                    isRegisterReceiver = true
                     isGeoFence = true
                 }
                 geoFenceClient!!.resumeGeoFence()
@@ -270,8 +266,7 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
     }
 
     private fun parseOptions(
-        option: AMapLocationClientOption?,
-        arguments: Map<*, *>
+        option: AMapLocationClientOption?, arguments: Map<*, *>
     ) {
         onceLocation = (arguments["onceLocation"] as Boolean?)!!
         //可选，设置定位模式，可选的模式有高精度、仅设备、仅网络。默认为高精度模式
@@ -286,8 +281,7 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
         //可选，设置是否返回逆地理地址信息。默认是true
         option.isNeedAddress = (arguments["needsAddress"] as Boolean?)!!
         option.isOnceLocation = onceLocation //可选，设置是否单次定位。默认是false
-        option.isOnceLocationLatest =
-            (arguments["onceLocationLatest"] as Boolean?)!!
+        option.isOnceLocationLatest = (arguments["onceLocationLatest"] as Boolean?)!!
         //可选，设置是否等待wifi刷新，默认为false.如果设置为true,会自动变为单次定位，持续定位时不要使用
         AMapLocationClientOption.setLocationProtocol(
             AMapLocationClientOption.AMapLocationProtocol.valueOf(
@@ -299,8 +293,7 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
         //可选，设置是否开启wifi扫描。默认为true，如果设置为false会同时停止主动刷新，停止以后完全依赖于系统刷新，定位位置可能存在误差
         option.isWifiScan = (arguments["wifiScan"] as Boolean?)!!
         //可选，设置是否使用缓存定位，默认为true
-        option.isLocationCacheEnable =
-            (arguments["locationCacheEnable"] as Boolean?)!!
+        option.isLocationCacheEnable = (arguments["locationCacheEnable"] as Boolean?)!!
         //可选，设置逆地理信息的语言，默认值为默认语言（根据所在地区选择语言）
         option.geoLanguage =
             AMapLocationClientOption.GeoLanguage.valueOf((arguments["geoLanguage"] as String?)!!)
@@ -368,11 +361,9 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                 poi["longitude"] = poiItem?.longitude
                 map["poiItem"] = poi
                 val pointList = geoFence.pointList
-                val pointListMap: MutableList<MutableList<MutableMap<String, Any?>>> =
-                    ArrayList()
+                val pointListMap: MutableList<MutableList<MutableMap<String, Any?>>> = ArrayList()
                 pointList.forEach { points ->
-                    val pointsMap: MutableList<MutableMap<String, Any?>> =
-                        ArrayList()
+                    val pointsMap: MutableList<MutableMap<String, Any?>> = ArrayList()
                     points.forEach { point ->
                         val pointMap: MutableMap<String, Any?> = HashMap()
                         pointMap["latitude"] = point.latitude
@@ -395,40 +386,35 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
             result.success(errorCode == GeoFence.ADDGEOFENCE_SUCCESS)
         }
 
-    private val mGeoFenceReceiver: BroadcastReceiver =
-        object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent) {
-                if (intent.action.equals(geoFenceBroadcastAction)) {
-                    //解析广播内容
-                    val bundle = intent.extras
-                    if (bundle != null) {
-                        val map: MutableMap<String, Any?> = HashMap()
-                        //获取围栏行为：
-                        map["status"] =
-                            bundle.getInt(GeoFence.BUNDLE_KEY_FENCESTATUS)
-                        //获取自定义的围栏标识：
-                        map["customID"] =
-                            bundle.getString(GeoFence.BUNDLE_KEY_CUSTOMID)
-                        //获取围栏ID:
-                        map["fenceID"] =
-                            bundle.getString(GeoFence.BUNDLE_KEY_FENCEID)
-                        //获取当前有触发的围栏对象：
-                        val fence: GeoFence? =
-                            bundle.getParcelable(GeoFence.BUNDLE_KEY_FENCE)
-                        if (fence != null) {
-                            val fenceMap: MutableMap<String, Any?> = HashMap()
-                            fenceMap["type"] = fence.type
-                            fenceMap["customID"] = fence.customId
-                            fenceMap["fenceID"] = fence.fenceId
-                            fenceMap["radius"] = fence.radius.toDouble()
-                            map["fence"] = fenceMap
-                        }
-                        handler.post {
-                            channel.invokeMethod("updateGeoFence", map)
-                        }
+    private val mGeoFenceReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent) {
+            if (intent.action.equals(geoFenceBroadcastAction)) {
+                //解析广播内容
+                val bundle = intent.extras
+                if (bundle != null) {
+                    val map: MutableMap<String, Any?> = HashMap()
+                    //获取围栏行为：
+                    map["status"] = bundle.getInt(GeoFence.BUNDLE_KEY_FENCESTATUS)
+                    //获取自定义的围栏标识：
+                    map["customID"] = bundle.getString(GeoFence.BUNDLE_KEY_CUSTOMID)
+                    //获取围栏ID:
+                    map["fenceID"] = bundle.getString(GeoFence.BUNDLE_KEY_FENCEID)
+                    //获取当前有触发的围栏对象：
+                    val fence: GeoFence? = bundle.getParcelable(GeoFence.BUNDLE_KEY_FENCE)
+                    if (fence != null) {
+                        val fenceMap: MutableMap<String, Any?> = HashMap()
+                        fenceMap["type"] = fence.type
+                        fenceMap["customID"] = fence.customId
+                        fenceMap["fenceID"] = fence.fenceId
+                        fenceMap["radius"] = fence.radius.toDouble()
+                        map["fence"] = fenceMap
+                    }
+                    handler.post {
+                        channel.invokeMethod("updateGeoFence", map)
                     }
                 }
             }
         }
+    }
 }
 

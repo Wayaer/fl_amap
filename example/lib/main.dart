@@ -3,7 +3,6 @@ import 'package:amap/loaction_page.dart';
 import 'package:fl_amap/fl_amap.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_waya/flutter_waya.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 Future<void> main() async {

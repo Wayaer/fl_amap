@@ -129,6 +129,6 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
         return '定位失败: \n错误:{code=${loc.code ?? ''},\ndescription=${loc.description ?? ''}';
       }
     }
-    return '正在定位';
+    return '无法定位';
   }
 }
