@@ -1,3 +1,7 @@
+## 2.2.0
+
+* Upgrade gradle version
+
 ## 2.1.0
 
 * Upgrade the Android AMap locating SDK

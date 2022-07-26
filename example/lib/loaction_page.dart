@@ -1,4 +1,4 @@
-import 'package:amap/main.dart';
+import 'package:example/main.dart';
 import 'package:fl_amap/fl_amap.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -7,7 +7,7 @@ class AMapLocationPage extends StatefulWidget {
   const AMapLocationPage({Key? key}) : super(key: key);
 
   @override
-  _AMapLocationPageState createState() => _AMapLocationPageState();
+  State<AMapLocationPage> createState() => _AMapLocationPageState();
 }
 
 class _AMapLocationPageState extends State<AMapLocationPage> {
@@ -36,10 +36,8 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
     if (!await getPermissions) return;
 
     /// 初始化AMap
-    final bool? data = await FlAMapLocation().initialize(AMapLocationOption());
-    if (data != null && data) {
-      show('初始化定位:$data');
-    }
+    final bool data = await FlAMapLocation().initialize(AMapLocationOption());
+    show('初始化定位:$data');
   }
 
   @override
@@ -97,13 +95,13 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
 
   Future<void> startLocationState() async {
     if (!await getPermissions) return;
-    final bool? data = await FlAMapLocation().startLocationChanged(
+    final bool data = await FlAMapLocation().startLocationChanged(
         onLocationChanged: (AMapLocation location) {
       locationState.value = location;
       i += 1;
       text.value = '位置更新$i次';
     });
-    show((data == null || !data) ? '开启失败' : '开启成功');
+    show((!data) ? '开启失败' : '开启成功');
   }
 
   void show(String str) {

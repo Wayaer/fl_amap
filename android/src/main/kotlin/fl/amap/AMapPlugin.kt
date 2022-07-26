@@ -301,7 +301,7 @@ class AMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
 
 
     private fun resultToMap(location: AMapLocation?): Map<*, *> {
-        val map: MutableMap<String, Any> = HashMap()
+        val map: MutableMap<String, Any?> = HashMap()
         if (location != null) {
             if (location.errorCode != 0) {
                 //错误信息

@@ -1,4 +1,4 @@
-import 'package:amap/main.dart';
+import 'package:example/main.dart';
 import 'package:fl_amap/fl_amap.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_waya/flutter_waya.dart';
@@ -8,7 +8,7 @@ class AMapGeoFencePage extends StatefulWidget {
   const AMapGeoFencePage({Key? key}) : super(key: key);
 
   @override
-  _AMapGeoFencePageState createState() => _AMapGeoFencePageState();
+  State<AMapGeoFencePage> createState() => _AMapGeoFencePageState();
 }
 
 class _AMapGeoFencePageState extends State<AMapGeoFencePage> {

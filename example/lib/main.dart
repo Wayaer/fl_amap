@@ -1,5 +1,5 @@
-import 'package:amap/geo_fence_page.dart';
-import 'package:amap/loaction_page.dart';
+import 'package:example/geo_fence_page.dart';
+import 'package:example/loaction_page.dart';
 import 'package:fl_amap/fl_amap.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
