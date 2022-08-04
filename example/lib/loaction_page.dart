@@ -1,6 +1,7 @@
 import 'package:example/main.dart';
 import 'package:fl_amap/fl_amap.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_waya/flutter_waya.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class AMapLocationPage extends StatefulWidget {
@@ -41,57 +42,53 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-      appBar: AppBar(title: const Text('高德地图定位')),
-      body: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(8.0),
-        child: SingleChildScrollView(
-            child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+  Widget build(BuildContext context) => ExtendedScaffold(
+          appBar: AppBar(title: const Text('高德地图定位')),
+          isScroll: true,
+          padding: const EdgeInsets.all(8.0),
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            const SizedBox(height: 10),
+            ValueListenableBuilder<String>(
+                valueListenable: text,
+                builder: (_, String value, __) =>
+                    Text(value, style: const TextStyle(fontSize: 20))),
+            const SizedBox(height: 20),
+            const Text('高德定位', style: TextStyle(fontSize: 20)),
+            const SizedBox(height: 10),
+            Wrap(
+                runSpacing: 10,
+                spacing: 10,
+                alignment: WrapAlignment.center,
                 children: <Widget>[
-              const SizedBox(height: 10),
-              ValueListenableBuilder<String>(
-                  valueListenable: text,
-                  builder: (_, String value, __) =>
-                      Text(value, style: const TextStyle(fontSize: 20))),
-              const SizedBox(height: 20),
-              const Text('高德定位', style: TextStyle(fontSize: 20)),
-              const SizedBox(height: 10),
-              Wrap(
-                  runSpacing: 10,
-                  spacing: 10,
-                  alignment: WrapAlignment.center,
-                  children: <Widget>[
-                    ElevatedText(onPressed: initLocation, text: 'initialize'),
-                    ElevatedText(
-                        onPressed: () {
-                          FlAMapLocation().dispose();
-                          locationState.value = null;
-                          i = 0;
-                          show('未初始化');
-                        },
-                        text: 'dispose'),
-                    ElevatedText(onPressed: getLocation, text: '直接获取定位'),
-                    ElevatedText(onPressed: startLocationState, text: '开启监听定位'),
-                    ElevatedText(
-                        onPressed: () {
-                          text.value = '定位监听关闭';
-                          locationState.value = null;
-                          i = 0;
-                          FlAMapLocation().stopLocation();
-                        },
-                        text: '关闭监听定位'),
-                  ]),
-              Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: ValueListenableBuilder<AMapLocation?>(
-                      valueListenable: locationState,
-                      builder: (_, AMapLocation? value, __) => Text(
-                          getLocationStr(value),
-                          style: const TextStyle(fontSize: 15))))
-            ])),
-      ));
+                  ElevatedText(onPressed: initLocation, text: 'initialize'),
+                  ElevatedText(
+                      onPressed: () {
+                        FlAMapLocation().dispose();
+                        locationState.value = null;
+                        i = 0;
+                        show('未初始化');
+                      },
+                      text: 'dispose'),
+                  ElevatedText(onPressed: getLocation, text: '直接获取定位'),
+                  ElevatedText(onPressed: startLocationState, text: '开启监听定位'),
+                  ElevatedText(
+                      onPressed: () {
+                        text.value = '定位监听关闭';
+                        locationState.value = null;
+                        i = 0;
+                        FlAMapLocation().stopLocation();
+                      },
+                      text: '关闭监听定位'),
+                ]),
+            Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: ValueListenableBuilder<AMapLocation?>(
+                    valueListenable: locationState,
+                    builder: (_, AMapLocation? value, __) => Text(
+                        getLocationStr(value),
+                        style: const TextStyle(fontSize: 15))))
+          ]);
 
   Future<void> startLocationState() async {
     if (!await getPermissions) return;

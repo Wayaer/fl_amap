@@ -46,7 +46,3 @@ dependencies {
     implementation 'com.amap.api:location:latest.integration'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
-
-repositories {
-    mavenCentral()
-}

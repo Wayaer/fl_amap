@@ -3,6 +3,7 @@ import 'package:example/loaction_page.dart';
 import 'package:fl_amap/fl_amap.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_waya/flutter_waya.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 Future<void> main() async {
@@ -14,8 +15,7 @@ Future<void> main() async {
       isContains: true,
       isShow: true);
   debugPrint('高德地图ApiKey设置$key');
-  runApp(const MaterialApp(
-      debugShowCheckedModeBanner: false, title: 'FlAMap', home: App()));
+  runApp(const ExtendedWidgetsApp(title: 'FlAMap', home: App()));
 }
 
 class App extends StatelessWidget {
@@ -23,25 +23,20 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return ExtendedScaffold(
         appBar: AppBar(title: const Text('高德地图')),
-        body: Center(
-          child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                ElevatedText(
-                    onPressed: () => showCupertinoModalPopup<dynamic>(
-                        context: context,
-                        builder: (_) => const AMapLocationPage()),
-                    text: '高德定位功能'),
-                ElevatedText(
-                    onPressed: () => showCupertinoModalPopup<dynamic>(
-                        context: context,
-                        builder: (_) => const AMapGeoFencePage()),
-                    text: '高德地理围栏功能'),
-              ]),
-        ));
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          ElevatedText(
+              onPressed: () => showCupertinoModalPopup<dynamic>(
+                  context: context, builder: (_) => const AMapLocationPage()),
+              text: '高德定位功能'),
+          ElevatedText(
+              onPressed: () => showCupertinoModalPopup<dynamic>(
+                  context: context, builder: (_) => const AMapGeoFencePage()),
+              text: '高德地理围栏功能'),
+        ]);
   }
 }
 
