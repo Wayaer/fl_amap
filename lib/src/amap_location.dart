@@ -1,42 +1,6 @@
-part of 'fl_amap.dart';
+part of '../fl_amap.dart';
 
 typedef EventHandlerAMapLocation = void Function(AMapLocation location);
-
-///  android网络传输http还是https协议
-enum AMapLocationProtocol { http, https }
-
-///  android 逆地理位置信息的语言
-enum GeoLanguage { none, zh, en }
-
-///  android 定位模式
-enum AMapLocationMode {
-  /// 低功耗
-  batterySaving,
-
-  /// 仅使用设备
-  deviceSensors,
-
-  /// 高精度
-  heightAccuracy
-}
-
-///  ios定位精度
-enum CLLocationAccuracy {
-  /// 最好的,米级
-  kCLLocationAccuracyBest,
-
-  /// 十米
-  kCLLocationAccuracyNearestTenMeters,
-
-  /// 百米
-  kCLLocationAccuracyHundredMeters,
-
-  /// 一公里
-  kCLLocationAccuracyKilometer,
-
-  /// 三公里
-  kCLLocationAccuracyThreeKilometers
-}
 
 class FlAMapLocation {
   factory FlAMapLocation() => _singleton ??= FlAMapLocation._();
@@ -142,7 +106,7 @@ class AMapLocation {
       this.timestamp,
       this.speed,
       this.altitude,
-      this.latLong,
+      this.latLng,
       this.accuracy,
       this.adCode,
       this.aoiName,
@@ -162,15 +126,15 @@ class AMapLocation {
   factory AMapLocation.fromMap(Map<dynamic, dynamic> map) {
     final double? latitude = map['latitude'] as double?;
     final double? longitude = map['longitude'] as double?;
-    LatLong? latLong;
+    LatLng? latLng;
     if (latitude != null && longitude != null) {
-      latLong = LatLong(latitude, longitude);
+      latLng = LatLng(latitude, longitude);
     }
     return AMapLocation(
         description: map['description'] as String?,
         code: map['code'] as int?,
         success: map['success'] as bool?,
-        latLong: latLong,
+        latLng: latLng,
         timestamp: map['timestamp'] as double?,
         speed: map['speed'] as double?,
         altitude: map['altitude'] as double?,
@@ -194,7 +158,7 @@ class AMapLocation {
   final double? altitude;
   final double? speed;
   final double? timestamp;
-  final LatLong? latLong;
+  final LatLng? latLng;
   final String? formattedAddress;
   final String? country;
   final String? province;
@@ -266,7 +230,7 @@ class AMapLocation {
         'timestamp': timestamp,
         'speed': speed,
         'altitude': altitude,
-        'latLong': latLong == null ? null : latLong!.toMap(),
+        'latLng': latLng == null ? null : latLng!.toMap(),
         'adCode': adCode,
         'aoiName': aoiName,
         'poiName': poiName,

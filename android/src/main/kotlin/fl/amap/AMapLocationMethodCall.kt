@@ -163,7 +163,7 @@ class AMapLocationMethodCall(
                     call.argument("customID")
                 )
             }
-            "addAMapGeoFenceWithLatLong" -> {
+            "addAMapGeoFenceWithLatLng" -> {
                 if (resultFalse()) return
                 val centerPoint = DPoint()
                 centerPoint.latitude = call.argument("latitude")!!
@@ -197,13 +197,13 @@ class AMapLocationMethodCall(
             "addCustomGeoFence" -> {
                 if (resultFalse()) return
                 val points: MutableList<DPoint> = ArrayList()
-                val latLongs = call.argument<MutableList<MutableMap<String, Double>>>(
-                    "latLong"
+                val latLngs = call.argument<MutableList<MutableMap<String, Double>>>(
+                    "latLng"
                 )!!
-                latLongs.forEach { latLong ->
+                latLngs.forEach { latLng ->
                     val dPoint = DPoint()
-                    dPoint.latitude = latLong["latitude"]!!
-                    dPoint.longitude = latLong["longitude"]!!
+                    dPoint.latitude = latLng["latitude"]!!
+                    dPoint.longitude = latLng["longitude"]!!
                     points.add(dPoint)
                 }
                 geoFenceClient!!.addGeoFence(

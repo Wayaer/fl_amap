@@ -138,16 +138,16 @@ Future<void> main() async {
 
 - 根据坐标关键字添加围栏
 ```dart
-  Future<void> addLatLong() async {
-  final LatLong latLong = LatLong(39.933921, 116.372927);
-                          final AMapLatLongModel model = AMapLatLongModel(
-                              latLong: latLong,
+  Future<void> addLatLng() async {
+  final LatLng latLng = LatLng(39.933921, 116.372927);
+                          final AMapLatLngModel model = AMapLatLngModel(
+                              latLng: latLng,
                               keyword: '首开广场',
                               poiType: '',
                               customId: '000FATE23（考勤打卡）',
                               size: 20,
                               aroundRadius: 1000);
-    final bool state = await FlAMapGeoFence().addLatLong(model);
+    final bool state = await FlAMapGeoFence().addLatLng(model);
   }
 ```
 
@@ -162,9 +162,9 @@ Future<void> main() async {
 - 添加圆形围栏
 ```dart
   Future<void> addCircle() async {
-  final LatLong latLong = LatLong(30.651411, 103.998638);
+  final LatLng latLng = LatLng(30.651411, 103.998638);
   final bool state = await FlAMapGeoFence().addCircle(
-                              latLong: latLong,
+                              latLng: latLng,
                               radius: 10,
                               customId: '000FATE23（考勤打卡）');
   }
@@ -173,11 +173,11 @@ Future<void> main() async {
 - 添加多边形围栏
 ```dart
   Future<void> addCustom() async {
-  final bool state = await FlAMapGeoFence().addCustom(latLongs: <LatLong>[
-                            LatLong(39.933921, 116.372927),
-                            LatLong(39.907261, 116.376532),
-                            LatLong(39.900611, 116.418161),
-                            LatLong(39.941949, 116.435497),
+  final bool state = await FlAMapGeoFence().addCustom(latLngs: <LatLng>[
+                            LatLng(39.933921, 116.372927),
+                            LatLng(39.907261, 116.376532),
+                            LatLng(39.900611, 116.418161),
+                            LatLng(39.941949, 116.435497),
                           ], customId: '000FATE23（考勤打卡）');
   }
 ```

@@ -91,7 +91,7 @@ class AMapLocationMethodCall: NSObject {
         case "addGeoFenceWithPOI":
             let args = call.arguments as! [String: Any?]
             geoFenceManager?.addKeywordPOIRegionForMonitoring(withKeyword: args["keyword"] as? String, poiType: args["type"] as? String, city: args["city"] as? String, size: args["size"] as! Int, customID: args["customID"] as? String)
-        case "addAMapGeoFenceWithLatLong":
+        case "addAMapGeoFenceWithLatLng":
             let args = call.arguments as! [String: Any?]
             let coordinate = CLLocationCoordinate2DMake(args["latitude"] as! Double, args["longitude"] as! Double)
             geoFenceManager?.addAroundPOIRegionForMonitoring(withLocationPoint: coordinate, aroundRadius: Int(args["aroundRadius"] as! Double), keyword: args["keyword"] as? String, poiType: args["type"] as? String, size: args["size"] as! Int, customID: args["customID"] as? String)
@@ -104,14 +104,14 @@ class AMapLocationMethodCall: NSObject {
             geoFenceManager?.addCircleRegionForMonitoring(withCenter: coordinate, radius: args["radius"] as! Double, customID: args["customID"] as? String)
         case "addCustomGeoFence":
             let args = call.arguments as! [String: Any?]
-            let latLongs = args["latLong"] as! [[String: Double]]
+            let latLngs = args["latLng"] as! [[String: Double]]
             var coordinates = [CLLocationCoordinate2D]()
-            for latLong in latLongs {
+            for latLng in latLngs {
                 coordinates.append(CLLocationCoordinate2D(
-                        latitude: latLong["latitude"]!, longitude: latLong["longitude"]!
+                        latitude: latLng["latitude"]!, longitude: latLng["longitude"]!
                 ))
             }
-            geoFenceManager?.addPolygonRegionForMonitoring(withCoordinates: &coordinates, count: latLongs.count, customID: args["customID"] as? String)
+            geoFenceManager?.addPolygonRegionForMonitoring(withCoordinates: &coordinates, count: latLngs.count, customID: args["customID"] as? String)
         case "removeGeoFence":
             let customID = call.arguments as? String
             if customID != nil {

@@ -1,18 +1,7 @@
-part of 'fl_amap.dart';
+part of '../fl_amap.dart';
 
-enum GeoFenceActivateAction {
-  /// 进入地理围栏
-  onlyInside,
-
-  /// 退出地理围栏
-  onlyOutside,
-
-  /// 监听进入并退出
-  insideAndOutside,
-
-  /// 停留在地理围栏内10分钟
-  stayed,
-}
+typedef EventHandlerAMapGeoFenceStatus = void Function(
+    AMapGeoFenceStatusModel geoFence);
 
 class FlAMapGeoFence {
   factory FlAMapGeoFence() => _singleton ??= FlAMapGeoFence._();
@@ -50,7 +39,7 @@ class FlAMapGeoFence {
     final bool? state = await _channel.invokeMethod<bool?>('disposeGeoFence');
     if (state == true) _isInitialize = !state!;
     _hasListener = false;
-    return state ?? false;
+    return state == true;
   }
 
   /// 删除地理围栏
@@ -58,7 +47,7 @@ class FlAMapGeoFence {
   Future<bool> remove({String? customID}) async {
     if (!_supportPlatform || !_isInitialize) return false;
     final bool? state = await _channel.invokeMethod('removeGeoFence', customID);
-    return state ?? false;
+    return state == true;
   }
 
   /// 获取所有围栏信息
@@ -73,7 +62,7 @@ class FlAMapGeoFence {
               AMapGeoFenceModel.fromMap(e as Map<dynamic, dynamic>))
           .toList();
     }
-    return <AMapGeoFenceModel>[];
+    return [];
   }
 
   /// 添加高德POI地理围栏
@@ -81,15 +70,15 @@ class FlAMapGeoFence {
     if (!_supportPlatform || !_isInitialize) return false;
     final bool? state =
         await _channel.invokeMethod('addGeoFenceWithPOI', aMapPoiModel.toMap());
-    return state ?? false;
+    return state == true;
   }
 
   /// 添加高德经纬度地理围栏
-  Future<bool> addLatLong(AMapLatLongModel aMapLatLongModel) async {
+  Future<bool> addLatLng(AMapLatLngModel aMapLatLngModel) async {
     if (!_supportPlatform || !_isInitialize) return false;
     final bool? state = await _channel.invokeMethod(
-        'addAMapGeoFenceWithLatLong', aMapLatLongModel.toMap());
-    return state ?? false;
+        'addAMapGeoFenceWithLatLng', aMapLatLngModel.toMap());
+    return state == true;
   }
 
   /// 创建行政区划围栏  根据关键字创建围栏
@@ -100,42 +89,41 @@ class FlAMapGeoFence {
     if (!_supportPlatform || !_isInitialize) return false;
     final bool? state = await _channel.invokeMethod('addGeoFenceWithDistrict',
         <String, String>{'keyword': keyword, 'customID': customID});
-    return state ?? false;
+    return state == true;
   }
 
   /// 创建圆形围栏
-  ///  latLong 经纬度 围栏中心点
+  ///  latLng 经纬度 围栏中心点
   ///  radius 要创建的围栏半径 ，半径无限制，单位米
   ///  customID 与围栏关联的自有业务Id
   Future<bool> addCircle(
-      {required LatLong latLong,
+      {required LatLng latLng,
       required double radius,
       required String customID}) async {
     if (!_supportPlatform || !_isInitialize) return false;
-    final bool? state =
-        await _channel.invokeMethod('addCircleGeoFence', <String, dynamic>{
-      'latitude': latLong.latitude,
-      'longitude': latLong.longitude,
+    final bool? state = await _channel.invokeMethod('addCircleGeoFence', {
+      'latitude': latLng.latitude,
+      'longitude': latLng.longitude,
       'radius': radius,
       'customID': customID
     });
-    return state ?? false;
+    return state == true;
   }
 
   /// 创建多边形围栏
-  ///  latLongs 多个经纬度点 最少3个点
+  ///  latLngs 多个经纬度点 最少3个点
   ///  radius 要创建的围栏半径 ，半径无限制，单位米
   ///  customID 与围栏关联的自有业务Id
   Future<bool> addCustom(
-      {required List<LatLong> latLongs, required String customID}) async {
+      {required List<LatLng> latLngs, required String customID}) async {
     if (!_supportPlatform || !_isInitialize) return false;
-    if (latLongs.length < 3) return false;
+    if (latLngs.length < 3) return false;
     final bool? state = await _channel.invokeMethod(
         'addCustomGeoFence', <String, dynamic>{
-      'latLong': latLongs.map((LatLong e) => e.toMap()).toList(),
+      'latLng': latLngs.map((LatLng e) => e.toMap()).toList(),
       'customID': customID
     });
-    return state ?? false;
+    return state == true;
   }
 
   /// 暂停监听围栏
@@ -148,7 +136,7 @@ class FlAMapGeoFence {
     final bool? state = await _channel.invokeMethod('pauseGeoFence', customID);
     if (state == true) _channel.setMethodCallHandler(null);
     _hasListener = false;
-    return state ?? false;
+    return state == true;
   }
 
   /// 开启围栏状态监听
@@ -172,7 +160,7 @@ class FlAMapGeoFence {
         }
       });
     }
-    return state ?? false;
+    return state == true;
   }
 }
 
@@ -188,17 +176,17 @@ class AMapGeoFenceModel {
   });
 
   AMapGeoFenceModel.fromMap(Map<dynamic, dynamic> json) {
-    pointList = <List<LatLong>>[];
+    pointList = <List<LatLng>>[];
     if (json['pointList'] != null) {
       json['pointList'].forEach((dynamic v) {
         final List<dynamic> points = v as List<dynamic>;
         pointList!.add(points
-            .map((dynamic e) => LatLong.fromMap(e as Map<dynamic, dynamic>))
+            .map((dynamic e) => LatLng.fromMap(e as Map<dynamic, dynamic>))
             .toList());
       });
     }
     center = json['center'] != null
-        ? LatLong.fromMap(json['center'] as Map<dynamic, dynamic>)
+        ? LatLng.fromMap(json['center'] as Map<dynamic, dynamic>)
         : null;
     poiItem = json['poiItem'] != null
         ? AMapPoiDetailModel.fromMap(json['poiItem'] as Map<dynamic, dynamic>)
@@ -210,8 +198,8 @@ class AMapGeoFenceModel {
     status = json['status'] as int?;
   }
 
-  List<List<LatLong>>? pointList;
-  LatLong? center;
+  List<List<LatLng>>? pointList;
+  LatLng? center;
   int? type;
   double? radius;
   String? customID;
@@ -224,7 +212,7 @@ class AMapGeoFenceModel {
     data['pointList'] = pointList == null
         ? null
         : pointList!
-            .map((List<LatLong> v) => v.map((LatLong e) => e.toMap()).toList())
+            .map((List<LatLng> v) => v.map((LatLng e) => e.toMap()).toList())
             .toList();
     data['center'] = center == null ? null : center!.toMap();
     data['poiItem'] = poiItem == null ? null : poiItem!.toMap();
@@ -244,7 +232,7 @@ class AMapPoiDetailModel {
       this.poiName,
       this.city,
       this.poiType,
-      this.latLong,
+      this.latLng,
       this.poiId});
 
   AMapPoiDetailModel.fromMap(Map<dynamic, dynamic> json) {
@@ -257,7 +245,7 @@ class AMapPoiDetailModel {
     final double? latitude = json['latitude'] as double?;
     final double? longitude = json['longitude'] as double?;
     if (latitude != null && longitude != null) {
-      latLong = LatLong(latitude, longitude);
+      latLng = LatLng(latitude, longitude);
     }
   }
 
@@ -266,7 +254,7 @@ class AMapPoiDetailModel {
   String? poiName;
   String? city;
   String? poiType;
-  LatLong? latLong;
+  LatLng? latLng;
   String? poiId;
 
   Map<String, dynamic> toMap() {
@@ -276,7 +264,7 @@ class AMapPoiDetailModel {
     data['poiName'] = poiName;
     data['city'] = city;
     data['poiType'] = poiType;
-    data['latLong'] = latLong == null ? null : latLong!.toMap();
+    data['latLng'] = latLng == null ? null : latLng!.toMap();
     data['poiId'] = poiId;
     return data;
   }
@@ -315,13 +303,13 @@ class AMapPoiModel {
       };
 }
 
-class AMapLatLongModel {
-  AMapLatLongModel({
+class AMapLatLngModel {
+  AMapLatLngModel({
     required this.keyword,
     required this.poiType,
     required this.aroundRadius,
     required this.size,
-    required this.latLong,
+    required this.latLng,
     required this.customID,
   });
 
@@ -332,7 +320,7 @@ class AMapLatLongModel {
   late String poiType;
 
   /// 经纬度
-  late LatLong latLong;
+  late LatLng latLng;
 
   /// 周边半径
   late double aroundRadius;
@@ -346,8 +334,8 @@ class AMapLatLongModel {
   Map<String, dynamic> toMap() => <String, dynamic>{
         'keyword': keyword,
         'poiType': poiType,
-        'latitude': latLong.latitude,
-        'longitude': latLong.longitude,
+        'latitude': latLng.latitude,
+        'longitude': latLng.longitude,
         'aroundRadius': aroundRadius,
         'size': size,
         'customID': customID
@@ -407,34 +395,3 @@ class AMapGeoFenceStatusModel {
         'fence': fence == null ? null : fence!.toMap()
       };
 }
-
-enum GenFenceType {
-  /// 圆形地理围栏
-  circle,
-
-  /// 多边形地理围栏
-  custom,
-
-  /// 兴趣点（POI）地理围栏
-  poi,
-
-  /// 行政区划地理围栏
-  district
-}
-
-enum GenFenceStatus {
-  /// 未知
-  none,
-
-  /// 在范围内
-  inside,
-
-  /// 在范围外
-  outside,
-
-  ///  停留(在范围内超过10分钟)
-  stayed
-}
-
-typedef EventHandlerAMapGeoFenceStatus = void Function(
-    AMapGeoFenceStatusModel geoFence);

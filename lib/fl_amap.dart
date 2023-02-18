@@ -1,9 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
-part 'amap_geo_fence.dart';
+part 'src/amap_geo_fence.dart';
 
-part 'amap_location.dart';
+part 'src/amap_location.dart';
+
+part 'src/enum.dart';
 
 const MethodChannel _channel = MethodChannel('fl_amap');
 
@@ -32,7 +34,7 @@ Future<bool> setAMapKey({
     'isContains': isContains,
     'isShow': isShow
   });
-  return state ?? false;
+  return state == true;
 }
 
 bool get _supportPlatform {
@@ -45,19 +47,16 @@ bool get _isAndroid => defaultTargetPlatform == TargetPlatform.android;
 
 bool get _isIOS => defaultTargetPlatform == TargetPlatform.iOS;
 
-class LatLong {
-  LatLong(this.latitude, this.longitude);
+class LatLng {
+  LatLng(this.latitude, this.longitude);
 
-  LatLong.fromMap(Map<dynamic, dynamic> map) {
-    latitude = map['latitude'] as double?;
-    longitude = map['longitude'] as double?;
-  }
+  LatLng.fromMap(Map<dynamic, dynamic> map)
+      : latitude = map['latitude'] as double?,
+        longitude = map['longitude'] as double?;
 
   double? latitude;
   double? longitude;
 
-  Map<String, double?> toMap() => <String, double?>{
-        'latitude': latitude,
-        'longitude': longitude,
-      };
+  Map<String, dynamic> toMap() =>
+      {'latitude': latitude, 'longitude': longitude};
 }

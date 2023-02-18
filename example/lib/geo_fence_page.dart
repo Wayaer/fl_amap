@@ -80,17 +80,17 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                       text: '添加POI围栏'),
                   ElevatedText(
                       onPressed: () async {
-                        final LatLong latLong = LatLong(30.630259, 103.974113);
-                        final AMapLatLongModel model = AMapLatLongModel(
-                            latLong: latLong,
+                        final LatLng latLng = LatLng(30.630259, 103.974113);
+                        final AMapLatLngModel model = AMapLatLngModel(
+                            latLng: latLng,
                             keyword: '西部智谷',
                             poiType: '',
                             customID: customID,
                             size: 20,
                             aroundRadius: 10000);
                         final bool state =
-                            await FlAMapGeoFence().addLatLong(model);
-                        show('addLatLong : $state');
+                            await FlAMapGeoFence().addLatLng(model);
+                        show('addLatLng : $state');
                       },
                       text: '添加经纬度围栏'),
                   ElevatedText(
@@ -102,20 +102,20 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                       text: '添加行政区划围栏'),
                   ElevatedText(
                       onPressed: () async {
-                        final LatLong latLong = LatLong(30.651411, 103.998638);
+                        final LatLng latLng = LatLng(30.651411, 103.998638);
                         final bool state = await FlAMapGeoFence().addCircle(
-                            latLong: latLong, radius: 10, customID: customID);
+                            latLng: latLng, radius: 10, customID: customID);
                         show('addCircle : $state');
                       },
                       text: '添加圆形围栏'),
                   ElevatedText(
                       onPressed: () async {
-                        final bool state = await FlAMapGeoFence()
-                            .addCustom(latLongs: <LatLong>[
-                          LatLong(39.933921, 116.372927),
-                          LatLong(39.907261, 116.376532),
-                          LatLong(39.900611, 116.418161),
-                          LatLong(39.941949, 116.435497),
+                        final bool state =
+                            await FlAMapGeoFence().addCustom(latLngs: <LatLng>[
+                          LatLng(39.933921, 116.372927),
+                          LatLng(39.907261, 116.376532),
+                          LatLng(39.900611, 116.418161),
+                          LatLng(39.941949, 116.435497),
                         ], customID: customID);
                         show('addCustom : $state');
                       },

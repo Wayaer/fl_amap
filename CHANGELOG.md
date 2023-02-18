@@ -1,3 +1,7 @@
+## 2.5.0
+
+* Modify some nouns
+
 ## 2.3.1+1
 
 * Upgrade gradle version
