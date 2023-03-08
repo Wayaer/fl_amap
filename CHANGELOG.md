@@ -1,3 +1,7 @@
+## 2.5.1
+
+* Fixed issues on ios
+
 ## 2.5.0
 
 * Modify some nouns

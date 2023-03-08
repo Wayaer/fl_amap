@@ -132,7 +132,7 @@ class AMapLocationMethodCall: NSObject {
     }
 
     func getLocation(_ withReGeocode: Bool, _ result: @escaping FlutterResult) {
-        locationManager!.requestLocation(withReGeocode: withReGeocode, completionBlock: { location, reGeocode, error in
+        locationManager!.requestLocation(withReGeocode: withReGeocode, completionBlock: { [weak self] (location: CLLocation?, reGeocode: AMapLocationReGeocode?, error: Error?) in
             if error != nil {
                 result([
                     "code": (error! as NSError).code,
@@ -146,8 +146,8 @@ class AMapLocationMethodCall: NSObject {
                     md["code"] = 0
                     md["success"] = true
                 } else {
-                    md["code"] = (error! as NSError).code
-                    md["description"] = error!.localizedDescription
+                    md["code"] = (error as? NSError)?.code
+                    md["description"] = error?.localizedDescription
                     md["success"] = true
                 }
                 result(md)
