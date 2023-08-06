@@ -42,9 +42,11 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
   }
 
   @override
-  Widget build(BuildContext context) => ExtendedScaffold(
-          appBar: AppBar(title: const Text('高德地图定位')),
+  Widget build(BuildContext context) => Scaffold(
+      appBar: AppBar(title: const Text('高德地图定位')),
+      body: Universal(
           isScroll: true,
+          width: double.infinity,
           padding: const EdgeInsets.all(8.0),
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
@@ -88,7 +90,7 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
                     builder: (_, AMapLocation? value, __) => Text(
                         getLocationStr(value),
                         style: const TextStyle(fontSize: 15))))
-          ]);
+          ]));
 
   Future<void> startLocationState() async {
     if (!await getPermissions) return;

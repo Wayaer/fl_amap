@@ -40,10 +40,12 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
   }
 
   @override
-  Widget build(BuildContext context) => ExtendedScaffold(
-          appBar: AppBar(title: const Text('高德地理围栏')),
+  Widget build(BuildContext context) => Scaffold(
+      appBar: AppBar(title: const Text('高德地理围栏')),
+      body: Universal(
           padding: const EdgeInsets.all(8.0),
           isScroll: true,
+          width: double.infinity,
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             const SizedBox(height: 10),
@@ -178,7 +180,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                       if (value is List) return JsonParse.list(value);
                       return Text(value.toString());
                     }))
-          ]);
+          ]));
 
   String getType(GenFenceType? type) {
     switch (type) {

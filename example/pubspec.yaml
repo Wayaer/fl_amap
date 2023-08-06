@@ -11,11 +11,11 @@ dependencies:
     path: ../
   flutter:
     sdk: flutter
-  flutter_waya: ^7.5.2
-  permission_handler: ^10.2.0
+  flutter_waya: ^8.0.1
+  permission_handler: ^10.4.3
 
 dev_dependencies:
-  flutter_lints: ^2.0.1
+  flutter_lints: ^2.0.2
 
 flutter:
   uses-material-design: true

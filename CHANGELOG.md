@@ -1,3 +1,7 @@
+## 2.5.2
+
+* Upgrade the Android AMap locating SDK
+
 ## 2.5.1
 
 * Fixed issues on ios

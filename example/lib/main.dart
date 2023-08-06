@@ -15,7 +15,13 @@ Future<void> main() async {
       isContains: true,
       isShow: true);
   debugPrint('高德地图ApiKey设置$key');
-  runApp(const ExtendedWidgetsApp(title: 'FlAMap', home: App()));
+  runApp(MaterialApp(
+      navigatorKey: GlobalOptions().navigatorKey,
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData.light(useMaterial3: true),
+      darkTheme: ThemeData.dark(useMaterial3: true),
+      title: 'FlAMap',
+      home: App()));
 }
 
 class App extends StatelessWidget {
@@ -23,20 +29,24 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ExtendedScaffold(
+    return Scaffold(
         appBar: AppBar(title: const Text('高德地图')),
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          ElevatedText(
-              onPressed: () => showCupertinoModalPopup<dynamic>(
-                  context: context, builder: (_) => const AMapLocationPage()),
-              text: '高德定位功能'),
-          ElevatedText(
-              onPressed: () => showCupertinoModalPopup<dynamic>(
-                  context: context, builder: (_) => const AMapGeoFencePage()),
-              text: '高德地理围栏功能'),
-        ]);
+        body: Universal(
+            width: double.infinity,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              ElevatedText(
+                  onPressed: () => showCupertinoModalPopup<dynamic>(
+                      context: context,
+                      builder: (_) => const AMapLocationPage()),
+                  text: '高德定位功能'),
+              ElevatedText(
+                  onPressed: () => showCupertinoModalPopup<dynamic>(
+                      context: context,
+                      builder: (_) => const AMapGeoFencePage()),
+                  text: '高德地理围栏功能'),
+            ]));
   }
 }
 
