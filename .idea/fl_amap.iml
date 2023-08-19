@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/fl_amap_map/example/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/fl_amap_map/example/build" />
+      <excludeFolder url="file://$MODULE_DIR$/fl_amap_map/example/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/fl_amap_map/build" />
+      <excludeFolder url="file://$MODULE_DIR$/fl_amap_map/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/fl_amap_map/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/fl_amap/example/build" />
+      <excludeFolder url="file://$MODULE_DIR$/fl_amap/example/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/fl_amap/example/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/fl_amap/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/fl_amap/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/fl_amap/build" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>

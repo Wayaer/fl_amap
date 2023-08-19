@@ -1,0 +1,24 @@
+name: fl_amap_map
+description: AMap location and AMap plugin for flutter, supports single positioning and continuous positioning
+version: 0.0.1
+repository: https://github.com/Wayaer/fl_amap/tree/main/fl_amap_amap
+
+environment:
+  sdk: '>=2.18.0 <3.0.0'
+  flutter: '>=3.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_lints: ^2.0.2
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: fl.amap
+        pluginClass: AMapMapPlugin
+      ios:
+        pluginClass: AMapMapPlugin
