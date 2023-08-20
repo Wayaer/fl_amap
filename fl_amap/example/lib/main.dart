@@ -17,11 +17,12 @@ Future<void> main() async {
   debugPrint('高德地图ApiKey设置$key');
   runApp(MaterialApp(
       navigatorKey: GlobalOptions().navigatorKey,
+      scaffoldMessengerKey: GlobalOptions().scaffoldMessengerKey,
       debugShowCheckedModeBanner: false,
       theme: ThemeData.light(useMaterial3: true),
       darkTheme: ThemeData.dark(useMaterial3: true),
       title: 'FlAMap',
-      home: App()));
+      home: const App()));
 }
 
 class App extends StatelessWidget {
