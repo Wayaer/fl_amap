@@ -1,4 +1,4 @@
-package fl.amap.map
+package fl.amap.map.map
 
 import android.content.Context
 import android.os.Bundle
@@ -9,7 +9,7 @@ import com.amap.api.maps.AMap
 import com.amap.api.maps.CameraUpdateFactory
 import com.amap.api.maps.TextureMapView
 import com.amap.api.maps.model.*
-import fl.amap.AMapMapPlugin.Companion.lifecycle
+import fl.amap.map.AMapMapPlugin.Companion.lifecycle
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding.OnSaveInstanceStateListener
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -18,7 +18,7 @@ import io.flutter.plugin.platform.PlatformView
 
 
 class AMapView(
-    context: Context?, private var channel: MethodChannel, private var viewId: Int, args: Map<*, *>
+        context: Context?, private var channel: MethodChannel, private var viewId: Int, args: Map<*, *>
 ) : DefaultLifecycleObserver, OnSaveInstanceStateListener, MethodCallHandler, PlatformView {
     private var mapview: TextureMapView
     private var mapViewListener: AMapViewListener? = null
@@ -72,28 +72,31 @@ class AMapView(
                 }
                 result.success(true)
             }
+
             "dispose" -> {
                 channel.setMethodCallHandler(null)
                 mapview.onDestroy()
                 lifecycle?.removeObserver(this)
             }
+
             "removeListener" -> {
                 mapViewListener?.removeListener()
                 mapViewListener = null
                 result.success(true)
             }
+
             "setCenter" -> {
                 val animated = call.argument<Boolean>("animated")!!
                 val cameraUpdate = CameraUpdateFactory.newCameraPosition(
-                    CameraPosition(
-                        LatLng(
-                            call.argument<Double>("latitude")!!,
-                            call.argument<Double>("longitude")!!
-                        ),
-                        call.argument<Double>("zoom")!!.toFloat(),
-                        call.argument<Double>("tilt")!!.toFloat(),
-                        call.argument<Double>("bearing")!!.toFloat()
-                    )
+                        CameraPosition(
+                                LatLng(
+                                        call.argument<Double>("latitude")!!,
+                                        call.argument<Double>("longitude")!!
+                                ),
+                                call.argument<Double>("zoom")!!.toFloat(),
+                                call.argument<Double>("tilt")!!.toFloat(),
+                                call.argument<Double>("bearing")!!.toFloat()
+                        )
                 )
                 if (animated) {
                     mapview.map.animateCamera(cameraUpdate)
@@ -102,14 +105,17 @@ class AMapView(
                 }
                 result.success(true)
             }
+
             "reloadMap" -> {
                 mapview.map.reloadMap()
                 result.success(true)
             }
+
             "setRenderFps" -> {
                 mapview.map.setRenderFps(call.arguments as Int)
                 result.success(true)
             }
+
             "setTrackingMode" -> {
                 val mode = call.argument<Int>("mode") ?: 0
                 val locationStyle = MyLocationStyle()
@@ -117,6 +123,7 @@ class AMapView(
                 mapview.map.myLocationStyle = locationStyle
                 result.success(true)
             }
+
             "addMarker" -> {
                 val markerOptions = MarkerOptions()
                 val marker = mapview.map.addMarker(markerOptions)
@@ -137,9 +144,9 @@ class AMapView(
         val tilt = (args["tilt"] as Double).toFloat()
         val bearing = (args["bearing"] as Double).toFloat()
         map.moveCamera(
-            CameraUpdateFactory.newCameraPosition(
-                CameraPosition(LatLng(latitude, longitude), zoom, tilt, bearing)
-            )
+                CameraUpdateFactory.newCameraPosition(
+                        CameraPosition(LatLng(latitude, longitude), zoom, tilt, bearing)
+                )
         )
         options.isRotateGesturesEnabled = args["isRotateGesturesEnabled"] as Boolean
         options.isCompassEnabled = args["showCompass"] as Boolean

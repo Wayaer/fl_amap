@@ -1,10 +1,10 @@
-package fl.amap
+package fl.amap.map
 
 import android.content.Context
 import androidx.lifecycle.Lifecycle
 import com.amap.api.location.AMapLocationClient
 import com.amap.api.maps.MapsInitializer
-import fl.amap.map.AMapPlatformViewFactory
+import fl.amap.map.map.AMapPlatformViewFactory
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -23,7 +23,6 @@ class AMapMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAw
 
     companion object {
         var lifecycle: Lifecycle? = null
-        var mapEvent: AMapEvent? = null
     }
 
     override fun onAttachedToEngine(plugin: FlutterPlugin.FlutterPluginBinding) {
@@ -33,7 +32,7 @@ class AMapMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAw
         methodCall = AMapLocationMethodCall(context, channel)
         channel.setMethodCallHandler(this)
         plugin.platformViewRegistry.registerViewFactory(
-            "fl_amap_map", AMapPlatformViewFactory(plugin.binaryMessenger)
+                "fl_amap_map", AMapPlatformViewFactory(plugin.binaryMessenger)
         )
     }
 
@@ -55,15 +54,7 @@ class AMapMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAw
                 MapsInitializer.updatePrivacyShow(context, isContains, isShow)
                 result.success(true)
             }
-            "startEvent" -> {
-                if (mapEvent == null) mapEvent = AMapEvent(binaryMessenger)
-                result.success(true)
-            }
-            "stopEvent" -> {
-                mapEvent?.dispose()
-                mapEvent = null
-                result.success(true)
-            }
+
             else -> methodCall?.onMethodCall(call, result)
         }
 

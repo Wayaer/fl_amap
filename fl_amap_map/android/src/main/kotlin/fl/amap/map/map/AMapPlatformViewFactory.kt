@@ -1,7 +1,6 @@
-package fl.amap.map
+package fl.amap.map.map
 
 import android.content.Context
-import fl.amap.AMapEvent
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.StandardMessageCodec

@@ -1,3 +1,4 @@
+import fl_channel
 import Flutter
 import Foundation
 import MAMapKit
@@ -10,7 +11,6 @@ class AMapViewDelegate: NSObject, MAMapViewDelegate {
         self.viewId = viewId
         super.init()
     }
-
 
     public func mapViewWillStartLocatingUser(_ mapView: MAMapView!) {
         // ("启动定位")
@@ -34,7 +34,7 @@ class AMapViewDelegate: NSObject, MAMapViewDelegate {
         map.merge(location.location?.data ?? [:])
         map["heading"] = location.heading?.data
         map["isUpdating"] = location.isUpdating
-        AMapMapPlugin.mapEvent?.sendEvent(map)
+        FlEvent.shared.send(map)
     }
 
     public func mapViewDidFinishLoadingMap(_ mapView: MAMapView!) {
@@ -44,7 +44,7 @@ class AMapViewDelegate: NSObject, MAMapViewDelegate {
     public func mapInitComplete(_ mapView: MAMapView!) {
         var map = getIdMap()
         map["method"] = "Loaded"
-        AMapMapPlugin.mapEvent?.sendEvent(map)
+        FlEvent.shared.send(map)
     }
 
     public func mapView(_ mapView: MAMapView!, didAddAnnotationViews views: [Any]!) {
@@ -68,14 +68,14 @@ class AMapViewDelegate: NSObject, MAMapViewDelegate {
         var map = getIdMap()
         map["method"] = "Pressed"
         map.merge(coordinate.data)
-        AMapMapPlugin.mapEvent?.sendEvent(map)
+        FlEvent.shared.send(map)
     }
 
     public func mapView(_ mapView: MAMapView!, didLongPressedAt coordinate: CLLocationCoordinate2D) {
         var map = getIdMap()
         map["method"] = "LongPressed"
         map.merge(coordinate.data)
-        AMapMapPlugin.mapEvent?.sendEvent(map)
+        FlEvent.shared.send(map)
     }
 
     public func mapView(_ mapView: MAMapView!, didTouchPois pois: [Any]!) {
@@ -84,7 +84,7 @@ class AMapViewDelegate: NSObject, MAMapViewDelegate {
         map["poi"] = (pois as! [MATouchPoi]).map {
             $0.data
         }
-        AMapMapPlugin.mapEvent?.sendEvent(map)
+        FlEvent.shared.send(map)
     }
 
     public func mapViewRegionChanged(_ mapView: MAMapView!) {

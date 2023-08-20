@@ -1,17 +1,13 @@
-package fl.amap.map
+package fl.amap.map.map
 
 import android.location.Location
 import com.amap.api.maps.AMap
 import com.amap.api.maps.LocationSource
 import com.amap.api.maps.model.*
-import fl.amap.AMapMapPlugin.Companion.mapEvent
-import fl.amap.data
+import fl.amap.map.data
+import fl.channel.FlEvent
 
-class AMapViewListener(
-    private var viewId: Int, private var map: AMap
-) : AMap.OnMapLoadedListener, AMap.OnMyLocationChangeListener, AMap.OnCameraChangeListener,
-    AMap.OnMarkerClickListener, AMap.OnMarkerDragListener, AMap.OnMapClickListener,
-    AMap.OnMapLongClickListener, AMap.OnPOIClickListener, LocationSource.OnLocationChangedListener {
+class AMapViewListener(private var viewId: Int, private var map: AMap) : AMap.OnMapLoadedListener, AMap.OnMyLocationChangeListener, AMap.OnCameraChangeListener, AMap.OnMarkerClickListener, AMap.OnMarkerDragListener, AMap.OnMapClickListener, AMap.OnMapLongClickListener, AMap.OnPOIClickListener, LocationSource.OnLocationChangedListener {
 
 
     init {
@@ -27,7 +23,7 @@ class AMapViewListener(
         // 地图加载完成监听接口
         val map = getIdMap()
         map["method"] = "Loaded"
-        mapEvent?.sendEvent(map)
+        FlEvent.send(map)
     }
 
     override fun onMyLocationChange(location: Location?) {
@@ -35,7 +31,7 @@ class AMapViewListener(
         val map = getIdMap()
         map["method"] = "LocationChange"
         location?.data?.let { map.putAll(it) }
-        mapEvent?.sendEvent(map)
+        FlEvent.send(map)
     }
 
     override fun onCameraChange(position: CameraPosition?) {
@@ -51,7 +47,7 @@ class AMapViewListener(
         val map = getIdMap()
         map["method"] = "Pressed"
         latlng?.let { map.putAll(it.data) }
-        mapEvent?.sendEvent(map)
+        FlEvent.send(map)
     }
 
     override fun onMapLongClick(latlng: LatLng?) {
@@ -59,7 +55,7 @@ class AMapViewListener(
         val map = getIdMap()
         map["method"] = "LongPressed"
         latlng?.let { map.putAll(it.data) }
-        mapEvent?.sendEvent(map)
+        FlEvent.send(map)
     }
 
     override fun onPOIClick(poi: Poi?) {
@@ -67,7 +63,7 @@ class AMapViewListener(
         val map = getIdMap()
         map["method"] = "POIPressed"
         poi?.let { map["poi"] = listOf(it.data) }
-        mapEvent?.sendEvent(map)
+        FlEvent.send(map)
     }
 
     override fun onMarkerClick(marker: Marker?): Boolean {
@@ -75,7 +71,7 @@ class AMapViewListener(
         val map = getIdMap()
         map["method"] = "MarkerPressed"
         marker?.let { map.putAll(marker.data) }
-        mapEvent?.sendEvent(map)
+        FlEvent.send(map)
         return true
     }
 

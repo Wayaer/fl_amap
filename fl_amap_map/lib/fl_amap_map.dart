@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ffi';
 
+import 'package:fl_channel/fl_channel.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -11,8 +12,6 @@ part 'src/map/amap_view.dart';
 part 'src/map/controller.dart';
 
 part 'src/map/model.dart';
-
-part 'src/map/map_event.dart';
 
 part 'src/enum.dart';
 

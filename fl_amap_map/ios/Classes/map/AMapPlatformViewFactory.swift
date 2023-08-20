@@ -17,5 +17,4 @@ public class AMapPlatformViewFactory: NSObject, FlutterPlatformViewFactory {
     public func createArgsCodec() -> FlutterMessageCodec & NSObjectProtocol {
         FlutterStandardMessageCodec.sharedInstance()
     }
-
 }

@@ -20,6 +20,7 @@ Future<void> main() async {
   });
   runApp(MaterialApp(
       navigatorKey: GlobalOptions().navigatorKey,
+      scaffoldMessengerKey: GlobalOptions().scaffoldMessengerKey,
       debugShowCheckedModeBanner: false,
       theme: ThemeData.light(useMaterial3: true),
       darkTheme: ThemeData.dark(useMaterial3: true),

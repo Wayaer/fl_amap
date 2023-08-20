@@ -45,7 +45,7 @@ public class AMapView: NSObject, FlutterPlatformView {
             mapview?.setUserTrackingMode(trackingMode, animated: args["animated"] as! Bool)
             result(true)
         case "addListener":
-            if (mapviewDelegate == nil && mapview != nil) {
+            if mapviewDelegate == nil, mapview != nil {
                 mapviewDelegate = AMapViewDelegate(viewId)
                 mapview!.delegate = mapviewDelegate
             }
@@ -93,11 +93,9 @@ public class AMapView: NSObject, FlutterPlatformView {
         mapview?.isShowsBuildings = args["showBuildings"] as! Bool
         mapview?.mapLanguage = NSNumber(value: args["language"] as! Int)
         mapview?.centerCoordinate = CLLocationCoordinate2D(latitude: args["latitude"] as! Double, longitude: args["longitude"] as! Double)
-
     }
 
     public func view() -> UIView {
         mapview!
     }
-
 }

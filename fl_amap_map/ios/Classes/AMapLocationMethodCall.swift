@@ -132,7 +132,7 @@ class AMapLocationMethodCall: NSObject {
                 result([
                     "code": (error! as NSError).code,
                     "description": error!.localizedDescription,
-                ])
+                ] as [String : Any])
             }
         })
     }
@@ -237,7 +237,7 @@ class LocationManagerDelegate: NSObject, AMapLocationManagerDelegate {
             "description": error!.localizedDescription,
             "success": false,
             "code": (error! as NSError).code,
-        ])
+        ] as [String : Any])
     }
 }
 

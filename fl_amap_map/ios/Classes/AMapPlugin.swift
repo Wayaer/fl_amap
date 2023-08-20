@@ -1,16 +1,15 @@
+import AMapLocationKit
 import Flutter
 import MAMapKit
-import AMapLocationKit
 
 public class AMapMapPlugin: NSObject, FlutterPlugin {
     private var channel: FlutterMethodChannel?
     private var methodCall: AMapLocationMethodCall?
     private var binaryMessenger: FlutterBinaryMessenger
-    static var mapEvent: AMapEvent?
 
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: "fl_amap", binaryMessenger:
-        registrar.messenger())
+            registrar.messenger())
         let instance = AMapMapPlugin(channel, registrar.messenger())
         registrar.addMethodCallDelegate(instance, channel: channel)
         registrar.register(AMapPlatformViewFactory(registrar), withId: "fl_amap_map", gestureRecognizersBlockingPolicy: FlutterPlatformViewGestureRecognizersBlockingPolicyWaitUntilTouchesEnded)
@@ -38,20 +37,9 @@ public class AMapMapPlugin: NSObject, FlutterPlugin {
             MAMapView.updatePrivacyAgree(isAgree ? .didAgree : .notAgree)
             MAMapView.updatePrivacyShow(isShow ? .didShow : .notShow, privacyInfo: isContains ? .didContain : .notContain)
             result(true)
-        case "startEvent":
-            if (AMapMapPlugin.mapEvent == nil) {
-                AMapMapPlugin.mapEvent = AMapEvent(binaryMessenger)
-            }
-            result(true)
-        case "stopEvent":
-            AMapMapPlugin.mapEvent?.dispose()
-            AMapMapPlugin.mapEvent = nil
-            result(true)
         default:
             methodCall?.handle(call, result)
         }
-
-
     }
 
     public func detachFromEngine(for registrar: FlutterPluginRegistrar) {
