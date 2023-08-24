@@ -1,4 +1,3 @@
-import fl_channel
 import Flutter
 import Foundation
 import MAMapKit
@@ -34,7 +33,7 @@ class AMapViewDelegate: NSObject, MAMapViewDelegate {
         map.merge(location.location?.data ?? [:])
         map["heading"] = location.heading?.data
         map["isUpdating"] = location.isUpdating
-        FlEvent.shared.send(map)
+        _ = AMapMapPlugin.flMapEvent?.send(map)
     }
 
     public func mapViewDidFinishLoadingMap(_ mapView: MAMapView!) {
@@ -44,7 +43,7 @@ class AMapViewDelegate: NSObject, MAMapViewDelegate {
     public func mapInitComplete(_ mapView: MAMapView!) {
         var map = getIdMap()
         map["method"] = "Loaded"
-        FlEvent.shared.send(map)
+        _ = AMapMapPlugin.flMapEvent?.send(map)
     }
 
     public func mapView(_ mapView: MAMapView!, didAddAnnotationViews views: [Any]!) {
@@ -68,14 +67,14 @@ class AMapViewDelegate: NSObject, MAMapViewDelegate {
         var map = getIdMap()
         map["method"] = "Pressed"
         map.merge(coordinate.data)
-        FlEvent.shared.send(map)
+        _ = AMapMapPlugin.flMapEvent?.send(map)
     }
 
     public func mapView(_ mapView: MAMapView!, didLongPressedAt coordinate: CLLocationCoordinate2D) {
         var map = getIdMap()
         map["method"] = "LongPressed"
         map.merge(coordinate.data)
-        FlEvent.shared.send(map)
+        _ = AMapMapPlugin.flMapEvent?.send(map)
     }
 
     public func mapView(_ mapView: MAMapView!, didTouchPois pois: [Any]!) {
@@ -84,7 +83,7 @@ class AMapViewDelegate: NSObject, MAMapViewDelegate {
         map["poi"] = (pois as! [MATouchPoi]).map {
             $0.data
         }
-        FlEvent.shared.send(map)
+        _ = AMapMapPlugin.flMapEvent?.send(map)
     }
 
     public func mapViewRegionChanged(_ mapView: MAMapView!) {

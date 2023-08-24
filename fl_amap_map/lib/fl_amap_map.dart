@@ -19,6 +19,8 @@ part 'src/amap_geo_fence.dart';
 
 part 'src/amap_location.dart';
 
+part 'src/event.dart';
+
 const MethodChannel _channel = MethodChannel('fl_amap');
 
 /// 设置ios&android的key
@@ -48,6 +50,7 @@ Future<bool> setAMapKey({
     'isShow': isShow,
     'enableHTTPS': enableHTTPS
   });
+  FlMapEvent();
   return state ?? false;
 }
 

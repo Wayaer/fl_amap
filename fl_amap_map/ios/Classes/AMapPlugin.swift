@@ -1,4 +1,5 @@
 import AMapLocationKit
+import fl_channel
 import Flutter
 import MAMapKit
 
@@ -6,6 +7,8 @@ public class AMapMapPlugin: NSObject, FlutterPlugin {
     private var channel: FlutterMethodChannel?
     private var methodCall: AMapLocationMethodCall?
     private var binaryMessenger: FlutterBinaryMessenger
+
+    public static var flMapEvent: FlEvent?
 
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: "fl_amap", binaryMessenger:
@@ -25,6 +28,7 @@ public class AMapMapPlugin: NSObject, FlutterPlugin {
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
         case "setApiKey":
+            AMapMapPlugin.flMapEvent = FlEvent("fl_amap_map/event", binaryMessenger)
             let args = call.arguments as! [String: Any?]
             let key = args["key"] as! String
             let isAgree = args["isAgree"] as! Bool
@@ -44,6 +48,7 @@ public class AMapMapPlugin: NSObject, FlutterPlugin {
 
     public func detachFromEngine(for registrar: FlutterPluginRegistrar) {
         channel?.setMethodCallHandler(nil)
+        AMapMapPlugin.flMapEvent = nil
     }
 
     deinit {

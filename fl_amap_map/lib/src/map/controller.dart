@@ -46,6 +46,8 @@ class AMapController {
     return result ?? false;
   }
 
+  FlMapEventListenCancel? _cancel;
+
   /// 添加回调监听
   Future<bool> addListener({
     /// 定位改变回调
@@ -66,15 +68,11 @@ class AMapController {
     /// marker 点击回调
     AMapMarkerPressedListener? onMarkerPressed,
   }) async {
-    /// 初始化 event
-    bool event = await FlEvent().initialize();
-    if (!event) return false;
-
     /// 初始化原生sdk listener
     final bool? result = await _channel.invokeMethod('addListener');
 
     /// 添加消息监听通道
-    final listen = FlEvent().addListener((data) {
+    _cancel = FlMapEvent().listen((data) {
       if (data is! Map) return;
       debugPrint('消息回调==${data['method']}===$data');
       final id = data['id'];
@@ -101,13 +99,6 @@ class AMapController {
           break;
       }
     });
-    return event && result == true && listen;
-  }
-
-  /// 移除Listener
-  /// 仅仅只是移除监听回调 消息通道并未注销
-  Future<bool> removeListener() async {
-    final bool? result = await _channel.invokeMethod('removeListener');
     return result == true;
   }
 
@@ -115,7 +106,7 @@ class AMapController {
   /// 当只存在一个地图且被销毁时 需要关系消息通道
   /// [controller.mapEvent.dispose()]
   Future<bool> dispose() async {
-    await removeListener();
+    _cancel?.call();
     final bool? result = await _channel.invokeMethod('dispose');
     return result ?? false;
   }

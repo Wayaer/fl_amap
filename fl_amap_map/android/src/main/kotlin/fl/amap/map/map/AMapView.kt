@@ -18,7 +18,7 @@ import io.flutter.plugin.platform.PlatformView
 
 
 class AMapView(
-        context: Context?, private var channel: MethodChannel, private var viewId: Int, args: Map<*, *>
+    context: Context?, private var channel: MethodChannel, private var viewId: Int, args: Map<*, *>
 ) : DefaultLifecycleObserver, OnSaveInstanceStateListener, MethodCallHandler, PlatformView {
     private var mapview: TextureMapView
     private var mapViewListener: AMapViewListener? = null
@@ -27,6 +27,7 @@ class AMapView(
         channel.setMethodCallHandler(this)
         mapview = TextureMapView(context)
         setOptions(args)
+        mapViewListener = AMapViewListener(viewId, mapview.map)
         lifecycle?.addObserver(this)
     }
 
@@ -66,37 +67,26 @@ class AMapView(
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
             "setOptions" -> setOptions(call.arguments as Map<*, *>)
-            "addListener" -> {
-                if (mapViewListener == null) {
-                    mapViewListener = AMapViewListener(viewId, mapview.map)
-                }
-                result.success(true)
-            }
-
             "dispose" -> {
+                mapViewListener?.removeListener()
+                mapViewListener = null
                 channel.setMethodCallHandler(null)
                 mapview.onDestroy()
                 lifecycle?.removeObserver(this)
             }
 
-            "removeListener" -> {
-                mapViewListener?.removeListener()
-                mapViewListener = null
-                result.success(true)
-            }
-
             "setCenter" -> {
                 val animated = call.argument<Boolean>("animated")!!
                 val cameraUpdate = CameraUpdateFactory.newCameraPosition(
-                        CameraPosition(
-                                LatLng(
-                                        call.argument<Double>("latitude")!!,
-                                        call.argument<Double>("longitude")!!
-                                ),
-                                call.argument<Double>("zoom")!!.toFloat(),
-                                call.argument<Double>("tilt")!!.toFloat(),
-                                call.argument<Double>("bearing")!!.toFloat()
-                        )
+                    CameraPosition(
+                        LatLng(
+                            call.argument<Double>("latitude")!!,
+                            call.argument<Double>("longitude")!!
+                        ),
+                        call.argument<Double>("zoom")!!.toFloat(),
+                        call.argument<Double>("tilt")!!.toFloat(),
+                        call.argument<Double>("bearing")!!.toFloat()
+                    )
                 )
                 if (animated) {
                     mapview.map.animateCamera(cameraUpdate)
@@ -144,9 +134,9 @@ class AMapView(
         val tilt = (args["tilt"] as Double).toFloat()
         val bearing = (args["bearing"] as Double).toFloat()
         map.moveCamera(
-                CameraUpdateFactory.newCameraPosition(
-                        CameraPosition(LatLng(latitude, longitude), zoom, tilt, bearing)
-                )
+            CameraUpdateFactory.newCameraPosition(
+                CameraPosition(LatLng(latitude, longitude), zoom, tilt, bearing)
+            )
         )
         options.isRotateGesturesEnabled = args["isRotateGesturesEnabled"] as Boolean
         options.isCompassEnabled = args["showCompass"] as Boolean
