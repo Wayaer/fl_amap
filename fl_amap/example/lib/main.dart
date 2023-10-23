@@ -16,8 +16,8 @@ Future<void> main() async {
       isShow: true);
   debugPrint('高德地图ApiKey设置$key');
   runApp(MaterialApp(
-      navigatorKey: GlobalOptions().navigatorKey,
-      scaffoldMessengerKey: GlobalOptions().scaffoldMessengerKey,
+      navigatorKey: GlobalWayUI().navigatorKey,
+      scaffoldMessengerKey: GlobalWayUI().scaffoldMessengerKey,
       debugShowCheckedModeBanner: false,
       theme: ThemeData.light(useMaterial3: true),
       darkTheme: ThemeData.dark(useMaterial3: true),
@@ -26,7 +26,7 @@ Future<void> main() async {
 }
 
 class App extends StatelessWidget {
-  const App({Key? key}) : super(key: key);
+  const App({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -52,8 +52,7 @@ class App extends StatelessWidget {
 }
 
 class ElevatedText extends StatelessWidget {
-  const ElevatedText({Key? key, required this.text, required this.onPressed})
-      : super(key: key);
+  const ElevatedText({super.key, required this.text, required this.onPressed});
 
   final String text;
   final VoidCallback onPressed;

@@ -1,9 +1,8 @@
 import 'package:fl_amap_map/fl_amap_map.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_waya/flutter_waya.dart';
 
 class MapViewPage extends StatefulWidget {
-  const MapViewPage({Key? key}) : super(key: key);
+  const MapViewPage({super.key});
 
   @override
   State<MapViewPage> createState() => _MapViewPageState();

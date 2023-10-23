@@ -4,11 +4,10 @@ typedef OnAMapControllerCreated = void Function(AMapController controller);
 
 class AMapView extends StatefulWidget {
   const AMapView(
-      {Key? key,
+      {super.key,
       this.gestureRecognizers,
       this.onCreateController,
-      this.options = const AMapOptions(latLng: LatLng(30.651411, 103.998638))})
-      : super(key: key);
+      this.options = const AMapOptions(latLng: LatLng(30.651411, 103.998638))});
 
   /// 需要应用到地图上的手势集合
   final Set<Factory<OneSequenceGestureRecognizer>>? gestureRecognizers;
