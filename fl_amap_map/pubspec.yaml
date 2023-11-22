@@ -10,10 +10,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  fl_channel: ^0.0.2
+  fl_channel: ^0.0.3
 
 dev_dependencies:
-  flutter_lints: ^3.0.0
+  flutter_lints: ^3.0.1
 
 flutter:
   plugin:

@@ -19,8 +19,6 @@ Future<void> main() async {
       navigatorKey: GlobalWayUI().navigatorKey,
       scaffoldMessengerKey: GlobalWayUI().scaffoldMessengerKey,
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.light(useMaterial3: true),
-      darkTheme: ThemeData.dark(useMaterial3: true),
       title: 'FlAMap',
       home: const App()));
 }

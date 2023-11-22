@@ -34,7 +34,7 @@ android {
 
     defaultConfig {
         applicationId 'com.fl.amap.example'
-        minSdkVersion 16
+        minSdkVersion flutter.minSdkVersion
         targetSdkVersion 33
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName

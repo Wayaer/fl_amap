@@ -48,6 +48,6 @@ android {
 }
 
 dependencies {
-    implementation 'com.amap.api:3dmap:9.6.0'
+    implementation 'com.amap.api:3dmap:9.7.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }

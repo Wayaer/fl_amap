@@ -1,6 +1,7 @@
-## 2.5.2
+## 2.5.3
 
 * Upgrade the Android AMap locating SDK
+* Add `namespace` in Android
 
 ## 2.5.1
 
