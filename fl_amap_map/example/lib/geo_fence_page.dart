@@ -85,7 +85,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                       onPressed: () async {
                         const LatLng latLong = LatLng(30.630259, 103.974113);
                         final AMapLatLngModel model = AMapLatLngModel(
-                            latLong: latLong,
+                            latLng: latLong,
                             keyword: '西部智谷',
                             poiType: '',
                             customID: customID,
@@ -107,14 +107,14 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                       onPressed: () async {
                         const LatLng latLong = LatLng(30.651411, 103.998638);
                         final bool state = await FlAMapGeoFence().addCircle(
-                            latLong: latLong, radius: 10, customID: customID);
+                            latLng: latLong, radius: 10, customID: customID);
                         show('addCircle : $state');
                       },
                       text: '添加圆形围栏'),
                   ElevatedText(
                       onPressed: () async {
                         final bool state =
-                            await FlAMapGeoFence().addCustom(latLongs: <LatLng>[
+                            await FlAMapGeoFence().addCustom(latLngs: <LatLng>[
                           const LatLng(39.933921, 116.372927),
                           const LatLng(39.907261, 116.376532),
                           const LatLng(39.900611, 116.418161),

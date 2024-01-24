@@ -84,7 +84,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                   ElevatedText(
                       onPressed: () async {
                         final LatLng latLng = LatLng(30.630259, 103.974113);
-                        final AMapLatLngModel model = AMapLatLngModel(
+                        final model = AMapGeoFenceLatLngModel(
                             latLng: latLng,
                             keyword: '西部智谷',
                             poiType: '',
@@ -114,7 +114,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                   ElevatedText(
                       onPressed: () async {
                         final bool state =
-                            await FlAMapGeoFence().addCustom(latLngs: <LatLng>[
+                            await FlAMapGeoFence().addCustom(latLng: <LatLng>[
                           LatLng(39.933921, 116.372927),
                           LatLng(39.907261, 116.376532),
                           LatLng(39.900611, 116.418161),
@@ -148,8 +148,8 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                 onPressed: () async {
                   final bool state = await FlAMapGeoFence().start(
                       customID: customID,
-                      onGeoFenceChanged: (AMapGeoFenceStatusModel geoFence) {
-                        show('围栏状态 : ${getStatus(geoFence.status)}');
+                      onGeoFenceChanged: (AMapGeoFenceStatusModel? geoFence) {
+                        show('围栏状态 : ${getStatus(geoFence?.status)}');
                         geoFenceState.value = geoFence;
                       });
                   show('start : $state');

@@ -1,4 +1,4 @@
-part of '../fl_amap_map.dart';
+part of '../../fl_amap_map.dart';
 
 typedef EventHandlerAMapLocation = void Function(AMapLocation location);
 

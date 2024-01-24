@@ -1,4 +1,4 @@
-part of '../fl_amap_map.dart';
+part of '../../fl_amap_map.dart';
 
 typedef EventHandlerAMapGeoFenceStatus = void Function(
     AMapGeoFenceStatusModel geoFence);
@@ -39,7 +39,7 @@ class FlAMapGeoFence {
     final bool? state = await _channel.invokeMethod<bool?>('disposeGeoFence');
     if (state == true) _isInitialize = !state!;
     _hasListener = false;
-    return state ?? false;
+    return state == true;
   }
 
   /// 删除地理围栏
@@ -47,7 +47,7 @@ class FlAMapGeoFence {
   Future<bool> remove({String? customID}) async {
     if (!_supportPlatform || !_isInitialize) return false;
     final bool? state = await _channel.invokeMethod('removeGeoFence', customID);
-    return state ?? false;
+    return state == true;
   }
 
   /// 获取所有围栏信息
@@ -62,7 +62,7 @@ class FlAMapGeoFence {
               AMapGeoFenceModel.fromMap(e as Map<dynamic, dynamic>))
           .toList();
     }
-    return <AMapGeoFenceModel>[];
+    return [];
   }
 
   /// 添加高德POI地理围栏
@@ -70,7 +70,7 @@ class FlAMapGeoFence {
     if (!_supportPlatform || !_isInitialize) return false;
     final bool? state =
         await _channel.invokeMethod('addGeoFenceWithPOI', aMapPoiModel.toMap());
-    return state ?? false;
+    return state == true;
   }
 
   /// 添加高德经纬度地理围栏
@@ -78,7 +78,7 @@ class FlAMapGeoFence {
     if (!_supportPlatform || !_isInitialize) return false;
     final bool? state = await _channel.invokeMethod(
         'addAMapGeoFenceWithLatLng', aMapLatLngModel.toMap());
-    return state ?? false;
+    return state == true;
   }
 
   /// 创建行政区划围栏  根据关键字创建围栏
@@ -89,42 +89,41 @@ class FlAMapGeoFence {
     if (!_supportPlatform || !_isInitialize) return false;
     final bool? state = await _channel.invokeMethod('addGeoFenceWithDistrict',
         <String, String>{'keyword': keyword, 'customID': customID});
-    return state ?? false;
+    return state == true;
   }
 
   /// 创建圆形围栏
-  ///  latLong 经纬度 围栏中心点
+  ///  latLng 经纬度 围栏中心点
   ///  radius 要创建的围栏半径 ，半径无限制，单位米
   ///  customID 与围栏关联的自有业务Id
   Future<bool> addCircle(
-      {required LatLng latLong,
+      {required LatLng latLng,
       required double radius,
       required String customID}) async {
     if (!_supportPlatform || !_isInitialize) return false;
-    final bool? state =
-        await _channel.invokeMethod('addCircleGeoFence', <String, dynamic>{
-      'latitude': latLong.latitude,
-      'longitude': latLong.longitude,
+    final bool? state = await _channel.invokeMethod('addCircleGeoFence', {
+      'latitude': latLng.latitude,
+      'longitude': latLng.longitude,
       'radius': radius,
       'customID': customID
     });
-    return state ?? false;
+    return state == true;
   }
 
   /// 创建多边形围栏
-  ///  latLongs 多个经纬度点 最少3个点
+  ///  latLngs 多个经纬度点 最少3个点
   ///  radius 要创建的围栏半径 ，半径无限制，单位米
   ///  customID 与围栏关联的自有业务Id
   Future<bool> addCustom(
-      {required List<LatLng> latLongs, required String customID}) async {
+      {required List<LatLng> latLngs, required String customID}) async {
     if (!_supportPlatform || !_isInitialize) return false;
-    if (latLongs.length < 3) return false;
+    if (latLngs.length < 3) return false;
     final bool? state = await _channel.invokeMethod(
         'addCustomGeoFence', <String, dynamic>{
-      'latLong': latLongs.map((LatLng e) => e.toMap()).toList(),
+      'latLng': latLngs.map((LatLng e) => e.toMap()).toList(),
       'customID': customID
     });
-    return state ?? false;
+    return state == true;
   }
 
   /// 暂停监听围栏
@@ -137,7 +136,7 @@ class FlAMapGeoFence {
     final bool? state = await _channel.invokeMethod('pauseGeoFence', customID);
     if (state == true) _channel.setMethodCallHandler(null);
     _hasListener = false;
-    return state ?? false;
+    return state == true;
   }
 
   /// 开启围栏状态监听
@@ -161,7 +160,7 @@ class FlAMapGeoFence {
         }
       });
     }
-    return state ?? false;
+    return state == true;
   }
 }
 
@@ -210,13 +209,11 @@ class AMapGeoFenceModel {
 
   Map<String, dynamic> toMap() {
     final Map<String, dynamic> data = <String, dynamic>{};
-    data['pointList'] = pointList == null
-        ? null
-        : pointList!
-            .map((List<LatLng> v) => v.map((LatLng e) => e.toMap()).toList())
-            .toList();
-    data['center'] = center == null ? null : center!.toMap();
-    data['poiItem'] = poiItem == null ? null : poiItem!.toMap();
+    data['pointList'] = pointList
+        ?.map((List<LatLng> v) => v.map((LatLng e) => e.toMap()).toList())
+        .toList();
+    data['center'] = center?.toMap();
+    data['poiItem'] = poiItem?.toMap();
     data['type'] = type;
     data['radius'] = radius;
     data['customID'] = customID;
@@ -233,7 +230,7 @@ class AMapPoiDetailModel {
       this.poiName,
       this.city,
       this.poiType,
-      this.latLong,
+      this.latLng,
       this.poiId});
 
   AMapPoiDetailModel.fromMap(Map<dynamic, dynamic> json) {
@@ -246,7 +243,7 @@ class AMapPoiDetailModel {
     final double? latitude = json['latitude'] as double?;
     final double? longitude = json['longitude'] as double?;
     if (latitude != null && longitude != null) {
-      latLong = LatLng(latitude, longitude);
+      latLng = LatLng(latitude, longitude);
     }
   }
 
@@ -255,7 +252,7 @@ class AMapPoiDetailModel {
   String? poiName;
   String? city;
   String? poiType;
-  LatLng? latLong;
+  LatLng? latLng;
   String? poiId;
 
   Map<String, dynamic> toMap() {
@@ -265,7 +262,7 @@ class AMapPoiDetailModel {
     data['poiName'] = poiName;
     data['city'] = city;
     data['poiType'] = poiType;
-    data['latLong'] = latLong == null ? null : latLong!.toMap();
+    data['latLng'] = latLng?.toMap();
     data['poiId'] = poiId;
     return data;
   }
@@ -310,7 +307,7 @@ class AMapLatLngModel {
     required this.poiType,
     required this.aroundRadius,
     required this.size,
-    required this.latLong,
+    required this.latLng,
     required this.customID,
   });
 
@@ -321,7 +318,7 @@ class AMapLatLngModel {
   late String poiType;
 
   /// 经纬度
-  late LatLng latLong;
+  late LatLng latLng;
 
   /// 周边半径
   late double aroundRadius;
@@ -335,8 +332,8 @@ class AMapLatLngModel {
   Map<String, dynamic> toMap() => <String, dynamic>{
         'keyword': keyword,
         'poiType': poiType,
-        'latitude': latLong.latitude,
-        'longitude': latLong.longitude,
+        'latitude': latLng.latitude,
+        'longitude': latLng.longitude,
         'aroundRadius': aroundRadius,
         'size': size,
         'customID': customID
@@ -393,6 +390,6 @@ class AMapGeoFenceStatusModel {
         'type': type,
         'fenceID': fenceID,
         'radius': radius,
-        'fence': fence == null ? null : fence!.toMap()
+        'fence': fence?.toMap()
       };
 }

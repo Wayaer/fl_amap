@@ -7,8 +7,6 @@ part 'src/amap_location.dart';
 
 part 'src/enum.dart';
 
-const MethodChannel _channel = MethodChannel('fl_amap');
-
 /// 设置ios&android的key
 Future<bool> setAMapKey({
   required String iosKey,
@@ -28,7 +26,8 @@ Future<bool> setAMapKey({
   if (_isAndroid) key = androidKey;
   if (_isIOS) key = iosKey;
   if (key == null) return false;
-  final bool? state = await _channel.invokeMethod('setApiKey', {
+  final bool? state = await FlAMapLocation()._channel.invokeMethod(
+      'setApiKey', {
     'key': key,
     'isAgree': isAgree,
     'isContains': isContains,

@@ -1,33 +1,23 @@
 import Flutter
 
 public class AMapPlugin: NSObject, FlutterPlugin {
-    private var channel: FlutterMethodChannel?
-    private var methodCall: AMapLocationMethodCall?
+    private var location: AMapLocation
+    private var geoFence: AMapGeoFence
 
     public static func register(with registrar: FlutterPluginRegistrar) {
-        let channel = FlutterMethodChannel(name: "fl_amap", binaryMessenger:
-        registrar.messenger())
-        let instance = AMapPlugin(channel)
-        registrar.addMethodCallDelegate(instance, channel: channel)
+        let instance = AMapPlugin(registrar)
+        registrar.addMethodCallDelegate(instance, channel: instance.geoFence.channel)
+        registrar.addMethodCallDelegate(instance, channel: instance.location.channel)
     }
 
-    init(_ channel: FlutterMethodChannel) {
-        self.channel = channel
-        methodCall = AMapLocationMethodCall(channel)
+    init(_ registrar: FlutterPluginRegistrar) {
+        location = AMapLocation(registrar)
+        geoFence = AMapGeoFence(registrar)
         super.init()
     }
 
-    public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        methodCall?.handle(call, result)
-    }
-
     public func detachFromEngine(for registrar: FlutterPluginRegistrar) {
-        channel?.setMethodCallHandler(nil)
-    }
-
-    deinit {
-        methodCall = nil
-        channel = nil
+        location.detach()
+        geoFence.detach()
     }
 }
-

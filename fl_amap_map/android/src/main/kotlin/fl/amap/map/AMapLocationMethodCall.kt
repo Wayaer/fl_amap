@@ -4,17 +4,18 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Build
 import android.os.Handler
 import com.amap.api.fence.GeoFence
 import com.amap.api.fence.GeoFenceClient
 import com.amap.api.fence.GeoFenceListener
+import com.amap.api.fence.PoiItem
+import com.amap.api.location.AMapLocation
 import com.amap.api.location.AMapLocationClient
 import com.amap.api.location.AMapLocationClientOption
 import com.amap.api.location.DPoint
-import com.amap.api.maps.MapsInitializer
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
-
 
 class AMapLocationMethodCall(
     private val context: Context, private val channel: MethodChannel
@@ -43,6 +44,17 @@ class AMapLocationMethodCall(
     fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         this.result = result
         when (call.method) {
+            "setApiKey" -> {
+                val key = call.argument<String>("key")!!
+                val isAgree = call.argument<Boolean>("isAgree")!!
+                val isContains = call.argument<Boolean>("isContains")!!
+                val isShow = call.argument<Boolean>("isShow")!!
+                AMapLocationClient.updatePrivacyAgree(context, isAgree)
+                AMapLocationClient.updatePrivacyShow(context, isContains, isShow)
+                AMapLocationClient.setApiKey(key)
+                result.success(true)
+            }
+
             "initLocation" -> {
                 //初始化client
                 if (locationClient == null) locationClient = AMapLocationClient(context)
@@ -136,7 +148,7 @@ class AMapLocationMethodCall(
             }
 
             "disposeGeoFence" -> {
-                if (resultFalse()) return
+                if (resultBoolean()) return
                 if (isRegisterReceiver) context.unregisterReceiver(mGeoFenceReceiver)
                 isRegisterReceiver = false
                 isGeoFence = false
@@ -146,13 +158,13 @@ class AMapLocationMethodCall(
             }
 
             "getAllGeoFence" -> {
-                if (resultFalse()) return
+                if (resultBoolean()) return
                 val geoFences = geoFenceClient!!.allGeoFence
                 result.success(geoFences.map { geoFence -> geoFence.data })
             }
 
             "addGeoFenceWithPOI" -> {
-                if (resultFalse()) return
+                if (resultBoolean()) return
                 geoFenceClient!!.addGeoFence(
                     call.argument("keyword"),
                     call.argument("poiType"),
@@ -163,7 +175,7 @@ class AMapLocationMethodCall(
             }
 
             "addAMapGeoFenceWithLatLng" -> {
-                if (resultFalse()) return
+                if (resultBoolean()) return
                 val centerPoint = DPoint()
                 centerPoint.latitude = call.argument("latitude")!!
                 centerPoint.longitude = call.argument("longitude")!!
@@ -179,14 +191,14 @@ class AMapLocationMethodCall(
             }
 
             "addGeoFenceWithDistrict" -> {
-                if (resultFalse()) return
+                if (resultBoolean()) return
                 val keyword = call.argument<String>("keyword")!!
                 val customId = call.argument<String>("customID")!!
                 geoFenceClient!!.addGeoFence(keyword, customId)
             }
 
             "addCircleGeoFence" -> {
-                if (resultFalse()) return
+                if (resultBoolean()) return
                 val centerPoint = DPoint()
                 centerPoint.latitude = call.argument("latitude")!!
                 centerPoint.longitude = call.argument("longitude")!!
@@ -197,15 +209,15 @@ class AMapLocationMethodCall(
             }
 
             "addCustomGeoFence" -> {
-                if (resultFalse()) return
+                if (resultBoolean()) return
                 val points: MutableList<DPoint> = ArrayList()
-                val latLongs = call.argument<MutableList<MutableMap<String, Double>>>(
-                    "latLong"
+                val latLngs = call.argument<MutableList<MutableMap<String, Double>>>(
+                    "latLng"
                 )!!
-                latLongs.forEach { latLong ->
+                latLngs.forEach { latLng ->
                     val dPoint = DPoint()
-                    dPoint.latitude = latLong["latitude"]!!
-                    dPoint.longitude = latLong["longitude"]!!
+                    dPoint.latitude = latLng["latitude"]!!
+                    dPoint.longitude = latLng["longitude"]!!
                     points.add(dPoint)
                 }
                 geoFenceClient!!.addGeoFence(
@@ -214,7 +226,7 @@ class AMapLocationMethodCall(
             }
 
             "removeGeoFence" -> {
-                if (resultFalse()) return
+                if (resultBoolean()) return
                 val customId = call.arguments as String?
                 if (customId == null) {
                     geoFenceClient?.removeGeoFence()
@@ -227,18 +239,24 @@ class AMapLocationMethodCall(
             }
 
             "pauseGeoFence" -> {
-                if (resultFalse()) return
+                if (resultBoolean()) return
                 geoFenceClient!!.pauseGeoFence()
                 result.success(true)
             }
 
             "startGeoFence" -> {
-                if (resultFalse()) return
+                if (resultBoolean()) return
                 if (!isGeoFence) {
                     geoFenceClient!!.createPendingIntent(geoFenceBroadcastAction)
                     val filter = IntentFilter()
                     filter.addAction(geoFenceBroadcastAction)
-                    context.registerReceiver(mGeoFenceReceiver, filter)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        context.registerReceiver(
+                            mGeoFenceReceiver, filter, Context.RECEIVER_NOT_EXPORTED
+                        )
+                    } else {
+                        context.registerReceiver(mGeoFenceReceiver, filter)
+                    }
                     isRegisterReceiver = true
                     isGeoFence = true
                 }
@@ -250,7 +268,7 @@ class AMapLocationMethodCall(
         }
     }
 
-    private fun resultFalse(): Boolean {
+    private fun resultBoolean(): Boolean {
         if (geoFenceClient == null) {
             result.success(false)
             return true
@@ -288,15 +306,14 @@ class AMapLocationMethodCall(
         //可选，设置是否使用缓存定位，默认为true
         option.isLocationCacheEnable = (arguments["locationCacheEnable"] as Boolean?)!!
         //可选，设置逆地理信息的语言，默认值为默认语言（根据所在地区选择语言）
-        option.geoLanguage =
-            AMapLocationClientOption.GeoLanguage.valueOf((arguments["geoLanguage"] as String?)!!)
+        option.geoLanguage = AMapLocationClientOption.GeoLanguage.valueOf((arguments["geoLanguage"] as String?)!!)
     }
 
-    private val onGeoFenceListener =
-        GeoFenceListener { _: MutableList<GeoFence>?, errorCode: Int, _: String? ->
-            //geoFenceList是已经添加的围栏列表，可据此查看创建的围栏
-            result.success(errorCode == GeoFence.ADDGEOFENCE_SUCCESS)
-        }
+
+    private val onGeoFenceListener = GeoFenceListener { _: MutableList<GeoFence>?, errorCode: Int, _: String? ->
+        //geoFenceList是已经添加的围栏列表，可据此查看创建的围栏
+        result.success(errorCode == GeoFence.ADDGEOFENCE_SUCCESS)
+    }
 
     private val mGeoFenceReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent) {
@@ -312,14 +329,13 @@ class AMapLocationMethodCall(
                     //获取围栏ID:
                     map["fenceID"] = bundle.getString(GeoFence.BUNDLE_KEY_FENCEID)
                     //获取当前有触发的围栏对象：
-                    val fence: GeoFence? = bundle.getParcelable(GeoFence.BUNDLE_KEY_FENCE)
+                    val fence: GeoFence? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        bundle.getParcelable(GeoFence.BUNDLE_KEY_FENCE, GeoFence::class.java)
+                    } else {
+                        bundle.getParcelable(GeoFence.BUNDLE_KEY_FENCE)
+                    }
                     if (fence != null) {
-                        val fenceMap: MutableMap<String, Any?> = HashMap()
-                        fenceMap["type"] = fence.type
-                        fenceMap["customID"] = fence.customId
-                        fenceMap["fenceID"] = fence.fenceId
-                        fenceMap["radius"] = fence.radius.toDouble()
-                        map["fence"] = fenceMap
+                        map["fence"] = fence.data
                     }
                     handler.post {
                         channel.invokeMethod("updateGeoFence", map)
@@ -329,3 +345,60 @@ class AMapLocationMethodCall(
         }
     }
 }
+
+val AMapLocation.data: Map<String, Any?>
+    get() = mapOf(
+        "code" to errorCode,
+        "description" to errorInfo,
+        "accuracy" to accuracy,
+        "altitude" to altitude,
+        "speed" to speed,
+        "timestamp" to (time.toDouble() / 1000),
+        "latLng" to mapOf(
+            "latitude" to latitude,
+            "longitude" to longitude,
+        ),
+        "locationType" to locationType,
+        "provider" to provider,
+        "formattedAddress" to address,
+        "country" to country,
+        "province" to province,
+        "city" to city,
+        "district" to district,
+        "cityCode" to cityCode,
+        "adCode" to adCode,
+        "street" to street,
+        "number" to streetNum,
+        "poiName" to poiName,
+        "aoiName" to aoiName
+    )
+val GeoFence.data: Map<String, Any>
+    get() = mapOf(
+        "customID" to customId,
+        "fenceID" to fenceId,
+        "type" to type,
+        "radius" to radius.toDouble(),
+        "status" to status,
+        "pointList" to pointList.map { points -> points.map { point -> point.data } },
+        "center" to center.data,
+        "poiItem" to poiItem.data,
+    )
+val DPoint.data: Map<String, Any>
+    get() = mapOf(
+        "latitude" to latitude,
+        "longitude" to longitude,
+    )
+
+val PoiItem.data: Map<String, Any>
+    get() = mapOf(
+        "latLng" to mapOf(
+            "latitude" to latitude,
+            "longitude" to longitude,
+        ),
+        "address" to address,
+        "poiName" to poiName,
+        "adName" to adname,
+        "city" to city,
+        "poiId" to poiId,
+        "poiType" to poiType
+    )

@@ -1,4 +1,4 @@
-part of '../fl_amap.dart';
+part of '../../fl_amap_map.dart';
 
 enum GenFenceType {
   /// 圆形地理围栏
@@ -42,8 +42,25 @@ enum GeoFenceActivateAction {
   stayed,
 }
 
+///  android网络传输http还是https协议
+enum AMapLocationProtocol { http, https }
 
-/// ios定位精度
+///  android 逆地理位置信息的语言
+enum GeoLanguage { none, zh, en }
+
+///  android 定位模式
+enum AMapLocationMode {
+  /// 低功耗
+  batterySaving,
+
+  /// 仅使用设备
+  deviceSensors,
+
+  /// 高精度
+  heightAccuracy
+}
+
+///  ios定位精度
 enum CLLocationAccuracy {
   /// 最好的,米级
   kCLLocationAccuracyBest,
@@ -58,8 +75,5 @@ enum CLLocationAccuracy {
   kCLLocationAccuracyKilometer,
 
   /// 三公里
-  kCLLocationAccuracyThreeKilometers,
-
-  /// 定位精度最好的导航
-  kCLLocationAccuracyBestForNavigation;
+  kCLLocationAccuracyThreeKilometers
 }

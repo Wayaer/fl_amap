@@ -15,11 +15,13 @@ part 'src/map/model.dart';
 
 part 'src/enum.dart';
 
-part 'src/amap_geo_fence.dart';
+part 'src/location/enum.dart';
 
-part 'src/amap_location.dart';
+part 'src/location/amap_geo_fence.dart';
 
-part 'src/event.dart';
+part 'src/location/amap_location.dart';
+
+part 'src/map_event.dart';
 
 const MethodChannel _channel = MethodChannel('fl_amap');
 
