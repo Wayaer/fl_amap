@@ -32,6 +32,7 @@ class FlAMapLocation {
     if (!_supportPlatform || !_isInitialize) return null;
     final Map<dynamic, dynamic>? location = await _channel.invokeMethod(
         'getLocation', _optionToMap(optionForIOS, optionForAndroid));
+    print(location);
     if (location == null) return null;
     return AMapLocation.fromMap(location);
   }
@@ -92,11 +93,21 @@ class FlAMapLocation {
 }
 
 class AMapLocationQualityReport {
-  static const int ok = 0;
-  static const int noGpsProvider = 1;
-  static const int off = 2;
-  static const int modeSaving = 3;
-  static const int noGpsPermission = 4;
+  /// 卫星定位状态--正常
+  static const int gpsStatusOk = 0;
+
+  /// 卫星定位状态--手机中没有GPS Provider，无法进行卫星定位
+  static const int gpsStatusNoGpsProvider = 1;
+
+  /// 卫星定位状态--GPS开关关闭 建议开启GPS开关，提高定位质量
+  static const int gpsStatusOff = 2;
+
+  /// 卫星定位状态--选择的定位模式中不包含卫星定位 Android 4.4以上的手机设置中开启了定位（位置）服务，但是选择的模式为省电模式，不包含卫星定位
+  /// 建议选择包含gps定位的模式（例如：高精度、仅设备
+  static const int gpsStatusModeSaving = 3;
+
+  /// 卫星定位状态--没有GPS定位权限 如果没有GPS定位权限无法进行卫星定位, 建议在安全软件中授予GPS定位权限
+  static const int gpsStatusNoGpsPermission = 4;
 
   AMapLocationQualityReport.fromMap(Map<dynamic, dynamic> map)
       : adviseMessage = map['adviseMessage'] as String?,
@@ -140,31 +151,14 @@ class AMapLocationQualityReport {
       };
 }
 
-class AMapLocation {
-  AMapLocation.fromMap(Map<dynamic, dynamic> map)
-      : description = map['description'] as String?,
-        speed = map['speed'] as double?,
-        altitude = map['altitude'] as double?,
-        accuracy = map['accuracy'] as double?,
-        adCode = map['adCode'] as String?,
-        aoiName = map['aoiName'] as String?,
-        city = map['city'] as String?,
-        cityCode = map['cityCode'] as String?,
-        country = map['country'] as String?,
-        district = map['district'] as String?,
-        poiName = map['poiName'] as String?,
+class AMapLocationForAndroid extends AMapLocation {
+  AMapLocationForAndroid.fromMap(super.map)
+      : accuracy = map['accuracy'] as double?,
         provider = map['provider'] as String?,
-        province = map['province'] as String?,
-        street = map['street'] as String?,
         locationType = map['locationType'] as int?,
-        address = map['street'] as String?,
-        bearing = map['bearing'] as double?,
         buildingId = map['buildingId'] as String?,
-        streetNum = map['streetNum'] as String?,
         conScenario = map['conScenario'] as int?,
-        coordinateType = map['coordinateType'] as String?,
-        floor = map['floor'] as String?,
-        errorCode = map['errorCode'] as int?,
+        coordType = map['coordType'] as String?,
         gpsAccuracyStatus =
             GPSAccuracyStatus.values[map['gpsAccuracyStatus'] as int],
         locationDetail = map['locationDetail'] as String?,
@@ -172,31 +166,213 @@ class AMapLocation {
             ? null
             : AMapLocationQualityReport.fromMap(
                 map['locationQualityReport'] as Map),
-        latitude = map['latitude'] as double?,
-        longitude = map['longitude'] as double?,
-        satellites = map['satellites'] as int?;
+        satellites = map['satellites'] as int?,
+        trustedLevel = map['trustedLevel'] as int?,
+        description = map['description'] as String?,
+        super.fromMap();
 
   /// 定位精度 单位:米
   final double? accuracy;
 
-  /// 区域编码
-  final String? adCode;
+  /// 室内定位的建筑物ID信息
+  final String? buildingId;
 
-  /// 地址信息
-  final String? address;
+  /// 室内外置信度 室内：且置信度取值在[1 ～ 100]，值越大在室内的可能性越大 室外：且置信度取值在[-100 ～ -1] ,值越小在室外的可能性越大 无法识别室内外：置信度返回值为 0
+  final int? conScenario;
+
+  /// 定位结果的可信度-非常可信 周边信息的新鲜度在15s之内 实时GPS定位结果
+  static const int trustedLevelHigh = 1;
+
+  /// 定位结果的可信度-可信度一般 周边信息的新鲜度在15秒-2分钟之间 缓存、离线定位、最后位置
+  static const int trustedLevelNormal = 2;
+
+  /// 定位结果的可信度-可信度较低 周边信息的新鲜度在2-10分钟之间
+  static const int trustedLevelLow = 3;
+
+  /// 定位结果的可信度-非常不可信 周边信息的新鲜度超过10分钟 模拟定位结果
+  static const int trustedLevelBad = 4;
+
+  /// 获取定位结果的可信度 只有在定位成功时才有意义
+  final int? trustedLevel;
+
+  /// AMapLocation.COORD_TYPE_WGS84 -- WGS84坐标系,国外定位时返回的是WGS84坐标系
+  static const String coordinateTypeWGS84 = "WGS84";
+
+  /// AMapLocation.COORD_TYPE_GCJ02 -- GCJ02坐标系
+  static const String coordinateTypeGCJ02 = "GCJ02";
+
+  /// 坐标系类型 高德定位sdk会返回两种坐标系  [AMapLocationForAndroid.coordinateTypeGCJ02]、[AMapLocationForAndroid.coordinateTypeWGS84]
+  final String? coordType;
+
+  /// 卫星信号弱
+  static const int gpsAccuracyGood = 1;
+
+  /// 卫星信号强
+  static const int gpsAccuracyBad = 0;
+
+  /// 卫星状态未知
+  static const int gpsAccuracyUnknown = -1;
+
+  /// 获取卫星信号强度，仅在卫星定位时有效,
+  final GPSAccuracyStatus? gpsAccuracyStatus;
+
+  /// 定位信息描述
+  final String? locationDetail;
+
+  /// 定位质量
+  final AMapLocationQualityReport? locationQualityReport;
+
+  /// 位置语义信息
+  final String? description;
+
+  /// 定位结果类型
+  /// LOCATION_TYPE_GPS = 1;                <卫星定位结果 通过设备卫星定位模块返回的定位结果
+  /// LOCATION_TYPE_SAME_REQ = 2;           <前次定位结果 网络定位请求低于1秒、或两次定位之间设备位置变化非常小时返回，设备位移通过传感器感知
+  /// /** @deprecated */
+  /// LOCATION_TYPE_FAST = 3;               <已过时。已合并到AMapLocation.LOCATION_TYPE_SAME_REQ
+  /// LOCATION_TYPE_FIX_CACHE = 4;          <缓存定位结果 返回一段时间前设备在相同的环境中缓存下来的网络定位结果，节省无必要的设备定位消耗
+  /// LOCATION_TYPE_WIFI = 5;               <Wifi定位结果 属于网络定位，定位精度相对基站定位会更好
+  /// LOCATION_TYPE_CELL = 6;               <基站定位结果 属于网络定位
+  /// LOCATION_TYPE_AMAP = 7;
+  /// LOCATION_TYPE_OFFLINE = 8;            <离线定位结果
+  /// LOCATION_TYPE_LAST_LOCATION_CACHE = 9;<最后位置缓存
+  /// LOCATION_COMPENSATION = 10;
+  /// LOCATION_TYPE_COARSE_LOCATION = 11;   <模糊定位类型
+  final int? locationType;
+
+  /// 定位提供者
+  final String? provider;
+
+  /// 当前可用卫星数量, 仅在卫星定位时有效,
+  final int? satellites;
+}
+
+class AMapLocationForIOS extends AMapLocation {
+  AMapLocationForIOS.fromMap(super.map)
+      : horizontalAccuracy = map['horizontalAccuracy'] as double?,
+        verticalAccuracy = map['verticalAccuracy'] as double?,
+        timestamp = map['timestamp'] as double?,
+        speedAccuracy = map['speedAccuracy'] as double?,
+        bearingAccuracy = map['courseAccuracy'] as double?,
+        distance = map['distance'] as double?,
+        isSimulatedBySoftware = map['isSimulatedBySoftware'] as bool?,
+        isProducedByAccessory = map['isProducedByAccessory'] as bool?,
+        super.fromMap();
+
+  /// 定位水平精度 单位:米
+  final double? horizontalAccuracy;
+
+  /// 定位垂直精度 单位:米
+  final double? verticalAccuracy;
+
+  /// 定位时间
+  final double? timestamp;
+
+  /// speed 精度
+  final double? speedAccuracy;
+
+  /// [bearing] 航向精度
+  /// iOS 13.4+
+  final double? bearingAccuracy;
+
+  /// 返回两个位置之间的横向距离。
+  final double? distance;
+
+  /// 如果这个位置是由软件模拟器(如Xcode)检测到的，设置为 true
+  /// iOS 15+
+  final bool? isSimulatedBySoftware;
+
+  /// 如果此位置是由外部配件生成的，如CarPlay或MFi配件，则设置为 true
+  /// iOS 15+
+  final bool? isProducedByAccessory;
+}
+
+class AMapLocation {
+  AMapLocation.fromMap(Map<dynamic, dynamic> map)
+      : speed = map['speed'] as double?,
+        altitude = map['altitude'] as double?,
+        adCode = map['adCode'] as String?,
+        aoiName = map['aoiName'] as String?,
+        city = map['city'] as String?,
+        cityCode = map['cityCode'] as String?,
+        country = map['country'] as String?,
+        district = map['district'] as String?,
+        poiName = map['poiName'] as String?,
+        province = map['province'] as String?,
+        street = map['street'] as String?,
+        address =
+            map['address'] as String? ?? map['formattedAddress'] as String?,
+        streetNum = map['streetNum'] as String? ?? map['number'] as String?,
+        latitude = map['latitude'] as double?,
+        longitude = map['longitude'] as double?,
+        floor = map['floor']?.toString(),
+        bearing = map['bearing'] as double? ?? map['course'] as double?,
+        errorCode = map['errorCode'] as int?;
+
+  /// 错误码 这个参数很重要，在android和ios下的判断标准不一样
+  /// android下:
+  /// LOCATION_SUCCESS = 0                         <定位成功
+  /// ERROR_CODE_INVALID_PARAMETER = 1             <一些重要参数为空，如context；请对定位传递的参数进行非空判断。
+  /// ERROR_CODE_FAILURE_WIFI_INFO = 2             <定位失败，由于设备仅扫描到单个wifi，不能精准的计算出位置信息。
+  /// ERROR_CODE_FAILURE_LOCATION_PARAMETER = 3    <获取到的请求参数为空，可能获取过程中出现异常,可以通过AMapLocation.getLocationDetail()获取详细信息。
+  /// ERROR_CODE_FAILURE_CONNECTION = 4            <网络连接异常，多为网络情况差，链路不通导致，请检查设备网络是否通畅。
+  /// ERROR_CODE_FAILURE_PARSER = 5                <返回的XML格式错误，解析失败。
+  /// ERROR_CODE_FAILURE_LOCATION = 6              <定位服务返回定位失败，如果出现该异常，请查看description
+  /// ERROR_CODE_FAILURE_AUTH = 7                  <KEY建权失败，请仔细检查key绑定的sha1值与apk签名sha1值是否对应。
+  /// ERROR_CODE_UNKNOWN = 8                       <其他错误，Android exception通用错误，请查看description
+  /// ERROR_CODE_FAILURE_INIT = 9                  <定位初始化时出现异常，请重新启动定位。
+  /// ERROR_CODE_SERVICE_FAIL = 10                 <定位服务启动失败，请检查是否配置service并且manifest中service标签是否配置在application标签内
+  /// ERROR_CODE_FAILURE_CELL = 11                 <定位时的基站信息错误，请检查是否安装SIM卡，设备很有可能连入了伪基站网络。
+  /// ERROR_CODE_FAILURE_LOCATION_PERMISSION = 12  <缺少定位权限,请检查是否配置定位权限,并在安全软件和设置中给应用打开定位权限，请在设备的设置中开启app的定位权限。
+  /// ERROR_CODE_FAILURE_NOWIFIANDAP = 13          <网络定位失败，请检查设备是否插入sim卡、开启移动网络或开启了wifi模块
+  /// ERROR_CODE_FAILURE_NOENOUGHSATELLITES = 14   <卫星定位失败，可用卫星数不足
+  /// ERROR_CODE_FAILURE_SIMULATION_LOCATION = 15  <定位位置可能被模拟
+  /// ERROR_CODE_AIRPLANEMODE_WIFIOFF = 18         <定位失败，飞行模式下关闭了WIFI开关，请关闭飞行模式或者打开WIFI开关
+  /// ERROR_CODE_NOCGI_WIFIOFF = 19                <定位失败，没有检查到SIM卡，并且关闭了WIFI开关，请打开WIFI开关或者插入SIM卡
+  /// ERROR_CODE_FAILURE_COARSE_LOCATION = 20      <定位失败，模糊权限下定位异常
+  /// ERROR_CODE_NO_COMPENSATION_CACHE = 33
+  ///
+  /// ios下:
+  /// AMapLocationErrorUnknown = 1,                <未知错误
+  /// AMapLocationErrorLocateFailed = 2,           <定位错误
+  /// AMapLocationErrorReGeocodeFailed  = 3,       <逆地理错误
+  /// AMapLocationErrorTimeOut = 4,                <超时
+  /// AMapLocationErrorCanceled = 5,               <取消
+  /// AMapLocationErrorCannotFindHost = 6,         <找不到主机
+  /// AMapLocationErrorBadURL = 7,                 <URL异常
+  /// AMapLocationErrorNotConnectedToInternet = 8, <连接异常
+  /// AMapLocationErrorCannotConnectToHost = 9,    <服务器连接失败
+  /// AMapLocationErrorRegionMonitoringFailure=10, <地理围栏错误
+  /// AMapLocationErrorRiskOfFakeLocation = 11,    <存在虚拟定位风险
+  /// AMapLocationErrorNoFullAccuracyAuth = 12,    <精确定位权限异常
+  final int? errorCode;
+
+  /// 纬度
+  final double? latitude;
+
+  /// 经度
+  final double? longitude;
 
   /// 海拔高度(单位：米)
   final double? altitude;
 
-  /// 兴趣面名称
-  final String? aoiName;
+  /// 获取当前速度(单位：米/秒)
+  final double? speed;
+
+  /// 室内定位的楼层信息
+  final String? floor;
 
   /// 方向角(单位：度） 默认值：0.0
   /// 取值范围：【0，360】，其中0度表示正北方向，90度表示正东，180度表示正南，270度表示正西
+  /// 在android上:
+  /// 当定位类型不是GPS时，可以通过 [AMapLocationOptionForAndroid.sensorEnable] 控制是否返回方向角，
+  /// 当设置为true时会通过手机传感器获取方向角,如果手机没有对应的传感器会返回0.0 注意：
+  /// 定位类型为GPS时，方向角指的是运动方向
+  /// 定位类型不是GPS时，方向角指的是手机朝向
   final double? bearing;
 
-  /// 室内定位的建筑物ID信息
-  final String? buildingId;
+  /// 在iOS[AMapLocationOptionForIOS.locatingWithReGeocode]==false以下字段没有数据，需要数据请设置为true
+  /// 以下数据在iOS属于逆地理信息
 
   /// 国家名称
   final String? country;
@@ -219,111 +395,17 @@ class AMapLocation {
   /// 门牌号
   final String? streetNum;
 
-  /// 室内外置信度 室内：且置信度取值在[1 ～ 100]，值越大在室内的可能性越大 室外：且置信度取值在[-100 ～ -1] ,值越小在室外的可能性越大 无法识别室内外：置信度返回值为 0
-  final int? conScenario;
-
-  /// 坐标系类型 高德定位sdk会返回两种坐标系 AMapLocation.COORD_TYPE_GCJ02 -- GCJ02坐标系 AMapLocation.COORD_TYPE_WGS84 -- WGS84坐标系,国外定位时返回的是WGS84坐标系
-  final String? coordinateType;
-
-  /// 室内定位的楼层信息
-  final String? floor;
-
-  /// 位置语义信息
-  final String? description;
-
-  /// 错误码
-  final int? errorCode;
-
-  /// 获取卫星信号强度，仅在卫星定位时有效,
-  final GPSAccuracyStatus? gpsAccuracyStatus;
-
-  /// 定位信息描述
-  final String? locationDetail;
-
-  /// 定位质量
-  final AMapLocationQualityReport? locationQualityReport;
-
-  /// 定位结果来源
-  final int? locationType;
+  /// 兴趣面名称
+  final String? aoiName;
 
   /// 兴趣点名称
   final String? poiName;
 
-  /// 定位提供者
-  final String? provider;
+  /// 区域编码
+  final String? adCode;
 
-  /// 纬度
-  final double? latitude;
-
-  /// 经度
-  final double? longitude;
-
-  /// 当前可用卫星数量, 仅在卫星定位时有效,
-  final int? satellites;
-
-  /// 获取当前速度(单位：米/秒)
-  final double? speed;
-
-  /////////////////////////
-
-  ///    这个参数很重要，在android和ios下的判断标准不一样
-  ///    android下: 0  定位成功。
-  ///       1  一些重要参数为空，如context；请对定位传递的参数进行非空判断。
-  ///       2  定位失败，由于仅扫描到单个wifi，且没有基站信息。
-  ///       3  获取到的请求参数为空，可能获取过程中出现异常。
-  ///       4  请求服务器过程中的异常，多为网络情况差，链路不通导致，请检查设备网络是否通畅。
-  ///       5  返回的XML格式错误，解析失败。
-  ///       6  定位服务返回定位失败，如果出现该异常，请将errorDetail信息通过API@autonavi.com反馈给我们。
-  ///       7  KEY建权失败，请仔细检查key绑定的sha1值与apk签名sha1值是否对应。
-  ///       8  Android exception通用错误，请将errordetail信息通过API@autonavi.com反馈给我们。
-  ///       9  定位初始化时出现异常，请重新启动定位。
-  ///       10 定位客户端启动失败，请检查AndroidManifest.xml文件是否配置了APSService定位服务
-  ///       11 定位时的基站信息错误，请检查是否安装SIM卡，设备很有可能连入了伪基站网络。
-  ///       12 缺少定位权限，请在设备的设置中开启app的定位权限。
-  ///
-  ///    ios下:
-  ///    typedef NS_ENUM(NSInteger, AMapLocationErrorCode)
-  ///       {
-  ///       AMapLocationErrorUnknown = 1,               /// <未知错误
-  ///       AMapLocationErrorLocateFailed = 2,          /// <定位错误
-  ///       AMapLocationErrorReGeocodeFailed  = 3,      /// <逆地理错误
-  ///       AMapLocationErrorTimeOut = 4,               /// <超时
-  ///       AMapLocationErrorCanceled = 5,              /// <取消
-  ///       AMapLocationErrorCannotFindHost = 6,        /// <找不到主机
-  ///       AMapLocationErrorBadURL = 7,                /// <URL异常
-  ///       AMapLocationErrorNotConnectedToInternet = 8,/// <连接异常
-  ///       AMapLocationErrorCannotConnectToHost = 9,   /// <服务器连接失败
-  ///       AMapLocationErrorRegionMonitoringFailure=10,/// <地理围栏错误
-  ///       AMapLocationErrorRiskOfFakeLocation = 11,   /// <存在虚拟定位风险
-  ///       };
-  ///
-  // final int? code;
-  //
-  // /// 这个字段用来判断有没有定位成功，在ios下，有可能获取到了经纬度，但是详细地址没有获取到，
-  // /// 这个情况下，值也为true
-  // final bool? success;
-  //
-  // ///  是否成功，单纯从经纬度来判断
-  // ///  code > 0 ,有可能是逆地理位置有错误，那么这个时候仍然是成功的
-  // bool? get isSuccess => success;
-
-  Map<String, dynamic> toMap() => <String, dynamic>{
-        'accuracy': accuracy,
-        'description': description,
-        'speed': speed,
-        'altitude': altitude,
-        'adCode': adCode,
-        'aoiName': aoiName,
-        'poiName': poiName,
-        'city': city,
-        'cityCode': cityCode,
-        'country': country,
-        'district': district,
-        'provider': provider,
-        'province': province,
-        'street': street,
-        'locationType': locationType,
-      };
+  /// 地址信息
+  final String? address;
 }
 
 class AMapLocationOptionForAndroid {
@@ -482,7 +564,7 @@ class AMapLocationOptionForIOS {
   /// 指定单次定位逆地理超时时间,默认为2s。最小值是2s。注意单次定位请求前设置。
   final int reGeocodeTimeout;
 
-  /// 连续定位是否返回逆地理信息，默认false。
+  /// 定位是否返回逆地理信息，默认false。
   final bool locatingWithReGeocode;
 
   /// 逆地址语言类型，默认是[GeoLanguage.none]

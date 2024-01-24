@@ -6,46 +6,59 @@ import 'package:flutter/material.dart';
 import 'package:flutter_waya/flutter_waya.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-Future<void> main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  final bool key = await setAMapKey(
-      iosKey: 'e0e98395277890e48caa0c4bed423ead',
-      androidKey: '77418e726d0eefc0ac79a8619b5f4d97',
-      isAgree: true,
-      isContains: true,
-      isShow: true);
-  debugPrint('高德地图ApiKey设置$key');
   runApp(MaterialApp(
       navigatorKey: GlobalWayUI().navigatorKey,
       scaffoldMessengerKey: GlobalWayUI().scaffoldMessengerKey,
       debugShowCheckedModeBanner: false,
       title: 'FlAMap',
-      home: const App()));
+      home: Scaffold(
+          appBar: AppBar(title: const Text('高德地图')), body: const App())));
 }
 
-class App extends StatelessWidget {
+class App extends StatefulWidget {
   const App({super.key});
 
   @override
+  State<App> createState() => _AppState();
+}
+
+class _AppState extends State<App> {
+  bool isInit = false;
+
+  void setKey() async {
+    final bool key = await setAMapKey(
+        iosKey: 'e0e98395277890e48caa0c4bed423ead',
+        androidKey: '77418e726d0eefc0ac79a8619b5f4d97',
+        isAgree: true,
+        isContains: true,
+        isShow: true);
+    debugPrint('高德地图ApiKey设置$key');
+    if (key) {
+      isInit = true;
+      setState(() {});
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(title: const Text('高德地图')),
-        body: Universal(
-            width: double.infinity,
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              ElevatedText(
-                  onPressed: () => showCupertinoModalPopup<dynamic>(
-                      context: context,
-                      builder: (_) => const AMapLocationPage()),
-                  text: '高德定位功能'),
-              ElevatedText(
-                  onPressed: () => showCupertinoModalPopup<dynamic>(
-                      context: context,
-                      builder: (_) => const AMapGeoFencePage()),
-                  text: '高德地理围栏功能'),
-            ]));
+    return Universal(
+        width: double.infinity,
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          if (!isInit) ElevatedText(onPressed: setKey, text: '设置key'),
+          if (isInit)
+            ElevatedText(
+                onPressed: () => push(const AMapLocationPage()),
+                text: '高德定位功能'),
+          30.heightBox,
+          if (isInit)
+            ElevatedText(
+                onPressed: () => push(const AMapGeoFencePage()),
+                text: '高德地理围栏功能'),
+        ]);
   }
 }
 

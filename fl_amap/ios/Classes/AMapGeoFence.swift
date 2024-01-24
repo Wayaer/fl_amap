@@ -7,10 +7,13 @@ class AMapGeoFence: NSObject, AMapGeoFenceManagerDelegate {
     private var manager: AMapGeoFenceManager?
     private var result: FlutterResult?
 
-    init(_ registrar: FlutterPluginRegistrar) {
+    init(_ binaryMessenger: FlutterBinaryMessenger) {
         channel = FlutterMethodChannel(name: "fl.amap.GeoFence", binaryMessenger:
-            registrar.messenger())
+            binaryMessenger)
         super.init()
+    }
+
+    public func setMethodCallHandler() {
         channel.setMethodCallHandler(handle)
     }
 
@@ -18,7 +21,7 @@ class AMapGeoFence: NSObject, AMapGeoFenceManagerDelegate {
         channel.setMethodCallHandler(nil)
     }
 
-    public func handle(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
+    func handle(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
         self.result = result
         switch call.method {
         case "initialize":

@@ -12,6 +12,7 @@ import com.amap.api.location.AMapLocationClient
 import com.amap.api.location.AMapLocationClientOption
 import com.amap.api.location.AMapLocationListener
 import com.amap.api.location.AMapLocationQualityReport
+import com.amap.api.location.CoordinateConverter
 import com.amap.api.location.DPoint
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
@@ -163,11 +164,13 @@ class AMapLocation(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.M
 
     private val AMapLocation.data: Map<String, Any?>
         get() = mapOf(
+            "errorInfo" to errorInfo,
+            "errorCode" to errorCode,
+            "description" to description,
             "accuracy" to accuracy,
             "adCode" to adCode,
             "address" to address,
             "altitude" to altitude,
-            "aoiName" to aoiName,
             "bearing" to bearing,
             "buildingId" to buildingId,
             "country" to country,
@@ -178,19 +181,20 @@ class AMapLocation(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.M
             "street" to street,
             "streetNum" to streetNum,
             "conScenario" to conScenario,
-            "coordinateType" to coordType,
+            "coordType" to coordType,
             "floor" to floor,
-            "description" to description,
-            "errorCode" to errorCode,
             "gpsAccuracyStatus" to gpsAccuracyStatus,
             "locationDetail" to locationDetail,
             "locationType" to locationType,
             "poiName" to poiName,
+            "aoiName" to aoiName,
             "provider" to provider,
             "latitude" to latitude,
             "longitude" to longitude,
             "satellites" to satellites,
             "speed" to speed,
+            "trustedLevel" to trustedLevel,
+            "time" to time,
             "locationQualityReport" to locationQualityReport.data,
         )
     private val AMapLocationQualityReport.data: Map<String, Any?>

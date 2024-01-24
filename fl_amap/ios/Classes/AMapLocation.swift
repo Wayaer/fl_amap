@@ -8,10 +8,13 @@ class AMapLocation: NSObject, AMapLocationManagerDelegate {
     private var result: FlutterResult?
     private var isLocation: Bool = false
 
-    init(_ registrar: FlutterPluginRegistrar) {
+    init(_ binaryMessenger: FlutterBinaryMessenger) {
         channel = FlutterMethodChannel(name: "fl.amap.Location", binaryMessenger:
-            registrar.messenger())
+            binaryMessenger)
         super.init()
+    }
+
+    public func setMethodCallHandler() {
         channel.setMethodCallHandler(handle)
     }
 
@@ -19,7 +22,7 @@ class AMapLocation: NSObject, AMapLocationManagerDelegate {
         channel.setMethodCallHandler(nil)
     }
 
-    public func handle(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
+    func handle(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
         self.result = result
         switch call.method {
         case "setApiKey":
@@ -48,8 +51,8 @@ class AMapLocation: NSObject, AMapLocationManagerDelegate {
                 return
             }
             setLocationOption(call)
-            let args = call.arguments as! [AnyHashable: Any]
-            let withReGeocode = args["withReGeocode"] as! Bool
+            let args = call.arguments as? [AnyHashable: Any]
+            let withReGeocode = args?["locatingWithReGeocode"] as? Bool ?? false
             manager!.requestLocation(withReGeocode: withReGeocode, completionBlock: { (location: CLLocation?, reGeocode: AMapLocationReGeocode?, error: Error?) in
                 if location != nil {
                     var map = location!.data
@@ -132,7 +135,7 @@ class AMapLocation: NSObject, AMapLocationManagerDelegate {
 
     // 连续定位回调函数
     // 注意：如果实现了本方法，则定位信息不会通过amapLocationManager:didUpdateLocation:方法回调。
-    public func amapLocationManager(_ manager: AMapLocationManager!, didUpdate location: CLLocation!, reGeocode: AMapLocationReGeocode?) {
+    func amapLocationManager(_ manager: AMapLocationManager!, didUpdate location: CLLocation!, reGeocode: AMapLocationReGeocode?) {
         var locationMap = location.data
         let reGeocodeMap = reGeocode?.data
         if reGeocodeMap != nil {
@@ -142,7 +145,7 @@ class AMapLocation: NSObject, AMapLocationManagerDelegate {
     }
 
     // 定位权限状态改变时回调函数 ios14及之后
-    public func amapLocationManager(_ manager: AMapLocationManager!, locationManagerDidChangeAuthorization locationManager: CLLocationManager!) {
+    func amapLocationManager(_ manager: AMapLocationManager!, locationManagerDidChangeAuthorization locationManager: CLLocationManager!) {
         if #available(iOS 14.0, *) {
             channel.invokeMethod("onAuthorizationChanged", arguments: locationManager.authorizationStatus.rawValue)
         }
@@ -154,7 +157,7 @@ class AMapLocation: NSObject, AMapLocationManagerDelegate {
     }
 
     // 当定位发生错误时，会调用代理的此方法。
-    public func amapLocationManager(_ manager: AMapLocationManager!, didFailWithError error: Error?) {
+    func amapLocationManager(_ manager: AMapLocationManager!, didFailWithError error: Error?) {
         channel.invokeMethod("onFailed", arguments: [
             "errorCode": (error as? NSError)?.code as Any,
         ])
@@ -173,13 +176,26 @@ extension Dictionary {
 
 extension CLLocation {
     var data: [String: Any?] {
-        ["latitude": coordinate.latitude,
-         "longitude": coordinate.longitude,
-         "horizontalAccuracy": horizontalAccuracy,
-         "verticalAccuracy": verticalAccuracy,
-         "altitude": altitude,
-         "speed": speed,
-         "timestamp": timestamp.timeIntervalSince1970]
+        var map = ["latitude": coordinate.latitude,
+                   "longitude": coordinate.longitude,
+                   "horizontalAccuracy": horizontalAccuracy,
+                   "verticalAccuracy": verticalAccuracy,
+                   "altitude": altitude,
+                   "speed": speed,
+                   "speedAccuracy": speedAccuracy,
+                   "course": course,
+                   "distance": distance,
+                   "floor": floor?.level,
+                   "timestamp": timestamp.timeIntervalSince1970] as [String: Any?]
+        if #available(iOS 13.4, *) {
+            map["courseAccuracy"] = courseAccuracy
+        }
+        if #available(iOS 15.0, *) {
+            map["isSimulatedBySoftware"] = sourceInformation?.isSimulatedBySoftware
+            map["isProducedByAccessory"] = sourceInformation?.isProducedByAccessory
+        }
+
+        return map
     }
 }
 
