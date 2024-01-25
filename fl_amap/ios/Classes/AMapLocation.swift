@@ -31,6 +31,7 @@ class AMapLocation: NSObject, AMapLocationManagerDelegate {
             let isAgree = args["isAgree"] as! Bool
             let isContains = args["isContains"] as! Bool
             let isShow = args["isShow"] as! Bool
+            AMapServices.shared().enableHTTPS = true
             AMapLocationManager.updatePrivacyAgree(isAgree ? .didAgree : .notAgree)
             AMapLocationManager.updatePrivacyShow(isShow ? .didShow : .notShow, privacyInfo: isContains ? .didContain : .notContain)
             AMapServices.shared().apiKey = key
@@ -46,26 +47,30 @@ class AMapLocation: NSObject, AMapLocationManagerDelegate {
             manager = nil
             result(true)
         case "getLocation":
-            if manager == nil {
+            if manager == nil || isLocation {
                 result(nil)
                 return
             }
             setLocationOption(call)
             let args = call.arguments as? [AnyHashable: Any]
-            let withReGeocode = args?["locatingWithReGeocode"] as? Bool ?? false
+            let withReGeocode = args?["withReGeocode"] as? Bool ?? false
             manager!.requestLocation(withReGeocode: withReGeocode, completionBlock: { (location: CLLocation?, reGeocode: AMapLocationReGeocode?, error: Error?) in
+                var map = [String: Any?]()
                 if location != nil {
-                    var map = location!.data
-                    if reGeocode != nil {
-                        map.merge(reGeocode!.data)
-                    }
-                    result(map)
-                } else if error != nil {
-                    result([
-                        "description": error!.localizedDescription,
-                        "errorCode": (error! as NSError).code,
-                    ])
+                    map.merge(location!.data)
                 }
+                if reGeocode != nil {
+                    map.merge(reGeocode!.data)
+                }
+                if error != nil {
+                    map["errorInfo"] = error!.localizedDescription
+                    map["errorCode"] = (error! as NSError).code
+
+                } else {
+                    map["errorCode"] = 0
+                }
+                print(map)
+                result(map)
             })
         case "startLocation":
             if isLocation || manager == nil {
@@ -94,24 +99,13 @@ class AMapLocation: NSObject, AMapLocationManagerDelegate {
             }
             let distanceFilter = args!["distanceFilter"] as? Double
             manager!.distanceFilter = (distanceFilter == nil ? kCLDistanceFilterNone : distanceFilter!)
-
             manager!.desiredAccuracy = getDesiredAccuracy(args!["desiredAccuracy"] as! String)
-
             manager!.pausesLocationUpdatesAutomatically = args!["pausesLocationUpdatesAutomatically"] as! Bool
-
-            /// 设置在能不能再后台定位
             manager!.allowsBackgroundLocationUpdates = args!["allowsBackgroundLocationUpdates"] as! Bool
-            /// 设置定位超时时间
             manager!.locationTimeout = args!["locationTimeout"] as! Int
-            /// 设置逆地理超时时间
             manager!.reGeocodeTimeout = args!["reGeocodeTimeout"] as! Int
-
-            /// 定位是否需要逆地理信息
-            manager!.locatingWithReGeocode = args!["locatingWithReGeocode"] as! Bool
-            /// 逆地理信息语言设置
+            manager!.locatingWithReGeocode = args!["withReGeocode"] as! Bool
             manager!.reGeocodeLanguage = AMapLocationReGeocodeLanguage(rawValue: args!["reGeocodeLanguage"] as! Int)!
-            /// 检测是否存在虚拟定位风险，默认为NO，不检测。
-            /// 注意:设置为YES时，单次定位通过 AMapLocatingCompletionBlock 的error给出虚拟定位风险提示；连续定位通过 amapLocationManager:didFailWithError: 方法的error给出虚拟定位风险提示。error格式为error.domain==AMapLocationErrorDomain; error.code==AMapLocationErrorRiskOfFakeLocation;
             manager!.detectRiskOfFakeLocation = args!["detectRiskOfFakeLocation"] as! Bool
         }
     }
@@ -136,12 +130,11 @@ class AMapLocation: NSObject, AMapLocationManagerDelegate {
     // 连续定位回调函数
     // 注意：如果实现了本方法，则定位信息不会通过amapLocationManager:didUpdateLocation:方法回调。
     func amapLocationManager(_ manager: AMapLocationManager!, didUpdate location: CLLocation!, reGeocode: AMapLocationReGeocode?) {
-        var locationMap = location.data
-        let reGeocodeMap = reGeocode?.data
-        if reGeocodeMap != nil {
-            locationMap.merge(reGeocodeMap!)
+        var map = location.data
+        if reGeocode != nil {
+            map.merge(reGeocode!.data)
         }
-        channel.invokeMethod("onLocationChanged", arguments: locationMap)
+        channel.invokeMethod("onLocationChanged", arguments: map)
     }
 
     // 定位权限状态改变时回调函数 ios14及之后
@@ -158,8 +151,9 @@ class AMapLocation: NSObject, AMapLocationManagerDelegate {
 
     // 当定位发生错误时，会调用代理的此方法。
     func amapLocationManager(_ manager: AMapLocationManager!, didFailWithError error: Error?) {
-        channel.invokeMethod("onFailed", arguments: [
-            "errorCode": (error as? NSError)?.code as Any,
+        channel.invokeMethod("onLocationFailed", arguments: [
+            "errorInfo": error?.localizedDescription,
+            "errorCode": (error as? NSError)?.code as Any?,
         ])
     }
 }
@@ -184,7 +178,6 @@ extension CLLocation {
                    "speed": speed,
                    "speedAccuracy": speedAccuracy,
                    "course": course,
-                   "distance": distance,
                    "floor": floor?.level,
                    "timestamp": timestamp.timeIntervalSince1970] as [String: Any?]
         if #available(iOS 13.4, *) {

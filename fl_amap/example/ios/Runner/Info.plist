@@ -32,6 +32,18 @@
 		<true/>
 		<key>NSAllowsArbitraryLoadsInWebContent</key>
 		<true/>
+        <key>NSExceptionDomains</key>
+            <dict>
+                <key>restios.amap.com</key>
+                <dict>
+                    <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                    <true/>
+                    <key>NSIncludesSubdomains</key>
+                    <true/>
+                    <key>NSExceptionMinimumTLSVersion</key>
+                    <string>TLSv1.2</string>
+                </dict>
+            </dict>
 	</dict>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>获取定位</string>

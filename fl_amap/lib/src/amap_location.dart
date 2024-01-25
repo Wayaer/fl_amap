@@ -1,6 +1,8 @@
 part of '../fl_amap.dart';
 
 typedef FlAMapLocationChanged = void Function(AMapLocation? location);
+typedef FlAMapLocationFailed = void Function(AMapLocationError? error);
+typedef FlAMapLocationAuthorizationChanged = void Function(int? status);
 
 class FlAMapLocation {
   factory FlAMapLocation() => _singleton ??= FlAMapLocation._();
@@ -13,28 +15,14 @@ class FlAMapLocation {
 
   bool _isInitialize = false;
 
-  ///  初始化定位
-  ///  @param options 启动系统所需选项
+  /// 初始化定位
   Future<bool> initialize(
       {AMapLocationOptionForIOS? optionForIOS,
       AMapLocationOptionForAndroid? optionForAndroid}) async {
     if (!_supportPlatform) return false;
-    final bool? isInit = await _channel.invokeMethod(
+    final bool? isInitialize = await _channel.invokeMethod(
         'initialize', _optionToMap(optionForIOS, optionForAndroid));
-    if (isInit == true) _isInitialize = isInit!;
-    return isInit ?? false;
-  }
-
-  /// 直接获取定位
-  Future<AMapLocation?> getLocation(
-      {AMapLocationOptionForIOS? optionForIOS,
-      AMapLocationOptionForAndroid? optionForAndroid}) async {
-    if (!_supportPlatform || !_isInitialize) return null;
-    final Map<dynamic, dynamic>? location = await _channel.invokeMethod(
-        'getLocation', _optionToMap(optionForIOS, optionForAndroid));
-    print(location);
-    if (location == null) return null;
-    return AMapLocation.fromMap(location);
+    return _isInitialize = isInitialize ?? false;
   }
 
   /// dispose
@@ -42,6 +30,17 @@ class FlAMapLocation {
     if (!_supportPlatform || !_isInitialize) return false;
     final bool? state = await _channel.invokeMethod('dispose');
     return state ?? false;
+  }
+
+  /// 直接获取定位
+  Future<AMapLocation?> getLocation(
+      {AMapLocationOptionForIOS? optionForIOS,
+      AMapLocationOptionForAndroid? optionForAndroid}) async {
+    if (!_supportPlatform || !_isInitialize) return null;
+    final Map<dynamic, dynamic>? map = await _channel.invokeMethod(
+        'getLocation', _optionToMap(optionForIOS, optionForAndroid));
+    if (map == null) return null;
+    return AMapLocation.mapToLocation(map);
   }
 
   /// 启动监听位置改变
@@ -54,20 +53,28 @@ class FlAMapLocation {
     return state ?? false;
   }
 
-  void addMethodCallHandler({FlAMapLocationChanged? onLocationChanged}) {
+  void addMethodCallHandler({
+    FlAMapLocationChanged? onLocationChanged,
+
+    /// 仅在ios中生效
+    FlAMapLocationFailed? onLocationFailed,
+
+    /// 仅在ios中生效
+    FlAMapLocationAuthorizationChanged? onAuthorizationChanged,
+  }) {
     _channel.setMethodCallHandler((MethodCall call) async {
       final args = call.arguments;
-      print("addMethodCallHandler===\n"
-          "${call.method}:${call.arguments}\n"
-          "===\n");
       switch (call.method) {
         case 'onAuthorizationChanged':
+          onAuthorizationChanged?.call(args is int ? args : null);
           break;
         case 'onLocationFailed':
+          onLocationFailed
+              ?.call(args is Map ? AMapLocationError.fromMap(args) : null);
           break;
         case 'onLocationChanged':
           onLocationChanged
-              ?.call(args is Map ? AMapLocation.fromMap(args) : null);
+              ?.call(args is Map ? AMapLocation.mapToLocation(args) : null);
           break;
       }
     });
@@ -86,8 +93,8 @@ class FlAMapLocation {
 
   Map<String, dynamic>? _optionToMap(AMapLocationOptionForIOS? optionForIOS,
       AMapLocationOptionForAndroid? optionForAndroid) {
-    if (optionForIOS != null) return optionForIOS.toMap();
-    if (optionForAndroid != null) return optionForAndroid.toMap();
+    if (optionForIOS != null && _isIOS) return optionForIOS.toMap();
+    if (optionForAndroid != null && _isAndroid) return optionForAndroid.toMap();
     return null;
   }
 }
@@ -160,7 +167,7 @@ class AMapLocationForAndroid extends AMapLocation {
         conScenario = map['conScenario'] as int?,
         coordType = map['coordType'] as String?,
         gpsAccuracyStatus =
-            GPSAccuracyStatus.values[map['gpsAccuracyStatus'] as int],
+            GPSAccuracyStatus.getStatus(map['gpsAccuracyStatus'] as int?),
         locationDetail = map['locationDetail'] as String?,
         locationQualityReport = map['locationQualityReport'] == null
             ? null
@@ -170,6 +177,23 @@ class AMapLocationForAndroid extends AMapLocation {
         trustedLevel = map['trustedLevel'] as int?,
         description = map['description'] as String?,
         super.fromMap();
+
+  @override
+  Map<String, dynamic> toMap() => {
+        ...super.toMap(),
+        'accuracy': accuracy,
+        'provider': provider,
+        'locationType': locationType,
+        'buildingId': buildingId,
+        'conScenario': conScenario,
+        'coordType': coordType,
+        'gpsAccuracyStatus': gpsAccuracyStatus,
+        'locationDetail': locationDetail,
+        'locationQualityReport': locationQualityReport?.toMap(),
+        'satellites': satellites,
+        'trustedLevel': trustedLevel,
+        'description': description,
+      };
 
   /// 定位精度 单位:米
   final double? accuracy;
@@ -225,19 +249,40 @@ class AMapLocationForAndroid extends AMapLocation {
   /// 位置语义信息
   final String? description;
 
+  /// 卫星定位结果 通过设备卫星定位模块返回的定位结果
+  static const int locationTypeGPS = 1;
+
+  /// 前次定位结果 网络定位请求低于1秒、或两次定位之间设备位置变化非常小时返回，设备位移通过传感器感知
+  static const int locationTypeSameReq = 2;
+
+  /// 已过时。已合并到AMapLocation.LOCATION_TYPE_SAME_REQ
+  @Deprecated('已过时。已合并到[AMapLocationForAndroid.locationTypeSameReq]')
+  static const int locationTypeFast = 3;
+
+  /// 缓存定位结果 返回一段时间前设备在相同的环境中缓存下来的网络定位结果，节省无必要的设备定位消耗
+  static const int locationTypeFixCache = 4;
+
+  /// Wifi定位结果 属于网络定位，定位精度相对基站定位会更好
+  static const int locationTypeWIFI = 5;
+
+  /// 基站定位结果 属于网络定位
+  static const int locationTypeCell = 6;
+
+  ///
+  static const int locationTypeAMAP = 7;
+
+  /// 离线定位结果
+  static const int locationTypeOffLine = 8;
+
+  /// 最后位置缓存
+  static const int locationTypeLastLocationCache = 9;
+
+  static const int locationCompensation = 10;
+
+  /// 模糊定位类型
+  static const int locationTypeCoarseLocation = 11;
+
   /// 定位结果类型
-  /// LOCATION_TYPE_GPS = 1;                <卫星定位结果 通过设备卫星定位模块返回的定位结果
-  /// LOCATION_TYPE_SAME_REQ = 2;           <前次定位结果 网络定位请求低于1秒、或两次定位之间设备位置变化非常小时返回，设备位移通过传感器感知
-  /// /** @deprecated */
-  /// LOCATION_TYPE_FAST = 3;               <已过时。已合并到AMapLocation.LOCATION_TYPE_SAME_REQ
-  /// LOCATION_TYPE_FIX_CACHE = 4;          <缓存定位结果 返回一段时间前设备在相同的环境中缓存下来的网络定位结果，节省无必要的设备定位消耗
-  /// LOCATION_TYPE_WIFI = 5;               <Wifi定位结果 属于网络定位，定位精度相对基站定位会更好
-  /// LOCATION_TYPE_CELL = 6;               <基站定位结果 属于网络定位
-  /// LOCATION_TYPE_AMAP = 7;
-  /// LOCATION_TYPE_OFFLINE = 8;            <离线定位结果
-  /// LOCATION_TYPE_LAST_LOCATION_CACHE = 9;<最后位置缓存
-  /// LOCATION_COMPENSATION = 10;
-  /// LOCATION_TYPE_COARSE_LOCATION = 11;   <模糊定位类型
   final int? locationType;
 
   /// 定位提供者
@@ -251,13 +296,22 @@ class AMapLocationForIOS extends AMapLocation {
   AMapLocationForIOS.fromMap(super.map)
       : horizontalAccuracy = map['horizontalAccuracy'] as double?,
         verticalAccuracy = map['verticalAccuracy'] as double?,
-        timestamp = map['timestamp'] as double?,
         speedAccuracy = map['speedAccuracy'] as double?,
         bearingAccuracy = map['courseAccuracy'] as double?,
-        distance = map['distance'] as double?,
         isSimulatedBySoftware = map['isSimulatedBySoftware'] as bool?,
         isProducedByAccessory = map['isProducedByAccessory'] as bool?,
         super.fromMap();
+
+  @override
+  Map<String, dynamic> toMap() => {
+        ...super.toMap(),
+        'horizontalAccuracy': horizontalAccuracy,
+        'verticalAccuracy': verticalAccuracy,
+        'speedAccuracy': speedAccuracy,
+        'bearingAccuracy': bearingAccuracy,
+        'isSimulatedBySoftware': isSimulatedBySoftware,
+        'isProducedByAccessory': isProducedByAccessory
+      };
 
   /// 定位水平精度 单位:米
   final double? horizontalAccuracy;
@@ -265,18 +319,12 @@ class AMapLocationForIOS extends AMapLocation {
   /// 定位垂直精度 单位:米
   final double? verticalAccuracy;
 
-  /// 定位时间
-  final double? timestamp;
-
   /// speed 精度
   final double? speedAccuracy;
 
   /// [bearing] 航向精度
   /// iOS 13.4+
   final double? bearingAccuracy;
-
-  /// 返回两个位置之间的横向距离。
-  final double? distance;
 
   /// 如果这个位置是由软件模拟器(如Xcode)检测到的，设置为 true
   /// iOS 15+
@@ -287,26 +335,9 @@ class AMapLocationForIOS extends AMapLocation {
   final bool? isProducedByAccessory;
 }
 
-class AMapLocation {
-  AMapLocation.fromMap(Map<dynamic, dynamic> map)
-      : speed = map['speed'] as double?,
-        altitude = map['altitude'] as double?,
-        adCode = map['adCode'] as String?,
-        aoiName = map['aoiName'] as String?,
-        city = map['city'] as String?,
-        cityCode = map['cityCode'] as String?,
-        country = map['country'] as String?,
-        district = map['district'] as String?,
-        poiName = map['poiName'] as String?,
-        province = map['province'] as String?,
-        street = map['street'] as String?,
-        address =
-            map['address'] as String? ?? map['formattedAddress'] as String?,
-        streetNum = map['streetNum'] as String? ?? map['number'] as String?,
-        latitude = map['latitude'] as double?,
-        longitude = map['longitude'] as double?,
-        floor = map['floor']?.toString(),
-        bearing = map['bearing'] as double? ?? map['course'] as double?,
+class AMapLocationError {
+  AMapLocationError.fromMap(Map<dynamic, dynamic> map)
+      : errorInfo = map['errorInfo'] as String?,
         errorCode = map['errorCode'] as int?;
 
   /// 错误码 这个参数很重要，在android和ios下的判断标准不一样
@@ -333,6 +364,7 @@ class AMapLocation {
   /// ERROR_CODE_NO_COMPENSATION_CACHE = 33
   ///
   /// ios下:
+  /// LOCATION_SUCCESS = 0                         <定位成功
   /// AMapLocationErrorUnknown = 1,                <未知错误
   /// AMapLocationErrorLocateFailed = 2,           <定位错误
   /// AMapLocationErrorReGeocodeFailed  = 3,       <逆地理错误
@@ -346,6 +378,47 @@ class AMapLocation {
   /// AMapLocationErrorRiskOfFakeLocation = 11,    <存在虚拟定位风险
   /// AMapLocationErrorNoFullAccuracyAuth = 12,    <精确定位权限异常
   final int? errorCode;
+
+  /// 错误信息
+  final String? errorInfo;
+
+  Map<String, dynamic> toMap() =>
+      {'errorCode': errorCode, 'errorInfo': errorInfo};
+}
+
+class AMapLocation {
+  static AMapLocation mapToLocation(Map<dynamic, dynamic> map) {
+    if (_isIOS) {
+      return AMapLocationForIOS.fromMap(map);
+    } else if (_isAndroid) {
+      return AMapLocationForAndroid.fromMap(map);
+    }
+    return AMapLocation.fromMap(map);
+  }
+
+  AMapLocation.fromMap(Map<dynamic, dynamic> map)
+      : speed = map['speed'] as double?,
+        altitude = map['altitude'] as double?,
+        adCode = map['adCode'] as String?,
+        aoiName = map['aoiName'] as String?,
+        city = map['city'] as String?,
+        cityCode = map['cityCode'] as String?,
+        country = map['country'] as String?,
+        district = map['district'] as String?,
+        poiName = map['poiName'] as String?,
+        province = map['province'] as String?,
+        street = map['street'] as String?,
+        address =
+            map['address'] as String? ?? map['formattedAddress'] as String?,
+        streetNum = map['streetNum'] as String? ?? map['number'] as String?,
+        latitude = map['latitude'] as double?,
+        longitude = map['longitude'] as double?,
+        floor = map['floor']?.toString(),
+        bearing = map['bearing'] as double? ?? map['course'] as double?,
+        timestamp = map['timestamp'] as double?,
+        error = AMapLocationError.fromMap(map);
+
+  final AMapLocationError? error;
 
   /// 纬度
   final double? latitude;
@@ -371,7 +444,7 @@ class AMapLocation {
   /// 定位类型不是GPS时，方向角指的是手机朝向
   final double? bearing;
 
-  /// 在iOS[AMapLocationOptionForIOS.locatingWithReGeocode]==false以下字段没有数据，需要数据请设置为true
+  /// 在iOS[AMapLocationOptionForIOS.withReGeocode]==false以下字段没有数据，需要数据请设置为true
   /// 以下数据在iOS属于逆地理信息
 
   /// 国家名称
@@ -406,6 +479,40 @@ class AMapLocation {
 
   /// 地址信息
   final String? address;
+
+  /// 定位时间
+  final double? timestamp;
+
+  Map<String, dynamic> toMapForPlatform() {
+    if (this is AMapLocationForAndroid) {
+      return (this as AMapLocationForAndroid).toMap();
+    } else if (this is AMapLocationForIOS) {
+      return (this as AMapLocationForIOS).toMap();
+    }
+    return toMap();
+  }
+
+  Map<String, dynamic> toMap() => {
+        'error': error?.toMap(),
+        'latitude': latitude,
+        'longitude': longitude,
+        'speed': speed,
+        'altitude': altitude,
+        'adCode': adCode,
+        'aoiName': aoiName,
+        'city': city,
+        'cityCode': cityCode,
+        'country': country,
+        'district': district,
+        'poiName': poiName,
+        'province': province,
+        'street': street,
+        'address': address,
+        'streetNum': streetNum,
+        'floor': floor,
+        'bearing': bearing,
+        'timestamp': timestamp,
+      };
 }
 
 class AMapLocationOptionForAndroid {
@@ -502,7 +609,7 @@ class AMapLocationOptionForAndroid {
         'locationProtocol': locationProtocol.index,
         'locationPurpose': locationPurpose?.index,
         'geoLanguage': geoLanguage.index,
-        'psFirst': gpsFirst,
+        'gpsFirst': gpsFirst,
         'gpsFirstTimeout': gpsFirstTimeout,
         'mockEnable': mockEnable,
         'needAddress': needAddress,
@@ -525,9 +632,9 @@ class AMapLocationOptionForIOS {
     this.desiredAccuracy = CLLocationAccuracy.kCLLocationAccuracyBest,
     this.pausesLocationUpdatesAutomatically = false,
     this.allowsBackgroundLocationUpdates = false,
-    this.locationTimeout = 2,
-    this.reGeocodeTimeout = 2,
-    this.locatingWithReGeocode = false,
+    this.locationTimeout = 10,
+    this.reGeocodeTimeout = 5,
+    this.withReGeocode = false,
     this.reGeocodeLanguage = GeoLanguage.none,
     this.detectRiskOfFakeLocation = false,
   })  : assert(locationTimeout >= 2),
@@ -565,18 +672,14 @@ class AMapLocationOptionForIOS {
   final int reGeocodeTimeout;
 
   /// 定位是否返回逆地理信息，默认false。
-  final bool locatingWithReGeocode;
+  final bool withReGeocode;
 
   /// 逆地址语言类型，默认是[GeoLanguage.none]
   final GeoLanguage reGeocodeLanguage;
 
   /// 检测是否存在虚拟定位风险，默认为NO，不检测。
-  ///  注意:设置为YES时，单次定位通过 AMapLocatingCompletionBlock 的
-  ///  error给出虚拟定位风险提示；
-  ///  连续定位通过 amapLocationManager:didFailWithError: 方法的
-  ///  error给出虚拟定位风险提示。
-  ///  error格式为error.domain==AMapLocationErrorDomain;
-  ///  error.code==AMapLocationErrorRiskOfFakeLocation;
+  ///  注意:设置为YES时，单次定位通过 errorInfo 给出虚拟定位风险提示；
+  ///  连续定位通过 []方法的
   final bool detectRiskOfFakeLocation;
 
   Map<String, dynamic> toMap() => {
@@ -588,8 +691,8 @@ class AMapLocationOptionForIOS {
         'allowsBackgroundLocationUpdates': allowsBackgroundLocationUpdates,
         'locationTimeout': locationTimeout,
         'reGeocodeTimeout': reGeocodeTimeout,
-        'locatingWithReGeocode': locatingWithReGeocode,
-        'geoLanguage': reGeocodeLanguage.index,
+        'withReGeocode': withReGeocode,
+        'reGeocodeLanguage': reGeocodeLanguage.index,
         'detectRiskOfFakeLocation': detectRiskOfFakeLocation,
       };
 }
@@ -635,7 +738,24 @@ enum GeoLanguage {
 }
 
 /// android 获取卫星信号强度
-enum GPSAccuracyStatus { bad, good, unknown }
+enum GPSAccuracyStatus {
+  bad,
+  good,
+  unknown;
+
+  static GPSAccuracyStatus getStatus(int? i) {
+    switch (i) {
+      case -1:
+        return GPSAccuracyStatus.unknown;
+      case 1:
+        return GPSAccuracyStatus.bad;
+      case 0:
+        return GPSAccuracyStatus.good;
+      default:
+        return GPSAccuracyStatus.unknown;
+    }
+  }
+}
 
 /// android
 /// 定位模式，目前支持三种定位模式

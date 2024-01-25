@@ -16,6 +16,33 @@ http://lbs.amap.com/api/ios-sdk/guide/create-project/get-key
 <string>要用定位</string>
 ```
 
+如果ios定位没有返回逆地理信息,添加一下内容
+
+```
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+		<key>NSAllowsArbitraryLoadsForMedia</key>
+		<true/>
+		<key>NSAllowsArbitraryLoadsInWebContent</key>
+		<true/>
+		/// 主要需要添加的
+        <key>NSExceptionDomains</key>
+            <dict>
+                <key>restios.amap.com/key>
+                <dict>
+                    <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                    <true/>
+                    <key>NSIncludesSubdomains</key>
+                    <true/>
+                    <key>NSExceptionMinimumTLSVersion</key>
+                    <string>TLSv1.2</string>
+                </dict>
+            </dict>
+	</dict>
+```
+
 2. iOS 9及以上版本使用后台定位功能, 需要保证"Background Modes"中的"Location updates"处于选中状态
 
 3.使用地理围栏

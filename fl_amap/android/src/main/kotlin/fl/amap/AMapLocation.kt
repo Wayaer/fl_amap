@@ -1,25 +1,18 @@
 package fl.amap
 
 import android.app.Notification
-import android.content.Context
-import android.content.IntentFilter
-import android.os.Build
-import android.os.Handler
-import com.amap.api.fence.GeoFence
-import com.amap.api.fence.GeoFenceClient
 import com.amap.api.location.AMapLocation
 import com.amap.api.location.AMapLocationClient
 import com.amap.api.location.AMapLocationClientOption
 import com.amap.api.location.AMapLocationListener
 import com.amap.api.location.AMapLocationQualityReport
-import com.amap.api.location.CoordinateConverter
-import com.amap.api.location.DPoint
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 
 
-class AMapLocation(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.MethodCallHandler {
+class AMapLocation(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.MethodCallHandler,
+    AMapLocationListener {
     private var channel: MethodChannel = MethodChannel(plugin.binaryMessenger, "fl.amap.Location")
 
     private val context = plugin.applicationContext
@@ -28,30 +21,25 @@ class AMapLocation(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.M
         channel.setMethodCallHandler(this)
     }
 
-    private lateinit var result: MethodChannel.Result
-
-
+    private var result: MethodChannel.Result? = null
     private val option = AMapLocationClientOption()
     private var client: AMapLocationClient? = null
 
     // 是否在定位
     private var isLocation = false
 
-    private val locationListenerForMethod = AMapLocationListener { location ->
-        channel.invokeMethod("onLocationChanged", location?.data)
-    }
-    private val locationListenerForResult = AMapLocationListener { location ->
-        client?.stopLocation()
-        result.success(location?.data)
-//        unRegisterLocationListenerForResult()
-    }
-
-    private fun unRegisterLocationListenerForResult() {
-        client?.unRegisterLocationListener(locationListenerForResult)
+    override fun onLocationChanged(location: AMapLocation?) {
+        if (result == null) {
+            channel.invokeMethod("onLocationChanged", location?.data)
+        } else {
+            client?.stopLocation()
+            result!!.success(location?.data)
+            result = null
+        }
     }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
-        this.result = result
+
         when (call.method) {
             "setApiKey" -> {
                 val key = call.argument<String>("key")!!
@@ -67,10 +55,12 @@ class AMapLocation(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.M
             "initialize" -> {
                 client = client ?: AMapLocationClient(context)
                 if (call.arguments != null) setLocationOption(call.arguments as Map<*, *>)
+                client?.setLocationListener(this)
                 result.success(true)
             }
 
             "dispose" -> {
+                client?.unRegisterLocationListener(this)
                 client?.stopLocation()
                 client?.onDestroy()
                 client = null
@@ -79,9 +69,9 @@ class AMapLocation(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.M
 
             "getLocation" -> {
                 try {
+                    this.result = result
                     option.isOnceLocation = true
                     if (call.arguments != null) setLocationOption(call.arguments as Map<*, *>)
-                    client?.setLocationListener(locationListenerForResult)
                     client?.startLocation()
                     if (client == null) result.success(null)
                 } catch (e: Exception) {
@@ -107,18 +97,16 @@ class AMapLocation(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.M
                 try {
                     option.isOnceLocation = false
                     if (call.arguments != null) setLocationOption(call.arguments as Map<*, *>)
-                    client?.setLocationListener(locationListenerForMethod)
                     client?.startLocation()
                     isLocation = client != null
                     result.success(client != null)
                 } catch (e: Exception) {
+                    println("=======$e")
                     result.success(false)
                 }
             }
 
             "stopLocation" -> {
-                //停止定位
-                client?.unRegisterLocationListener(locationListenerForMethod)
                 client?.stopLocation()
                 isLocation = false
                 result.success(true)
@@ -130,6 +118,7 @@ class AMapLocation(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.M
 
 
     private fun setLocationOption(arguments: Map<*, *>) {
+        println(arguments)
         option.locationMode =
             AMapLocationClientOption.AMapLocationMode.values()[arguments["locationMode"] as Int]
         val protocol =
@@ -194,7 +183,7 @@ class AMapLocation(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.M
             "satellites" to satellites,
             "speed" to speed,
             "trustedLevel" to trustedLevel,
-            "time" to time,
+            "timestamp" to time.toDouble(),
             "locationQualityReport" to locationQualityReport.data,
         )
     private val AMapLocationQualityReport.data: Map<String, Any?>
@@ -207,4 +196,6 @@ class AMapLocation(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.M
             "isWifiAble" to isWifiAble,
             "isInstalledHighDangerMockApp" to isInstalledHighDangerMockApp,
         )
+
+
 }
