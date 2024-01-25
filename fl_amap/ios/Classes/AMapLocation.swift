@@ -65,11 +65,10 @@ class AMapLocation: NSObject, AMapLocationManagerDelegate {
                 if error != nil {
                     map["errorInfo"] = error!.localizedDescription
                     map["errorCode"] = (error! as NSError).code
-
+                    map["userInfo"] = (error! as NSError).userInfo
                 } else {
                     map["errorCode"] = 0
                 }
-                print(map)
                 result(map)
             })
         case "startLocation":
@@ -153,6 +152,7 @@ class AMapLocation: NSObject, AMapLocationManagerDelegate {
     func amapLocationManager(_ manager: AMapLocationManager!, didFailWithError error: Error?) {
         channel.invokeMethod("onLocationFailed", arguments: [
             "errorInfo": error?.localizedDescription,
+            "userInfo": (error as? NSError)?.userInfo,
             "errorCode": (error as? NSError)?.code as Any?,
         ])
     }

@@ -2,6 +2,34 @@ part of '../fl_amap.dart';
 
 typedef FlAMapLocationChanged = void Function(AMapLocation? location);
 typedef FlAMapLocationFailed = void Function(AMapLocationError? error);
+
+/// User has not yet made a choice with regards to this application
+/// case notDetermined = 0
+///
+/// This application is not authorized to use location services.  Due
+/// to active restrictions on location services, the user cannot change
+/// this status, and may not have personally denied authorization
+/// case restricted = 1
+///
+/// User has explicitly denied authorization for this application, or
+/// location services are disabled in Settings.
+/// case denied = 2
+///
+/// User has granted authorization to use their location at any
+/// time.  Your app may be launched into the background by
+/// monitoring APIs such as visit monitoring, region monitoring,
+/// and significant location change monitoring.
+/// This value should be used on iOS, tvOS and watchOS.  It is available on
+/// MacOS, but kCLAuthorizationStatusAuthorized is synonymous and preferred.
+/// case authorizedAlways = 3
+///
+/// User has granted authorization to use their location only while
+/// they are using your app.  Note: You can reflect the user's
+/// continued engagement with your app using
+/// -allowsBackgroundLocationUpdates.
+/// This value is not available on MacOS.  It should be used on iOS, tvOS and
+/// watchOS.
+/// case authorizedWhenInUse = 4
 typedef FlAMapLocationAuthorizationChanged = void Function(int? status);
 
 class FlAMapLocation {
@@ -338,7 +366,8 @@ class AMapLocationForIOS extends AMapLocation {
 class AMapLocationError {
   AMapLocationError.fromMap(Map<dynamic, dynamic> map)
       : errorInfo = map['errorInfo'] as String?,
-        errorCode = map['errorCode'] as int?;
+        errorCode = map['errorCode'] as int?,
+        userInfo = map['userInfo'] as Map<dynamic, dynamic>?;
 
   /// 错误码 这个参数很重要，在android和ios下的判断标准不一样
   /// android下:
@@ -380,10 +409,14 @@ class AMapLocationError {
   final int? errorCode;
 
   /// 错误信息
+  /// ios 错误信息查看(https://lbs.amap.com/api/webservice/guide/tools/info)
   final String? errorInfo;
 
+  /// ios 设备才有的错误信息
+  final Map<dynamic, dynamic>? userInfo;
+
   Map<String, dynamic> toMap() =>
-      {'errorCode': errorCode, 'errorInfo': errorInfo};
+      {'errorCode': errorCode, 'errorInfo': errorInfo, 'userInfo': userInfo};
 }
 
 class AMapLocation {

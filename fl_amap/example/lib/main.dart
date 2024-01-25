@@ -1,7 +1,6 @@
 import 'package:example/geo_fence_page.dart';
 import 'package:example/loaction_page.dart';
 import 'package:fl_amap/fl_amap.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_waya/flutter_waya.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -28,17 +27,14 @@ class _AppState extends State<App> {
   bool isInit = false;
 
   void setKey() async {
-    final bool key = await setAMapKey(
-        iosKey: 'e0e98395277890e48caa0c4bed423ead',
+    isInit = await setAMapKey(
+        iosKey: '7d3261c06027bdc87aca547c99ad5b2f',
+        // iosKey: 'e0e98395277890e48caa0c4bed423ead',
         androidKey: '77418e726d0eefc0ac79a8619b5f4d97',
         isAgree: true,
         isContains: true,
         isShow: true);
-    debugPrint('高德地图ApiKey设置$key');
-    if (key) {
-      isInit = true;
-      setState(() {});
-    }
+    showToast('高德地图ApiKey设置$isInit');
   }
 
   @override
@@ -48,16 +44,27 @@ class _AppState extends State<App> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          if (!isInit) ElevatedText(onPressed: setKey, text: '设置key'),
-          if (isInit)
-            ElevatedText(
-                onPressed: () => push(const AMapLocationPage()),
-                text: '高德定位功能'),
+          ElevatedText(onPressed: setKey, text: '设置高德key'),
           30.heightBox,
-          if (isInit)
-            ElevatedText(
-                onPressed: () => push(const AMapGeoFencePage()),
-                text: '高德地理围栏功能'),
+          ElevatedText(
+              onPressed: () {
+                if (!isInit) {
+                  showToast('请先设置高德key');
+                  return;
+                }
+                push(const AMapLocationPage());
+              },
+              text: '高德定位功能'),
+          30.heightBox,
+          ElevatedText(
+              onPressed: () {
+                if (!isInit) {
+                  showToast('请先设置高德key');
+                  return;
+                }
+                push(const AMapGeoFencePage());
+              },
+              text: '高德地理围栏功能'),
         ]);
   }
 }
