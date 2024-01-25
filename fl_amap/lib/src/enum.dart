@@ -43,23 +43,3 @@ enum GeoFenceActivateAction {
 }
 
 
-/// ios定位精度
-enum CLLocationAccuracy {
-  /// 最好的,米级
-  kCLLocationAccuracyBest,
-
-  /// 十米
-  kCLLocationAccuracyNearestTenMeters,
-
-  /// 百米
-  kCLLocationAccuracyHundredMeters,
-
-  /// 一公里
-  kCLLocationAccuracyKilometer,
-
-  /// 三公里
-  kCLLocationAccuracyThreeKilometers,
-
-  /// 定位精度最好的导航
-  kCLLocationAccuracyBestForNavigation;
-}

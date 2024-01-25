@@ -54,7 +54,9 @@ class AMapLocation: NSObject, AMapLocationManagerDelegate {
             setLocationOption(call)
             let args = call.arguments as? [AnyHashable: Any]
             let withReGeocode = args?["withReGeocode"] as? Bool ?? false
+            isLocation = true
             manager!.requestLocation(withReGeocode: withReGeocode, completionBlock: { (location: CLLocation?, reGeocode: AMapLocationReGeocode?, error: Error?) in
+                self.isLocation = false
                 var map = [String: Any?]()
                 if location != nil {
                     map.merge(location!.data)
@@ -85,6 +87,17 @@ class AMapLocation: NSObject, AMapLocationManagerDelegate {
             isLocation = false
             manager?.stopUpdatingLocation()
             result(true)
+        case "headingAvailable":
+            result(AMapLocationManager.headingAvailable())
+        case "startUpdatingHeading":
+            manager?.startUpdatingHeading()
+            result(manager != nil)
+        case "stopUpdatingHeading":
+            manager?.stopUpdatingHeading()
+            result(manager != nil)
+        case "dismissHeadingCalibrationDisplay":
+            manager?.dismissHeadingCalibrationDisplay()
+            result(manager != nil)
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -148,6 +161,11 @@ class AMapLocation: NSObject, AMapLocationManagerDelegate {
         channel.invokeMethod("onAuthorizationChanged", arguments: status.rawValue)
     }
 
+    // 定位朝向变化
+    func amapLocationManager(_ manager: AMapLocationManager!, didUpdate newHeading: CLHeading!) {
+        channel.invokeMethod("onHeadingChanged", arguments: newHeading.data)
+    }
+
     // 当定位发生错误时，会调用代理的此方法。
     func amapLocationManager(_ manager: AMapLocationManager!, didFailWithError error: Error?) {
         channel.invokeMethod("onLocationFailed", arguments: [
@@ -187,8 +205,21 @@ extension CLLocation {
             map["isSimulatedBySoftware"] = sourceInformation?.isSimulatedBySoftware
             map["isProducedByAccessory"] = sourceInformation?.isProducedByAccessory
         }
-
         return map
+    }
+}
+
+extension CLHeading {
+    var data: [String: Any?] {
+        [
+            "x": x,
+            "y": y,
+            "z": z,
+            "timestamp": timestamp.timeIntervalSince1970,
+            "headingAccuracy": headingAccuracy,
+            "trueHeading": trueHeading,
+            "magneticHeading": magneticHeading,
+        ]
     }
 }
 

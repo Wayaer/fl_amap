@@ -2,6 +2,8 @@ part of '../fl_amap.dart';
 
 typedef FlAMapLocationChanged = void Function(AMapLocation? location);
 typedef FlAMapLocationFailed = void Function(AMapLocationError? error);
+typedef FlAMapLocationHeadingChanged = void Function(
+    AMapLocationHeading? heading);
 
 /// User has not yet made a choice with regards to this application
 /// case notDetermined = 0
@@ -53,9 +55,50 @@ class FlAMapLocation {
     return _isInitialize = isInitialize ?? false;
   }
 
+  /// 添加回调监听
+  void addListener({
+    /// android & ios
+    /// 连续定位回调
+    FlAMapLocationChanged? onLocationChanged,
+
+    /// 仅在ios中生效
+    /// ios连续定位 错误监听
+    FlAMapLocationFailed? onLocationFailed,
+
+    /// 仅在ios中生效
+    /// 监听设备朝向变化
+    FlAMapLocationHeadingChanged? onHeadingChanged,
+
+    /// 仅在ios中生效
+    /// 监听权限状态变化
+    FlAMapLocationAuthorizationChanged? onAuthorizationChanged,
+  }) {
+    _channel.setMethodCallHandler((MethodCall call) async {
+      final args = call.arguments;
+      switch (call.method) {
+        case 'onAuthorizationChanged':
+          onAuthorizationChanged?.call(args is int ? args : null);
+          break;
+        case 'onHeadingChanged':
+          onHeadingChanged
+              ?.call(args is Map ? AMapLocationHeading.fromMap(args) : null);
+          break;
+        case 'onLocationFailed':
+          onLocationFailed
+              ?.call(args is Map ? AMapLocationError.fromMap(args) : null);
+          break;
+        case 'onLocationChanged':
+          onLocationChanged
+              ?.call(args is Map ? AMapLocation.mapToLocation(args) : null);
+          break;
+      }
+    });
+  }
+
   /// dispose
   Future<bool> dispose() async {
     if (!_supportPlatform || !_isInitialize) return false;
+    _channel.setMethodCallHandler(null);
     final bool? state = await _channel.invokeMethod('dispose');
     return state ?? false;
   }
@@ -81,41 +124,70 @@ class FlAMapLocation {
     return state ?? false;
   }
 
-  void addMethodCallHandler({
-    FlAMapLocationChanged? onLocationChanged,
-
-    /// 仅在ios中生效
-    FlAMapLocationFailed? onLocationFailed,
-
-    /// 仅在ios中生效
-    FlAMapLocationAuthorizationChanged? onAuthorizationChanged,
-  }) {
-    _channel.setMethodCallHandler((MethodCall call) async {
-      final args = call.arguments;
-      switch (call.method) {
-        case 'onAuthorizationChanged':
-          onAuthorizationChanged?.call(args is int ? args : null);
-          break;
-        case 'onLocationFailed':
-          onLocationFailed
-              ?.call(args is Map ? AMapLocationError.fromMap(args) : null);
-          break;
-        case 'onLocationChanged':
-          onLocationChanged
-              ?.call(args is Map ? AMapLocation.mapToLocation(args) : null);
-          break;
-      }
-    });
-  }
-
-  ///  停止监听位置改变
+  /// 停止监听位置改变
   Future<bool> stopLocation() async {
     if (!_supportPlatform || !_isInitialize) return false;
     final bool? state = await _channel.invokeMethod('stopLocation');
-    if (state == true) {
-      _isInitialize = false;
-      _channel.setMethodCallHandler(null);
-    }
+    return state ?? false;
+  }
+
+  /// 仅支持ios
+  /// 设备是否支持方向识别
+  /// ture:设备支持方向识别 ; false:设备不支持支持方向识别
+  Future<bool> headingAvailable() async {
+    if (!_isIOS || !_isInitialize) return false;
+    final bool? state = await _channel.invokeMethod<bool>('headingAvailable');
+    return state ?? false;
+  }
+
+  /// 仅支持ios
+  /// 开始获取设备朝向，如果设备支持方向识别，则会通过代理回调方法
+  Future<bool> startUpdatingHeading() async {
+    if (!_isIOS || !_isInitialize) return false;
+    final bool? state =
+        await _channel.invokeMethod<bool>('startUpdatingHeading');
+    return state ?? false;
+  }
+
+  /// 仅支持ios
+  /// 停止获取设备朝向
+  Future<bool> stopUpdatingHeading() async {
+    if (!_isIOS || !_isInitialize) return false;
+    final bool? state =
+        await _channel.invokeMethod<bool>('stopUpdatingHeading');
+    return state ?? false;
+  }
+
+  /// 仅支持ios
+  /// 停止设备朝向校准显示
+  Future<bool> dismissHeadingCalibrationDisplay() async {
+    if (!_isIOS || !_isInitialize) return false;
+    final bool? state =
+        await _channel.invokeMethod<bool>('dismissHeadingCalibrationDisplay');
+    return state ?? false;
+  }
+
+  /// 仅支持android
+  /// 开启后台定位功能 注意: 如果您设置了target>=28,需要增加[android.permission.FOREGROUND_SERVICE]权限,
+  /// 如果您的app需要运行在Android Q版本的手机上，需要为ApsService增加android:foregroundServiceType="location"属性，
+  /// 例：<service android:name="com.amap.api.location.APSService" android:foregroundServiceType="location"/>
+  /// 主要是为了解决Android 8.0以上版本对后台定位的限制，开启后会显示通知栏,如果您的应用本身已经存在一个前台服务通知，则无需再开启此接口
+  /// 注意:启动后台定位只是代表开启了后台定位的能力，并不代表已经开始定位，开始定位请调用
+  Future<bool> enableBackgroundLocation() async {
+    if (!_isAndroid || !_isInitialize) return false;
+    final bool? state =
+        await _channel.invokeMethod<bool>('enableBackgroundLocation');
+    return state ?? false;
+  }
+
+  /// 仅支持android
+  /// 关闭后台定位功能,关闭后台定位功能只是代表不再提供后台定位的能力，并不是停止定位，停止定位请调用
+  /// [removeNotification] - 是否移除通知栏， true：移除通知栏，false：不移除通知栏，可以手动移除
+  Future<bool> disableBackgroundLocation(
+      {bool removeNotification = true}) async {
+    if (!_isAndroid || !_isInitialize) return false;
+    final bool? state = await _channel.invokeMethod<bool>(
+        'disableBackgroundLocation', removeNotification);
     return state ?? false;
   }
 
@@ -229,7 +301,8 @@ class AMapLocationForAndroid extends AMapLocation {
   /// 室内定位的建筑物ID信息
   final String? buildingId;
 
-  /// 室内外置信度 室内：且置信度取值在[1 ～ 100]，值越大在室内的可能性越大 室外：且置信度取值在[-100 ～ -1] ,值越小在室外的可能性越大 无法识别室内外：置信度返回值为 0
+  /// 室内外置信度 室内：且置信度取值在[1 ～ 100]，值越大在室内的可能性越大 室外：且置信度取值在[-100 ～ -1] ,值越小在室外的可能性越大
+  /// 无法识别室内外：置信度返回值为 0
   final int? conScenario;
 
   /// 定位结果的可信度-非常可信 周边信息的新鲜度在15s之内 实时GPS定位结果
@@ -245,6 +318,7 @@ class AMapLocationForAndroid extends AMapLocation {
   static const int trustedLevelBad = 4;
 
   /// 获取定位结果的可信度 只有在定位成功时才有意义
+  /// [trustedLevelHigh]、[trustedLevelNormal]、[trustedLevelLow]、[trustedLevelBad]
   final int? trustedLevel;
 
   /// AMapLocation.COORD_TYPE_WGS84 -- WGS84坐标系,国外定位时返回的是WGS84坐标系
@@ -266,6 +340,7 @@ class AMapLocationForAndroid extends AMapLocation {
   static const int gpsAccuracyUnknown = -1;
 
   /// 获取卫星信号强度，仅在卫星定位时有效,
+  /// [gpsAccuracyGood]、[gpsAccuracyBad]、[gpsAccuracyUnknown]
   final GPSAccuracyStatus? gpsAccuracyStatus;
 
   /// 定位信息描述
@@ -311,6 +386,9 @@ class AMapLocationForAndroid extends AMapLocation {
   static const int locationTypeCoarseLocation = 11;
 
   /// 定位结果类型
+  /// [locationTypeGPS]、 [locationTypeSameReq]、  [locationTypeFixCache]、 [locationTypeWIFI]、[locationTypeCell]、
+  /// [locationTypeAMAP]、[locationTypeOffLine]、 [locationTypeLastLocationCache]、 [locationCompensation]、
+  /// [locationTypeCoarseLocation]、
   final int? locationType;
 
   /// 定位提供者
@@ -361,6 +439,51 @@ class AMapLocationForIOS extends AMapLocation {
   /// 如果此位置是由外部配件生成的，如CarPlay或MFi配件，则设置为 true
   /// iOS 15+
   final bool? isProducedByAccessory;
+}
+
+/// ios 设备朝向
+class AMapLocationHeading {
+  AMapLocationHeading.fromMap(Map<dynamic, dynamic> map)
+      : x = map['x'] as double?,
+        y = map['y'] as double?,
+        z = map['z'] as double?,
+        timestamp = map['timestamp'] as double?,
+        headingAccuracy = map['headingAccuracy'] as double?,
+        trueHeading = map['trueHeading'] as double?,
+        magneticHeading = map['magneticHeading'] as double?;
+
+  /// 返回在x轴上测量的地磁的原始值。
+  final double? x;
+
+  /// 返回在y轴上测量的地磁的原始值。
+  final double? y;
+
+  /// 返回在z轴上测量的地磁的原始值。
+  final double? z;
+
+  /// 返回确定磁航向的时间戳。
+  final double? timestamp;
+
+  /// 表示磁航向与实际地磁航向在度数上可能存在差异的最大偏差。负值表示无效
+  final double? headingAccuracy;
+
+  /// 以度数表示方向，其中0度为真北。方向是从设备的顶部引用的，而不考虑设备的方向以及用户界面的方向。
+  /// 范围: 0.0 - 359.9度，0为正北
+  final double? trueHeading;
+
+  /// 表示方向，以度数表示，其中0度为磁北。方向是从设备的顶部引用的，而不考虑设备的方向以及用户界面的方向。
+  /// 范围: 0.0 - 359.9度，0为正北
+  final double? magneticHeading;
+
+  Map<String, dynamic> toMap() => {
+        "x": x,
+        "y": y,
+        "z": z,
+        "timestamp": timestamp,
+        "headingAccuracy": headingAccuracy,
+        "trueHeading": trueHeading,
+        "magneticHeading": magneticHeading
+      };
 }
 
 class AMapLocationError {
@@ -451,12 +574,14 @@ class AMapLocation {
         timestamp = map['timestamp'] as double?,
         error = AMapLocationError.fromMap(map);
 
+  /// ios 连续定位 错误信息 请使用 [onLocationFailed]
+  /// ios 单次定位 android 单次定位和连续定位 错误信息 这里都有
   final AMapLocationError? error;
 
-  /// 纬度
+  /// 高德纬度
   final double? latitude;
 
-  /// 经度
+  /// 高德经度
   final double? longitude;
 
   /// 海拔高度(单位：米)
@@ -548,6 +673,10 @@ class AMapLocation {
       };
 }
 
+class AMapLocationOptionNotificationForAndroid {
+  
+
+}
 class AMapLocationOptionForAndroid {
   AMapLocationOptionForAndroid({
     this.locationMode = AMapLocationMode.batterySaving,
@@ -801,4 +930,25 @@ enum AMapLocationMode {
 
   /// 高精度定位模式： 在这种定位模式下，将同时使用高德网络定位和卫星定位,优先返回精度高的定位
   heightAccuracy
+}
+
+/// ios定位精度
+enum CLLocationAccuracy {
+  /// 最好的,米级
+  kCLLocationAccuracyBest,
+
+  /// 十米
+  kCLLocationAccuracyNearestTenMeters,
+
+  /// 百米
+  kCLLocationAccuracyHundredMeters,
+
+  /// 一公里
+  kCLLocationAccuracyKilometer,
+
+  /// 三公里
+  kCLLocationAccuracyThreeKilometers,
+
+  /// 定位精度最好的导航
+  kCLLocationAccuracyBestForNavigation;
 }

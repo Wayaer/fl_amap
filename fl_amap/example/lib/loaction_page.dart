@@ -1,6 +1,7 @@
 import 'package:example/main.dart';
 import 'package:fl_amap/fl_amap.dart';
 import 'package:fl_dio/fl_dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_waya/flutter_waya.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -13,10 +14,9 @@ class AMapLocationPage extends StatefulWidget {
 }
 
 class _AMapLocationPageState extends State<AMapLocationPage> {
-  late ValueNotifier<String> text = ValueNotifier<String>('未初始化');
-  late ValueNotifier<AMapLocation?> locationState =
-      ValueNotifier<AMapLocation?>(null);
-
+  late ValueNotifier<String> text = ValueNotifier('未初始化');
+  late ValueNotifier<AMapLocation?> locationState = ValueNotifier(null);
+  late ValueNotifier<AMapLocationHeading?> headingState = ValueNotifier(null);
   final location = FlAMapLocation();
 
   /// 获取定位权限
@@ -28,7 +28,10 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
     return true;
   }
 
-  final androidOption = AMapLocationOptionForAndroid(gpsFirst: true);
+  final androidOption = AMapLocationOptionForAndroid(
+      beiDouFirst: true,
+      sensorEnable: true,
+      locationMode: AMapLocationMode.heightAccuracy);
   final iosOption = AMapLocationOptionForIOS(withReGeocode: true);
 
   /// 初始化定位
@@ -43,10 +46,12 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
   @override
   void initState() {
     super.initState();
-    location.addMethodCallHandler(onLocationChanged: (AMapLocation? location) {
+    location.addListener(onLocationChanged: (AMapLocation? location) {
       locationState.value = location;
     }, onLocationFailed: (AMapLocationError? error) {
       text.value = 'ios 连续定位错误：${error?.toMap()}';
+    }, onHeadingChanged: (AMapLocationHeading? heading) {
+      headingState.value = heading;
     }, onAuthorizationChanged: (int? status) {
       text.value = 'ios 权限状态变化：$status';
     });
@@ -80,6 +85,13 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
                 alignment: WrapAlignment.center,
                 children: <Widget>[
                   ElevatedText(onPressed: initLocation, text: 'initialize'),
+                  ElevatedText(
+                      onPressed: () {
+                        location.dispose();
+                        locationState.value = null;
+                        text.value = '未初始化';
+                      },
+                      text: 'dispose'),
                   ElevatedText(onPressed: getLocation, text: '直接获取定位'),
                   ElevatedText(onPressed: startLocationState, text: '开启监听定位'),
                   ElevatedText(
@@ -89,13 +101,34 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
                         location.stopLocation();
                       },
                       text: '关闭监听定位'),
-                  ElevatedText(
-                      onPressed: () {
-                        location.dispose();
-                        locationState.value = null;
-                        text.value = '未初始化';
-                      },
-                      text: 'dispose'),
+                  if (TargetPlatform.iOS == defaultTargetPlatform) ...[
+                    ElevatedText(
+                        onPressed: () async {
+                          final result = await location.headingAvailable();
+                          text.value = 'ios 设备是否支持方向识别：$result';
+                        },
+                        text: '设备是否支持方向识别'),
+                    ElevatedText(
+                        onPressed: () async {
+                          final result = await location.startUpdatingHeading();
+                          text.value = 'ios 开始获取设备朝向 $result';
+                        },
+                        text: '开始获取设备朝向'),
+                    ElevatedText(
+                        onPressed: () async {
+                          final result = await location.stopUpdatingHeading();
+                          headingState.value = null;
+                          text.value = 'ios 停止获取设备朝向 $result';
+                        },
+                        text: '停止获取设备朝向'),
+                    ElevatedText(
+                        onPressed: () async {
+                          final result =
+                              await location.dismissHeadingCalibrationDisplay();
+                          text.value = 'ios 停止设备朝向校准显示 $result';
+                        },
+                        text: '停止设备朝向校准显示'),
+                  ],
                 ]),
             Padding(
                 padding: const EdgeInsets.all(20.0),
@@ -106,6 +139,16 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
                           ? const Text('暂无定位信息')
                           : JsonParse(value.toMapForPlatform());
                     })),
+            if (TargetPlatform.iOS == defaultTargetPlatform)
+              Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: ValueListenableBuilder<AMapLocationHeading?>(
+                      valueListenable: headingState,
+                      builder: (_, AMapLocationHeading? value, __) {
+                        return value == null
+                            ? const Text('暂无Heading信息')
+                            : JsonParse(value.toMap());
+                      })),
           ]));
 
   Future<void> getLocation() async {
@@ -118,7 +161,6 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
 
   Future<void> startLocationState() async {
     if (!await getPermissions) return;
-
     locationState.value = null;
     final bool data = await FlAMapLocation().startLocation(
         optionForAndroid: androidOption, optionForIOS: iosOption);

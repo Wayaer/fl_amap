@@ -1,6 +1,12 @@
 package fl.amap
 
 import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
+import android.graphics.BitmapFactory
+import android.graphics.Color
+import android.os.Build
 import com.amap.api.location.AMapLocation
 import com.amap.api.location.AMapLocationClient
 import com.amap.api.location.AMapLocationClientOption
@@ -32,6 +38,7 @@ class AMapLocation(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.M
         if (result == null) {
             channel.invokeMethod("onLocationChanged", location?.data)
         } else {
+            isLocation = false
             client?.stopLocation()
             result!!.success(location?.data)
             result = null
@@ -60,6 +67,7 @@ class AMapLocation(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.M
             }
 
             "dispose" -> {
+                isLocation = false
                 client?.unRegisterLocationListener(this)
                 client?.stopLocation()
                 client?.onDestroy()
@@ -68,25 +76,32 @@ class AMapLocation(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.M
             }
 
             "getLocation" -> {
+                if (isLocation) {
+                    result.success(false)
+                    return
+                }
                 try {
                     this.result = result
                     option.isOnceLocation = true
                     if (call.arguments != null) setLocationOption(call.arguments as Map<*, *>)
+                    isLocation = true
                     client?.startLocation()
                     if (client == null) result.success(null)
                 } catch (e: Exception) {
+                    isLocation = false
                     result.success(null)
                 }
             }
 
             "enableBackgroundLocation" -> {
-                client?.enableBackgroundLocation(999, Notification())
-                result.success(true)
+                val args = call.arguments as Map<*, *>
+                client?.enableBackgroundLocation(args["code"] as Int, buildNotification(args))
+                result.success(client != null)
             }
 
             "disableBackgroundLocation" -> {
                 client?.disableBackgroundLocation(call.arguments as Boolean)
-                result.success(true)
+                result.success(client != null)
             }
 
             "startLocation" -> {
@@ -101,7 +116,7 @@ class AMapLocation(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.M
                     isLocation = client != null
                     result.success(client != null)
                 } catch (e: Exception) {
-                    println("=======$e")
+                    isLocation = false
                     result.success(false)
                 }
             }
@@ -116,6 +131,40 @@ class AMapLocation(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.M
         }
     }
 
+    private var notificationManager: NotificationManager? = null
+    private var isCreateChannel = false
+    private fun buildNotification(args: Map<*, *>): Notification {
+        val builder: Notification.Builder
+        if (Build.VERSION.SDK_INT >= 26) {
+            if (null == notificationManager) {
+                notificationManager =
+                    context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            }
+            val channelId: String = context.packageName
+            if (!isCreateChannel) {
+                val channel = NotificationChannel(
+                    args["channelId"] as String,
+                    args["channelName"] as String,
+                    NotificationManager.IMPORTANCE_DEFAULT
+                )
+                channel.description = args["description"] as String,
+                channel.lockscreenVisibility = args["lockscreenVisibility"] as Int
+                channel.enableLights(args["enableLights"] as Boolean) //是否在桌面icon右上角展示小圆点
+                channel.lightColor = Color.BLUE //小圆点颜色
+                channel.setShowBadge(args["showBadge"] as Boolean) //是否在久按桌面图标时显示此渠道的通知
+                notificationManager?.createNotificationChannel(channel)
+            }
+            builder = Notification.Builder(context, channelId)
+        } else {
+            builder = Notification.Builder(context)
+        }
+        builder.setSmallIcon(R.mipmap.ic_launcher).setContentTitle(args["title"] as String)
+            .setContentText(args["content"] as String).setWhen(System.currentTimeMillis())
+//        builder.setLargeIcon(
+//            BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
+//        )
+        return builder.build()
+    }
 
     private fun setLocationOption(arguments: Map<*, *>) {
         println(arguments)
