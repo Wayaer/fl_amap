@@ -27,7 +27,7 @@ http://lbs.amap.com/api/ios-sdk/guide/create-project/get-key
 		<true/>
 		<key>NSAllowsArbitraryLoadsInWebContent</key>
 		<true/>
-		/// 主要需要添加的
+		/// 解决ios HTTP 警告，需要添加的
         <key>NSExceptionDomains</key>
             <dict>
                 <key>restios.amap.com/key>
@@ -61,7 +61,13 @@ allowsBackgroundLocationUpdates 为 YES，
 
 ```xml
 
-<meta-data android:name="com.amap.api.v2.apikey" android:value="您的Key" />
+<manifest>
+  <application>
+    /// 需要配置的
+    <meta-data android:name="com.amap.api.v2.apikey" android:value="您的Key" />
+  </application>
+</manifest>
+
 ```
 
 ## 开始使用
@@ -76,13 +82,12 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final bool key = await setAMapKey(
-      iosKey: 'ios key',
-      androidKey: 'android key');
+          iosKey: 'ios key',
+          androidKey: 'android key');
 
   if (key != null && key) print('高德地图ApiKey设置成功');
 
-  runApp(MaterialApp(
-      debugShowCheckedModeBanner: false, title: 'FlAMap', home: Home()));
+  runApp(MaterialApp(title: 'FlAMap', home: Home()));
 }
 
 ```
@@ -95,7 +100,7 @@ Future<void> main() async {
   if (getPermissions) return;
 
   /// 初始化AMap
-  final bool data = await FlAMapLocation().initialize(AMapLocationOption());
+  final bool data = await FlAMapLocation().initialize();
   if (data) {
     show('初始化成功');
   }
@@ -109,7 +114,13 @@ Future<void> main() async {
   Future<void> getLocation() async {
   /// 务必先初始化 并获取权限
   if (getPermissions) return;
-  AMapLocation location = await FlAMapLocation().getLocation(true);
+  AMapLocation location = await FlAMapLocation().getLocation();
+  if (isAndroid) {
+    AMapLocation is AMapLocationForAndroid;
+  }
+  if (isIOS) {
+    AMapLocation is AMapLocationForIOS;
+  }
 }
 
 ```
@@ -119,14 +130,27 @@ Future<void> main() async {
 ```dart
   Future<void> startLocationChange() async {
   /// 务必先初始化 并获取权限
-  if (getPermissions) return;
-  final bool data =
-  await FlAMapLocation().startLocationChanged(onLocationChanged:
-      (AMapLocation location) {
-    locationState.value = location;
-    text.value = '位置更新$i次';
-  });
-  print(!data ? '开启成功' : '开启失败');
+  FlAMapLocation().addListener(
+
+    /// 连续定位回调 android & ios 均支持
+      onLocationChanged: (AMapLocation? location) {
+        locationState.value = location;
+      },
+
+      /// ios连续定位 错误监听 仅在ios中生效
+      onLocationFailed: (AMapLocationError? error) {
+        text.value = 'ios 连续定位错误：${error?.toMap()}';
+      },
+
+      /// 监听设备朝向变化 仅在ios中生效
+      onHeadingChanged: (AMapLocationHeading? heading) {
+        headingState.value = heading;
+      },
+
+      /// 监听权限状态变化 仅在ios中生效
+      onAuthorizationChanged: (int? status) {
+        text.value = 'ios 权限状态变化：$status';
+      });
 }
 
 ```
@@ -143,8 +167,76 @@ Future<void> main() async {
 
 ```dart
   void dispose() {
-  super.dispose();
   FlAMapLocation().dispose();
+}
+```
+
+- 开启前台任务 仅支持android 8.0 +
+  如需开启前台任务需要添加以下配置 至 `android/src/main/AndroidManifest.xml` 具体参考 `example`
+
+```xml
+
+<manifest>
+    /// 需要添加的权限
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <application>
+        /// 需要配置的服务
+        <service android:exported="false" android:foregroundServiceType="location" android:name="com.amap.api.location.APSService" />
+    </application>
+</manifest>
+```
+
+```dart
+
+void enableBackgroundLocation() {
+  FlAMapLocation().enableBackgroundLocation(
+      AMapNotificationForAndroid(
+          notificationId: 999,
+          title: '我在定位',
+          content: '我正在定位',
+          channelId: 'channelId',
+          channelName: 'name',
+          lightColor: Colors.red));
+}
+```
+
+- 关闭前台任务 仅支持android
+
+```dart
+  void disableBackgroundLocation() {
+  FlAMapLocation().disableBackgroundLocation();
+}
+```
+
+- 设备是否支持方向识别 仅支持ios
+
+```dart
+  void headingAvailable() async {
+  final result = await location.headingAvailable();
+}
+```
+
+- 开始获取设备朝向 仅支持ios
+
+```dart
+  void startUpdatingHeading() async {
+  await location.startUpdatingHeading();
+}
+```
+
+- 停止获取设备朝向 仅支持ios
+
+```dart
+  void stopUpdatingHeading() async {
+  await location.stopUpdatingHeading();
+}
+```
+
+- 停止设备朝向校准显示 仅支持ios
+
+```dart
+  void dismissHeadingCalibrationDisplay() async {
+  await location.dismissHeadingCalibrationDisplay();
 }
 ```
 

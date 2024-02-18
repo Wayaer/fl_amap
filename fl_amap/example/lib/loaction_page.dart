@@ -21,7 +21,7 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
 
   /// 获取定位权限
   Future<bool> get getPermissions async {
-    if (!await getPermission(Permission.location)) {
+    if (!await getPermission(Permission.locationAlways)) {
       text.value = '未获取到定位权限';
       return false;
     }
@@ -46,13 +46,25 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
   @override
   void initState() {
     super.initState();
-    location.addListener(onLocationChanged: (AMapLocation? location) {
+    location.addListener(
+
+        /// 连续定位回调 android & ios 均支持
+        onLocationChanged: (AMapLocation? location) {
       locationState.value = location;
-    }, onLocationFailed: (AMapLocationError? error) {
+    },
+
+        /// ios连续定位 错误监听 仅在ios中生效
+        onLocationFailed: (AMapLocationError? error) {
       text.value = 'ios 连续定位错误：${error?.toMap()}';
-    }, onHeadingChanged: (AMapLocationHeading? heading) {
+    },
+
+        /// 监听设备朝向变化 仅在ios中生效
+        onHeadingChanged: (AMapLocationHeading? heading) {
       headingState.value = heading;
-    }, onAuthorizationChanged: (int? status) {
+    },
+
+        /// 监听权限状态变化 仅在ios中生效
+        onAuthorizationChanged: (int? status) {
       text.value = 'ios 权限状态变化：$status';
     });
   }
@@ -95,10 +107,34 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
                   ElevatedText(onPressed: getLocation, text: '直接获取定位'),
                   ElevatedText(onPressed: startLocationState, text: '开启监听定位'),
                   ElevatedText(
-                      onPressed: () {
-                        text.value = '定位监听关闭';
+                      onPressed: () async {
+                        var result =
+                            await getPermission(Permission.notification);
+                        if (result) {
+                          result = await location.enableBackgroundLocation(
+                              AMapNotificationForAndroid(
+                                  notificationId: 999,
+                                  title: '我在定位',
+                                  content: '我正在定位',
+                                  channelId: 'channelId',
+                                  channelName: 'name',
+                                  lightColor: Colors.red));
+                        }
+                        text.value = '开启前台任务 $result';
+                      },
+                      text: '开启前台任务'),
+                  ElevatedText(
+                      onPressed: () async {
+                        final result =
+                            await location.disableBackgroundLocation();
+                        text.value = '关闭前台任务 $result';
+                      },
+                      text: '关闭前台任务'),
+                  ElevatedText(
+                      onPressed: () async {
                         locationState.value = null;
-                        location.stopLocation();
+                        final result = await location.stopLocation();
+                        text.value = '定位监听关闭 $result';
                       },
                       text: '关闭监听定位'),
                   if (TargetPlatform.iOS == defaultTargetPlatform) ...[

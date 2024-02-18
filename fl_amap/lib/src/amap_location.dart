@@ -173,10 +173,11 @@ class FlAMapLocation {
   /// 例：<service android:name="com.amap.api.location.APSService" android:foregroundServiceType="location"/>
   /// 主要是为了解决Android 8.0以上版本对后台定位的限制，开启后会显示通知栏,如果您的应用本身已经存在一个前台服务通知，则无需再开启此接口
   /// 注意:启动后台定位只是代表开启了后台定位的能力，并不代表已经开始定位，开始定位请调用
-  Future<bool> enableBackgroundLocation() async {
+  Future<bool> enableBackgroundLocation(
+      AMapNotificationForAndroid notification) async {
     if (!_isAndroid || !_isInitialize) return false;
-    final bool? state =
-        await _channel.invokeMethod<bool>('enableBackgroundLocation');
+    final bool? state = await _channel.invokeMethod<bool>(
+        'enableBackgroundLocation', notification.toMap());
     return state ?? false;
   }
 
@@ -673,10 +674,103 @@ class AMapLocation {
       };
 }
 
-class AMapLocationOptionNotificationForAndroid {
-  
+class AMapNotificationForAndroid {
+  AMapNotificationForAndroid({
+    required this.notificationId,
+    required this.title,
+    required this.content,
+    required this.channelId,
+    required this.channelName,
+    this.description,
+    this.enableLights = false,
+    this.showBadge = false,
+    this.lightColor = Colors.blue,
+    this.lockscreenVisibility = LockscreenVisibility.private,
+    this.importance = NotificationImportance.none,
+  }) : assert(notificationId != 0);
 
+  /// 通知栏ID,建议这个app唯一  不能为0
+  final int notificationId;
+
+  /// 通知的标题，显示在通知栏的顶部
+  final String title;
+
+  /// 通知的内容文本，显示在通知栏的下方
+  final String content;
+
+  /// 当[channelId]和[channelName]均不会null时才会创建NotificationChannel，以下参数才会生效
+  /// Notification channel id
+  final String channelId;
+
+  /// Notification channel name
+  final String channelName;
+
+  /// 通知渠道的描述，用于向用户解释该通知渠道的用途和特点
+  final String? description;
+
+  /// 小圆点颜色
+  final Color lightColor;
+
+  /// 是否在桌面icon右上角展示小圆点
+  final bool enableLights;
+
+  /// 是否在久按桌面图标时显示此渠道的通知
+  final bool showBadge;
+
+  /// 通知在锁屏界面上的可见性
+  final LockscreenVisibility lockscreenVisibility;
+
+  /// 通知渠道的重要性级别，用于确定通知的声音、震动等行为
+  final NotificationImportance importance;
+
+  Map<String, dynamic> toMap() => {
+        'notificationId': notificationId,
+        'channelId': channelId,
+        'channelName': channelName,
+        'title': title,
+        'content': content,
+        'description': description,
+        'lightColor': '#${Color(lightColor.value).toString().substring(8, 16)}',
+        'enableLights': enableLights,
+        'showBadge': showBadge,
+        'lockscreenVisibility': lockscreenVisibility.value,
+        'importance': importance.value,
+      };
 }
+
+enum NotificationImportance {
+  /// 默认重要性级别，会有声音和震动。
+  none(3),
+
+  /// 高重要性级别，会有声音和震动，并且会以横幅形式显示在屏幕上。
+  high(4),
+
+  /// 低重要性级别，只会在状态栏显示通知图标，不会打扰用户。
+  low(2),
+
+  /// 最低重要性级别，不会发出声音、震动或者显示任何提示。
+  min(1);
+
+  const NotificationImportance(this.value);
+
+  final int value;
+}
+
+enum LockscreenVisibility {
+  /// 在锁屏界面上显示通知的全部内容。
+  public(1),
+
+  /// 默认值，只显示通知的基本信息，隐藏敏感内容。
+  private(0),
+
+  /// 在锁屏界面上隐藏通知的全部内容。
+  secret(-1);
+
+  const LockscreenVisibility(this.value);
+
+  final int value;
+}
+
 class AMapLocationOptionForAndroid {
   AMapLocationOptionForAndroid({
     this.locationMode = AMapLocationMode.batterySaving,

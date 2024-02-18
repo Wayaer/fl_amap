@@ -4,7 +4,6 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.Build
 import com.amap.api.location.AMapLocation
@@ -95,7 +94,9 @@ class AMapLocation(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.M
 
             "enableBackgroundLocation" -> {
                 val args = call.arguments as Map<*, *>
-                client?.enableBackgroundLocation(args["code"] as Int, buildNotification(args))
+                client?.enableBackgroundLocation(
+                    args["notificationId"] as Int, buildNotification(args)
+                )
                 result.success(client != null)
             }
 
@@ -131,29 +132,21 @@ class AMapLocation(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.M
         }
     }
 
-    private var notificationManager: NotificationManager? = null
-    private var isCreateChannel = false
     private fun buildNotification(args: Map<*, *>): Notification {
         val builder: Notification.Builder
-        if (Build.VERSION.SDK_INT >= 26) {
-            if (null == notificationManager) {
-                notificationManager =
-                    context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            }
-            val channelId: String = context.packageName
-            if (!isCreateChannel) {
-                val channel = NotificationChannel(
-                    args["channelId"] as String,
-                    args["channelName"] as String,
-                    NotificationManager.IMPORTANCE_DEFAULT
-                )
-                channel.description = args["description"] as String,
-                channel.lockscreenVisibility = args["lockscreenVisibility"] as Int
-                channel.enableLights(args["enableLights"] as Boolean) //是否在桌面icon右上角展示小圆点
-                channel.lightColor = Color.BLUE //小圆点颜色
-                channel.setShowBadge(args["showBadge"] as Boolean) //是否在久按桌面图标时显示此渠道的通知
-                notificationManager?.createNotificationChannel(channel)
-            }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val notificationManager =
+                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val channelId = args["channelId"] as String?
+            val channel = NotificationChannel(
+                channelId, args["channelName"] as String, args["importance"] as Int
+            )
+            channel.description = args["description"] as String?
+            channel.lockscreenVisibility = args["lockscreenVisibility"] as Int
+            channel.enableLights(args["enableLights"] as Boolean) //是否在桌面icon右上角展示小圆点
+            channel.lightColor = Color.parseColor(args["lightColor"] as String) //小圆点颜色
+            channel.setShowBadge(args["showBadge"] as Boolean) //是否在久按桌面图标时显示此渠道的通知
+            notificationManager.createNotificationChannel(channel)
             builder = Notification.Builder(context, channelId)
         } else {
             builder = Notification.Builder(context)

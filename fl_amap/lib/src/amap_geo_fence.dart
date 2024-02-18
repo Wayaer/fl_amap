@@ -35,7 +35,7 @@ class FlAMapGeoFence {
 
   /// 销毁地理围栏
   /// ios 关闭代理,移出所有的GeoFence
-  /// android  关闭广播,移出所有的GeoFence
+  /// android 关闭广播,移出所有的GeoFence
   Future<bool> dispose() async {
     if (!_supportPlatform || !_isInitialize) return false;
     final bool? state = await _channel.invokeMethod<bool?>('dispose');

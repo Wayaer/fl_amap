@@ -1,5 +1,11 @@
 ## 3.0.0
 
+* 设置定位参数，返回定位信息均添加详细文档说明，且数据完整
+* 区分`android`和`ios`的返回定位信息，返回数据均有不同,且数据完整，`AMapLocation`、`AMapLocationForIOS`、`AMapLocationForAndroid`
+* 区分`android`和`ios`的定位参数配置，可进行多次配置更新，`AMapLocationOptionForIOS`、`AMapLocationOptionForAndroid`
+* `android`支持设置前台任务服务，保证后台定位常驻，使用`enableBackgroundLocation`和`disableBackgroundLocation`开启和关闭
+* `ios`添加 `headingAvailable`(设备是否支持方向识别)、`startUpdatingHeading`(开始获取设备朝向)、`stopUpdatingHeading`(停止获取设备朝向)、`dismissHeadingCalibrationDisplay`(停止设备朝向校准显示)
+
 ## 2.5.3
 
 * Upgrade the Android AMap locating SDK

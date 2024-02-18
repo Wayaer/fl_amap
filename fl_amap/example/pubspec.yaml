@@ -5,16 +5,16 @@ version: 1.0.0
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
-  flutter: '>=3.16.0'
+  flutter: '>=3.19.0'
 
 dependencies:
   fl_amap:
     path: ../
   flutter:
     sdk: flutter
-  flutter_waya: ^8.6.4
+  flutter_waya: ^8.7.0
   fl_dio: ^0.2.0
-  permission_handler: ^11.2.0
+  permission_handler: ^11.3.0
 
 dev_dependencies:
   flutter_lints: ^3.0.1
