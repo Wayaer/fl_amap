@@ -47,10 +47,11 @@ class FlAMapLocation {
 
   /// 初始化定位
   Future<bool> initialize(
-      {AMapLocationOptionForIOS? optionForIOS,
-      AMapLocationOptionForAndroid? optionForAndroid}) async {
+      {AMapLocationOptionForIOS optionForIOS = const AMapLocationOptionForIOS(),
+      AMapLocationOptionForAndroid optionForAndroid =
+          const AMapLocationOptionForAndroid()}) async {
     if (!_supportPlatform) return false;
-    final bool? isInitialize = await _channel.invokeMethod(
+    final isInitialize = await _channel.invokeMethod(
         'initialize', _optionToMap(optionForIOS, optionForAndroid));
     return _isInitialize = isInitialize ?? false;
   }
@@ -99,7 +100,7 @@ class FlAMapLocation {
   Future<bool> dispose() async {
     if (!_supportPlatform || !_isInitialize) return false;
     _channel.setMethodCallHandler(null);
-    final bool? state = await _channel.invokeMethod('dispose');
+    final state = await _channel.invokeMethod('dispose');
     return state ?? false;
   }
 
@@ -108,8 +109,9 @@ class FlAMapLocation {
       {AMapLocationOptionForIOS? optionForIOS,
       AMapLocationOptionForAndroid? optionForAndroid}) async {
     if (!_supportPlatform || !_isInitialize) return null;
-    final Map<dynamic, dynamic>? map = await _channel.invokeMethod(
-        'getLocation', _optionToMap(optionForIOS, optionForAndroid));
+    final Map<dynamic, dynamic>? map =
+        await _channel.invokeMethod<Map<dynamic, dynamic>>(
+            'getLocation', _optionToMap(optionForIOS, optionForAndroid));
     if (map == null) return null;
     return AMapLocation.mapToLocation(map);
   }
@@ -119,7 +121,7 @@ class FlAMapLocation {
       {AMapLocationOptionForIOS? optionForIOS,
       AMapLocationOptionForAndroid? optionForAndroid}) async {
     if (!_supportPlatform || !_isInitialize) return false;
-    final bool? state = await _channel.invokeMethod<bool?>(
+    final state = await _channel.invokeMethod<bool>(
         'startLocation', _optionToMap(optionForIOS, optionForAndroid));
     return state ?? false;
   }
@@ -127,7 +129,7 @@ class FlAMapLocation {
   /// 停止监听位置改变
   Future<bool> stopLocation() async {
     if (!_supportPlatform || !_isInitialize) return false;
-    final bool? state = await _channel.invokeMethod('stopLocation');
+    final state = await _channel.invokeMethod('stopLocation');
     return state ?? false;
   }
 
@@ -136,7 +138,7 @@ class FlAMapLocation {
   /// ture:设备支持方向识别 ; false:设备不支持支持方向识别
   Future<bool> headingAvailable() async {
     if (!_isIOS || !_isInitialize) return false;
-    final bool? state = await _channel.invokeMethod<bool>('headingAvailable');
+    final state = await _channel.invokeMethod<bool>('headingAvailable');
     return state ?? false;
   }
 
@@ -144,8 +146,7 @@ class FlAMapLocation {
   /// 开始获取设备朝向，如果设备支持方向识别，则会通过代理回调方法
   Future<bool> startUpdatingHeading() async {
     if (!_isIOS || !_isInitialize) return false;
-    final bool? state =
-        await _channel.invokeMethod<bool>('startUpdatingHeading');
+    final state = await _channel.invokeMethod<bool>('startUpdatingHeading');
     return state ?? false;
   }
 
@@ -153,8 +154,7 @@ class FlAMapLocation {
   /// 停止获取设备朝向
   Future<bool> stopUpdatingHeading() async {
     if (!_isIOS || !_isInitialize) return false;
-    final bool? state =
-        await _channel.invokeMethod<bool>('stopUpdatingHeading');
+    final state = await _channel.invokeMethod<bool>('stopUpdatingHeading');
     return state ?? false;
   }
 
@@ -162,21 +162,22 @@ class FlAMapLocation {
   /// 停止设备朝向校准显示
   Future<bool> dismissHeadingCalibrationDisplay() async {
     if (!_isIOS || !_isInitialize) return false;
-    final bool? state =
+    final state =
         await _channel.invokeMethod<bool>('dismissHeadingCalibrationDisplay');
     return state ?? false;
   }
 
   /// 仅支持android
   /// 开启后台定位功能 注意: 如果您设置了target>=28,需要增加[android.permission.FOREGROUND_SERVICE]权限,
-  /// 如果您的app需要运行在Android Q版本的手机上，需要为ApsService增加android:foregroundServiceType="location"属性，
-  /// 例：<service android:name="com.amap.api.location.APSService" android:foregroundServiceType="location"/>
+  /// 如果您的app需要运行在Android Q版本的手机上，需要为ApsService增加`android:foregroundServiceType="location"`属性，
+  /// 例：`<service android:name="com.amap.api.location.APSService" android:foregroundServiceType="location"/>`
   /// 主要是为了解决Android 8.0以上版本对后台定位的限制，开启后会显示通知栏,如果您的应用本身已经存在一个前台服务通知，则无需再开启此接口
   /// 注意:启动后台定位只是代表开启了后台定位的能力，并不代表已经开始定位，开始定位请调用
   Future<bool> enableBackgroundLocation(
       AMapNotificationForAndroid notification) async {
     if (!_isAndroid || !_isInitialize) return false;
-    final bool? state = await _channel.invokeMethod<bool>(
+    print(notification.toMap());
+    final state = await _channel.invokeMethod<bool>(
         'enableBackgroundLocation', notification.toMap());
     return state ?? false;
   }
@@ -187,9 +188,46 @@ class FlAMapLocation {
   Future<bool> disableBackgroundLocation(
       {bool removeNotification = true}) async {
     if (!_isAndroid || !_isInitialize) return false;
-    final bool? state = await _channel.invokeMethod<bool>(
+    final state = await _channel.invokeMethod<bool>(
         'disableBackgroundLocation', removeNotification);
     return state ?? false;
+  }
+
+  /// isAMapDataAvailable
+  /// 是否是高德地图可用数据
+  /// 返回true代表当前位置在大陆、港澳地区，反之不在。
+  Future<bool> isAMapDataAvailable(LatLng latLng) async {
+    if (!_supportPlatform) return false;
+    final state = await _channel.invokeMethod<bool>(
+        'isAMapDataAvailable', latLng.toMap());
+    return state ?? false;
+  }
+
+  /// calculateLineDistance
+  /// 计算两点间距离 单位：米
+  Future<double?> calculateLineDistance(
+      LatLng startLatLng, LatLng endLatLng) async {
+    if (!_isAndroid || !_isInitialize) return null;
+    final distance =
+        await _channel.invokeMethod<double>('calculateLineDistance', {
+      'startLatitude': startLatLng.latitude,
+      'startLongitude': startLatLng.longitude,
+      'endLatitude': endLatLng.latitude,
+      'endLongitude': endLatLng.longitude,
+    });
+    return distance;
+  }
+
+  /// coordinateConverter
+  /// 进行坐标转换
+  Future<CoordinateConverterResult?> coordinateConverter(
+      LatLng latLng, CoordType from) async {
+    if (!_supportPlatform) return null;
+    assert(latLng.latitude != null && latLng.longitude != null);
+    final map = await _channel.invokeMethod<Map<dynamic, dynamic>>(
+        'coordinateConverter', {...latLng.toMap(), 'from': from.index});
+    if (map == null) return null;
+    return CoordinateConverterResult.fromMap(map);
   }
 
   Map<String, dynamic>? _optionToMap(AMapLocationOptionForIOS? optionForIOS,
@@ -198,6 +236,65 @@ class FlAMapLocation {
     if (optionForAndroid != null && _isAndroid) return optionForAndroid.toMap();
     return null;
   }
+}
+
+class CoordinateConverterResult {
+  CoordinateConverterResult.fromMap(Map<dynamic, dynamic> map)
+      : latLng = LatLng.fromMap(map),
+        code = CoordinateConverterResultCode.fromMap(map),
+        message = map['message'] as String?;
+
+  /// 转换后的经纬度
+  final LatLng? latLng;
+
+  /// 0 成功  1 Exception  2 无效坐标
+  final CoordinateConverterResultCode? code;
+
+  /// Exception 时，返回错误信息
+  final String? message;
+}
+
+enum CoordinateConverterResultCode {
+  /// 0 成功
+  success,
+
+  /// 1 Exception
+  exception;
+
+  static CoordinateConverterResultCode fromMap(Map<dynamic, dynamic> map) {
+    final code = map['code'];
+    switch (code) {
+      case 0:
+        return CoordinateConverterResultCode.success;
+      case 1:
+        return CoordinateConverterResultCode.exception;
+      default:
+        return CoordinateConverterResultCode.exception;
+    }
+  }
+}
+
+enum CoordType {
+  /// 百度坐标
+  baidu,
+
+  /// 图吧坐标
+  mapBar,
+
+  /// 图盟坐标
+  mapAbc,
+
+  /// 搜搜坐标
+  sosoMap,
+
+  /// 阿里云
+  aliYun,
+
+  /// 谷歌坐标
+  google,
+
+  /// GPS原始坐标
+  gps;
 }
 
 class AMapLocationQualityReport {
@@ -684,7 +781,7 @@ class AMapNotificationForAndroid {
     this.description,
     this.enableLights = false,
     this.showBadge = false,
-    this.lightColor = Colors.blue,
+    this.lightColor,
     this.lockscreenVisibility = LockscreenVisibility.private,
     this.importance = NotificationImportance.none,
   }) : assert(notificationId != 0);
@@ -709,7 +806,7 @@ class AMapNotificationForAndroid {
   final String? description;
 
   /// 小圆点颜色
-  final Color lightColor;
+  final Color? lightColor;
 
   /// 是否在桌面icon右上角展示小圆点
   final bool enableLights;
@@ -730,11 +827,21 @@ class AMapNotificationForAndroid {
         'title': title,
         'content': content,
         'description': description,
-        'lightColor': '#${Color(lightColor.value).toString().substring(8, 16)}',
+        'lightColor': lightColor?._toMap(),
         'enableLights': enableLights,
         'showBadge': showBadge,
         'lockscreenVisibility': lockscreenVisibility.value,
         'importance': importance.value,
+      };
+}
+
+extension _ExtensionColor on Color {
+  Map<String, dynamic> _toMap() => {
+        'a': a,
+        'r': r,
+        'g': g,
+        'b': b,
+        'colorSpace': [0, 2, 7][colorSpace.index],
       };
 }
 
@@ -772,7 +879,7 @@ enum LockscreenVisibility {
 }
 
 class AMapLocationOptionForAndroid {
-  AMapLocationOptionForAndroid({
+  const AMapLocationOptionForAndroid({
     this.locationMode = AMapLocationMode.batterySaving,
     this.locationProtocol = AMapLocationProtocol.http,
     this.locationPurpose,
@@ -782,14 +889,14 @@ class AMapLocationOptionForAndroid {
     this.mockEnable = false,
     this.needAddress = true,
     this.wifiScan = true,
-    this.beiDouFirst = false,
+    this.beiDouFirst = true,
     this.deviceModeDistanceFilter = 0,
     this.httpTimeOut = 30000,
     this.interval = 2000,
     this.locationCacheEnable = true,
-    this.onceLocationLatest = false,
+    this.onceLocationLatest = true,
     this.selfStartServiceEnable = false,
-    this.sensorEnable = false,
+    this.sensorEnable = true,
   })  : assert(gpsFirstTimeout >= 1),
         assert(deviceModeDistanceFilter >= 0);
 
@@ -882,15 +989,16 @@ class AMapLocationOptionForAndroid {
 }
 
 class AMapLocationOptionForIOS {
-  AMapLocationOptionForIOS({
+  const AMapLocationOptionForIOS({
     this.locationAccuracyMode = AMapLocationAccuracyMode.fullAndReduceAccuracy,
     this.distanceFilter,
-    this.desiredAccuracy = CLLocationAccuracy.kCLLocationAccuracyBest,
+    this.desiredAccuracy =
+        CLLocationAccuracy.kCLLocationAccuracyNearestTenMeters,
     this.pausesLocationUpdatesAutomatically = false,
     this.allowsBackgroundLocationUpdates = false,
-    this.locationTimeout = 10,
-    this.reGeocodeTimeout = 5,
-    this.withReGeocode = false,
+    this.locationTimeout = 3,
+    this.reGeocodeTimeout = 2,
+    this.withReGeocode = true,
     this.reGeocodeLanguage = GeoLanguage.none,
     this.detectRiskOfFakeLocation = false,
   })  : assert(locationTimeout >= 2),
@@ -904,7 +1012,7 @@ class AMapLocationOptionForIOS {
   /// 设定定位的最小更新距离。单位米，默认为0米，表示只要检测到设备位置发生变化就会更新位置信息。
   final double? distanceFilter;
 
-  /// 设定期望的定位精度。单位米，默认为 [CLLocationAccuracy.kCLLocationAccuracyBest]。
+  /// 设定期望的定位精度。单位米，默认为 [CLLocationAccuracy.kCLLocationAccuracyNearestTenMeters]。
   /// 定位服务会尽可能去获取满足desiredAccuracy的定位结果，但不保证一定会得到满足期望的结果。
   /// 注意：设置为kCLLocationAccuracyBest或kCLLocationAccuracyBestForNavigation时，
   /// 单次定位会在达到locationTimeout设定的时间后，将时间内获取到的最高精度的定位结果返回。
@@ -927,15 +1035,15 @@ class AMapLocationOptionForIOS {
   /// 指定单次定位逆地理超时时间,默认为2s。最小值是2s。注意单次定位请求前设置。
   final int reGeocodeTimeout;
 
-  /// 定位是否返回逆地理信息，默认false。
+  /// 定位是否返回逆地理信息，默认 true。
   final bool withReGeocode;
 
   /// 逆地址语言类型，默认是[GeoLanguage.none]
   final GeoLanguage reGeocodeLanguage;
 
   /// 检测是否存在虚拟定位风险，默认为NO，不检测。
-  ///  注意:设置为YES时，单次定位通过 errorInfo 给出虚拟定位风险提示；
-  ///  连续定位通过 []方法的
+  /// 注意:设置为YES时，单次定位通过 errorInfo 给出虚拟定位风险提示；
+  /// 连续定位通过 []方法的
   final bool detectRiskOfFakeLocation;
 
   Map<String, dynamic> toMap() => {

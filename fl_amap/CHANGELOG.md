@@ -1,10 +1,38 @@
+## 3.4.0
+
+* 迁移至 3.27
+
+## 3.3.0
+
+* 高德定位初始化添加默认配置
+
+## 3.2.0
+
+* 支持其他地图经纬度转换 `coordinateConverter()`
+* 支持校验是否为有效经纬度 `isAMapDataAvailable()`
+* 支持坐标点距离计算（仅支持android）`calculateLineDistance()`
+
+## 3.1.0
+
+* 更新 android sdk版本
+
+## 3.0.1
+
+* 修改ios默认定位精度为十米级，和上个版本一致
+* 修改ios默认获取逆地理位置
+
 ## 3.0.0
 
 * 设置定位参数，返回定位信息均添加详细文档说明，且数据完整
-* 区分`android`和`ios`的返回定位信息，返回数据均有不同,且数据完整，`AMapLocation`、`AMapLocationForIOS`、`AMapLocationForAndroid`
-* 区分`android`和`ios`的定位参数配置，可进行多次配置更新，`AMapLocationOptionForIOS`、`AMapLocationOptionForAndroid`
-* `android`支持设置前台任务服务，保证后台定位常驻，使用`enableBackgroundLocation`和`disableBackgroundLocation`开启和关闭
-* `ios`添加 `headingAvailable`(设备是否支持方向识别)、`startUpdatingHeading`(开始获取设备朝向)、`stopUpdatingHeading`(停止获取设备朝向)、`dismissHeadingCalibrationDisplay`(停止设备朝向校准显示)
+* 区分`android`和`ios`
+  的返回定位信息，返回数据均有不同,且数据完整，`AMapLocation`、`AMapLocationForIOS`、`AMapLocationForAndroid`
+* 区分`android`和`ios`
+  的定位参数配置，可进行多次配置更新，`AMapLocationOptionForIOS`、`AMapLocationOptionForAndroid`
+* `android`支持设置前台任务服务，保证后台定位常驻，使用`enableBackgroundLocation`
+  和`disableBackgroundLocation`开启和关闭
+* `ios`添加 `headingAvailable`(设备是否支持方向识别)、`startUpdatingHeading`(
+  开始获取设备朝向)、`stopUpdatingHeading`(停止获取设备朝向)、`dismissHeadingCalibrationDisplay`(
+  停止设备朝向校准显示)
 
 ## 2.5.3
 

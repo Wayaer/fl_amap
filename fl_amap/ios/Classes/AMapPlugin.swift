@@ -5,11 +5,7 @@ public class AMapPlugin: NSObject, FlutterPlugin {
     private var geoFence: AMapGeoFence
 
     public static func register(with registrar: FlutterPluginRegistrar) {
-        let instance = AMapPlugin(registrar.messenger())
-        registrar.addMethodCallDelegate(instance, channel: instance.location.channel)
-        instance.location.setMethodCallHandler()
-        registrar.addMethodCallDelegate(instance, channel: instance.geoFence.channel)
-        instance.geoFence.setMethodCallHandler()
+        _ = AMapPlugin(registrar.messenger())
     }
 
     init(_ binaryMessenger: FlutterBinaryMessenger) {

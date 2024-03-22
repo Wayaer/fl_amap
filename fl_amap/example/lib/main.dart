@@ -1,15 +1,16 @@
+import 'package:example/coordinate_converter_page.dart';
 import 'package:example/geo_fence_page.dart';
 import 'package:example/loaction_page.dart';
 import 'package:fl_amap/fl_amap.dart';
+import 'package:fl_extended/fl_extended.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_waya/flutter_waya.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(MaterialApp(
-      navigatorKey: GlobalWayUI().navigatorKey,
-      scaffoldMessengerKey: GlobalWayUI().scaffoldMessengerKey,
+      navigatorKey: FlExtended().navigatorKey,
+      scaffoldMessengerKey: FlExtended().scaffoldMessengerKey,
       debugShowCheckedModeBanner: false,
       title: 'FlAMap',
       home: Scaffold(
@@ -45,7 +46,6 @@ class _AppState extends State<App> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           ElevatedText(onPressed: setKey, text: '设置高德key'),
-          30.heightBox,
           ElevatedText(
               onPressed: () {
                 if (!isInit) {
@@ -55,7 +55,6 @@ class _AppState extends State<App> {
                 push(const AMapLocationPage());
               },
               text: '高德定位功能'),
-          30.heightBox,
           ElevatedText(
               onPressed: () {
                 if (!isInit) {
@@ -65,6 +64,11 @@ class _AppState extends State<App> {
                 push(const AMapGeoFencePage());
               },
               text: '高德地理围栏功能'),
+          ElevatedText(
+              onPressed: () {
+                push(const CoordinateConverterPage());
+              },
+              text: '坐标转换器'),
         ]);
   }
 }

@@ -2,15 +2,13 @@ group 'fl.amap'
 version '1.0'
 
 buildscript {
-    ext.kotlin_version = '1.8.22'
     repositories {
         google()
         mavenCentral()
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.2.1'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'com.android.tools.build:gradle:8.5.2'
     }
 }
 
@@ -25,17 +23,17 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdk 33
+    compileSdk = 34
 
     if (project.android.hasProperty("namespace")) {
         namespace 'fl.amap'
     }
-    
+
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
     }
     defaultConfig {
-        minSdkVersion 16
+        minSdk = 21
         consumerProguardFiles 'consumer-rules.pro'
     }
     packagingOptions {
@@ -45,9 +43,10 @@ android {
         merge 'proguard.txt'
     }
 
+    dependencies {
+        api 'com.amap.api:3dmap:10.0.600'
+    }
+
 }
 
-dependencies {
-    implementation 'com.amap.api:3dmap:9.7.0'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-}
+

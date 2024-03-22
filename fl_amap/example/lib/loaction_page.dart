@@ -1,9 +1,9 @@
 import 'package:example/main.dart';
 import 'package:fl_amap/fl_amap.dart';
 import 'package:fl_dio/fl_dio.dart';
+import 'package:fl_extended/fl_extended.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_waya/flutter_waya.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class AMapLocationPage extends StatefulWidget {
@@ -21,18 +21,12 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
 
   /// 获取定位权限
   Future<bool> get getPermissions async {
-    if (!await getPermission(Permission.locationAlways)) {
+    if (!await getPermission(Permission.location)) {
       text.value = '未获取到定位权限';
       return false;
     }
     return true;
   }
-
-  final androidOption = AMapLocationOptionForAndroid(
-      beiDouFirst: true,
-      sensorEnable: true,
-      locationMode: AMapLocationMode.heightAccuracy);
-  final iosOption = AMapLocationOptionForIOS(withReGeocode: true);
 
   /// 初始化定位
   Future<void> initLocation() async {
@@ -84,7 +78,7 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
-                    color: Colors.grey.withOpacity(0.3)),
+                    color: Colors.grey.withValues(alpha: 0.3)),
                 child: ValueListenableBuilder<String>(
                     valueListenable: text,
                     builder: (_, String value, __) => Text(value,
@@ -119,8 +113,10 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
                                   channelId: 'channelId',
                                   channelName: 'name',
                                   lightColor: Colors.red));
+                          text.value = '开启前台任务 $result';
+                        } else {
+                          text.value = '开启前台任务 未获得权限';
                         }
-                        text.value = '开启前台任务 $result';
                       },
                       text: '开启前台任务'),
                   ElevatedText(
@@ -191,15 +187,13 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
     if (!await getPermissions) return;
     text.value = '单次定位获取';
     locationState.value = null;
-    locationState.value = await location.getLocation(
-        optionForAndroid: androidOption, optionForIOS: iosOption);
+    locationState.value = await location.getLocation();
   }
 
   Future<void> startLocationState() async {
     if (!await getPermissions) return;
     locationState.value = null;
-    final bool data = await FlAMapLocation().startLocation(
-        optionForAndroid: androidOption, optionForIOS: iosOption);
+    final bool data = await FlAMapLocation().startLocation();
     text.value = '开启连续定位${!data ? '失败' : '成功'}';
   }
 

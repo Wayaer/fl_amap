@@ -1,8 +1,8 @@
 import 'package:example/main.dart';
 import 'package:fl_amap/fl_amap.dart';
 import 'package:fl_dio/fl_dio.dart';
+import 'package:fl_extended/fl_extended.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_waya/flutter_waya.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class AMapGeoFencePage extends StatefulWidget {
@@ -56,7 +56,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
-                    color: Colors.grey.withOpacity(0.3)),
+                    color: Colors.grey.withValues(alpha: 0.3)),
                 child: ValueListenableBuilder<String>(
                     valueListenable: text,
                     builder: (_, String value, __) => Text(value,
@@ -83,8 +83,8 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                             city: '北京',
                             size: 1,
                             customID: customID);
-                        final bool state = await geoFence.addPOI(model);
-                        show('addPOI : $state');
+                        final result = await geoFence.addPOI(model);
+                        show('addPOI : ${result?.toMap()}');
                       },
                       text: '添加POI围栏'),
                   ElevatedText(
@@ -97,35 +97,35 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                             customID: customID,
                             size: 20,
                             aroundRadius: 10000);
-                        final bool state = await geoFence.addLatLng(model);
-                        show('addLatLng : $state');
+                        final result = await geoFence.addLatLng(model);
+                        show('addLatLng : ${result?.toMap()}');
                       },
                       text: '添加经纬度围栏'),
                   ElevatedText(
                       onPressed: () async {
-                        final bool state = await geoFence.addDistrict(
+                        final result = await geoFence.addDistrict(
                             keyword: '海淀区', customID: customID);
-                        show('addDistrict : $state');
+                        show('addDistrict : ${result?.toMap()}');
                       },
                       text: '添加行政区划围栏'),
                   ElevatedText(
                       onPressed: () async {
                         final LatLng latLng = LatLng(30.651411, 103.998638);
-                        final bool state = await geoFence.addCircle(
+                        final result = await geoFence.addCircle(
                             latLng: latLng, radius: 10, customID: customID);
-                        show('addCircle : $state');
+                        show('addCircle : ${result?.toMap()}');
                       },
                       text: '添加圆形围栏'),
                   ElevatedText(
                       onPressed: () async {
-                        final bool state =
+                        final result =
                             await geoFence.addCustom(latLng: <LatLng>[
                           LatLng(39.933921, 116.372927),
                           LatLng(39.907261, 116.376532),
                           LatLng(39.900611, 116.418161),
                           LatLng(39.941949, 116.435497),
                         ], customID: customID);
-                        show('addCustom : $state');
+                        show('addCustom : ${result?.toMap()}');
                       },
                       text: '添加多边形围栏'),
                   ElevatedText(

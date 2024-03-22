@@ -7,6 +7,8 @@ http://lbs.amap.com/api/ios-sdk/guide/create-project/get-key
 
 直接在dart文件中设置key
 
+* 权限申请需要额外使用 [permission_handler](https://pub.dev/packages/permission_handler) 或者其他的第三方包
+
 # ios
 
 1. 在info.plist中增加:
@@ -62,10 +64,10 @@ allowsBackgroundLocationUpdates 为 YES，
 ```xml
 
 <manifest>
-  <application>
-    /// 需要配置的
-    <meta-data android:name="com.amap.api.v2.apikey" android:value="您的Key" />
-  </application>
+    <application>
+        /// 需要配置的
+        <meta-data android:name="com.amap.api.v2.apikey" android:value="您的Key" />
+    </application>
 </manifest>
 
 ```
@@ -82,8 +84,8 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final bool key = await setAMapKey(
-          iosKey: 'ios key',
-          androidKey: 'android key');
+      iosKey: 'ios key',
+      androidKey: 'android key');
 
   if (key != null && key) print('高德地图ApiKey设置成功');
 
@@ -181,7 +183,8 @@ Future<void> main() async {
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <application>
         /// 需要配置的服务
-        <service android:exported="false" android:foregroundServiceType="location" android:name="com.amap.api.location.APSService" />
+        <service android:exported="false" android:foregroundServiceType="location"
+            android:name="com.amap.api.location.APSService" />
     </application>
 </manifest>
 ```

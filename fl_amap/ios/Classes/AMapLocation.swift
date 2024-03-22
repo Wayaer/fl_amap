@@ -12,6 +12,7 @@ class AMapLocation: NSObject, AMapLocationManagerDelegate {
         channel = FlutterMethodChannel(name: "fl.amap.Location", binaryMessenger:
             binaryMessenger)
         super.init()
+        channel.setMethodCallHandler(handle)
     }
 
     public func setMethodCallHandler() {
@@ -98,9 +99,31 @@ class AMapLocation: NSObject, AMapLocationManagerDelegate {
         case "dismissHeadingCalibrationDisplay":
             manager?.dismissHeadingCalibrationDisplay()
             result(manager != nil)
+        case "isAMapDataAvailable":
+            result(isAMapDataAvailable(call))
+        case "coordinateConverter":
+            result(coordinateConverter(call))
         default:
             result(FlutterMethodNotImplemented)
         }
+    }
+
+    func coordinateConverter(_ call: FlutterMethodCall) -> [String: Any] {
+        let args = call.arguments as! [AnyHashable: Any]
+        var coodinate = CLLocationCoordinate2DMake(args["latitude"] as! Double, args["longitude"] as! Double)
+        var type = AMapLocationCoordinateType(rawValue: UInt(args["from"] as! Int))!
+        var newCoodinate = AMapLocationCoordinateConvert(coodinate, type)
+        return [
+            "code": 0,
+            "latitude": newCoodinate.latitude,
+            "longitude": newCoodinate.longitude,
+        ]
+    }
+
+    func isAMapDataAvailable(_ call: FlutterMethodCall) -> Bool {
+        let args = call.arguments as! [AnyHashable: Any]
+        var coodinate = CLLocationCoordinate2DMake(args["latitude"] as! Double, args["longitude"] as! Double)
+        return AMapLocationDataAvailableForCoordinate(coodinate)
     }
 
     func setLocationOption(_ call: FlutterMethodCall) {
@@ -134,8 +157,10 @@ class AMapLocation: NSObject, AMapLocationManagerDelegate {
             return kCLLocationAccuracyKilometer
         case "kCLLocationAccuracyThreeKilometers":
             return kCLLocationAccuracyThreeKilometers
+        case "kCLLocationAccuracyBestForNavigation":
+            return kCLLocationAccuracyBestForNavigation
         default:
-            return kCLLocationAccuracyThreeKilometers
+            return kCLLocationAccuracyNearestTenMeters
         }
     }
 

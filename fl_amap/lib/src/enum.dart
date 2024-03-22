@@ -25,7 +25,10 @@ enum GenFenceStatus {
   outside,
 
   ///  停留(在范围内超过10分钟)
-  stayed
+  stayed,
+
+  ///  android 定位失败时，围栏状态无法进行检测
+  locFailed
 }
 
 enum GeoFenceActivateAction {
@@ -41,5 +44,3 @@ enum GeoFenceActivateAction {
   /// 停留在地理围栏内10分钟
   stayed,
 }
-
-

@@ -11,6 +11,7 @@ class AMapGeoFence: NSObject, AMapGeoFenceManagerDelegate {
         channel = FlutterMethodChannel(name: "fl.amap.GeoFence", binaryMessenger:
             binaryMessenger)
         super.init()
+        channel.setMethodCallHandler(handle)
     }
 
     public func setMethodCallHandler() {
@@ -117,10 +118,11 @@ class AMapGeoFence: NSObject, AMapGeoFenceManagerDelegate {
 
     /// 获取围栏创建后的回调
     /// 在如下回调中知道创建的围栏是否成功，以及查看所创建围栏的具体内容
-    func amapGeoFenceManager(_ manager: AMapGeoFenceManager!, didAddRegionForMonitoringFinished regions: [AMapGeoFenceRegion]!, customID: String!, error: Error?) {
+    func amapGeoFenceManager(_ manager: AMapGeoFenceManager!, didAddRegionForMonitoringFinished regions: [AMapGeoFenceRegion]?, customID: String?, error: Error?) {
         result?([
             "customId": customID as Any,
-            "errorCode": (error as? NSError)?.code as Any,
+            "geoFenceList": regions?.map { $0.data } as Any,
+            "errorCode": (error as? NSError)?.code as? Int?,
         ])
     }
 
@@ -129,7 +131,7 @@ class AMapGeoFence: NSObject, AMapGeoFenceManagerDelegate {
         channel.invokeMethod("onGeoFencesStatus", arguments: [
             "region": region.data,
             "customId": customID as Any,
-            "errorCode": (error as? NSError)?.code as Any,
+            "errorCode": (error as? NSError)?.code as? Int?,
         ])
     }
 

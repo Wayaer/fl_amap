@@ -41,7 +41,7 @@ class AMapMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAw
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
             "setApiKey" -> {
-                flMapViewEvent = FlEvent(binaryMessenger, "fl_amap_map/event")
+                flMapViewEvent = FlEvent("fl_amap_map/event", binaryMessenger)
                 val key = call.argument<String>("key")!!
                 val isAgree = call.argument<Boolean>("isAgree")!!
                 val isContains = call.argument<Boolean>("isContains")!!
