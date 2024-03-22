@@ -32,7 +32,7 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
       beiDouFirst: true,
       sensorEnable: true,
       locationMode: AMapLocationMode.heightAccuracy);
-  final iosOption = AMapLocationOptionForIOS(withReGeocode: true);
+  final iosOption = AMapLocationOptionForIOS();
 
   /// 初始化定位
   Future<void> initLocation() async {

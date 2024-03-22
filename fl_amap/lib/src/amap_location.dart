@@ -885,12 +885,13 @@ class AMapLocationOptionForIOS {
   AMapLocationOptionForIOS({
     this.locationAccuracyMode = AMapLocationAccuracyMode.fullAndReduceAccuracy,
     this.distanceFilter,
-    this.desiredAccuracy = CLLocationAccuracy.kCLLocationAccuracyBest,
+    this.desiredAccuracy =
+        CLLocationAccuracy.kCLLocationAccuracyNearestTenMeters,
     this.pausesLocationUpdatesAutomatically = false,
     this.allowsBackgroundLocationUpdates = false,
-    this.locationTimeout = 10,
-    this.reGeocodeTimeout = 5,
-    this.withReGeocode = false,
+    this.locationTimeout = 3,
+    this.reGeocodeTimeout = 2,
+    this.withReGeocode = true,
     this.reGeocodeLanguage = GeoLanguage.none,
     this.detectRiskOfFakeLocation = false,
   })  : assert(locationTimeout >= 2),
@@ -904,7 +905,7 @@ class AMapLocationOptionForIOS {
   /// 设定定位的最小更新距离。单位米，默认为0米，表示只要检测到设备位置发生变化就会更新位置信息。
   final double? distanceFilter;
 
-  /// 设定期望的定位精度。单位米，默认为 [CLLocationAccuracy.kCLLocationAccuracyBest]。
+  /// 设定期望的定位精度。单位米，默认为 [CLLocationAccuracy.kCLLocationAccuracyNearestTenMeters]。
   /// 定位服务会尽可能去获取满足desiredAccuracy的定位结果，但不保证一定会得到满足期望的结果。
   /// 注意：设置为kCLLocationAccuracyBest或kCLLocationAccuracyBestForNavigation时，
   /// 单次定位会在达到locationTimeout设定的时间后，将时间内获取到的最高精度的定位结果返回。
@@ -927,15 +928,15 @@ class AMapLocationOptionForIOS {
   /// 指定单次定位逆地理超时时间,默认为2s。最小值是2s。注意单次定位请求前设置。
   final int reGeocodeTimeout;
 
-  /// 定位是否返回逆地理信息，默认false。
+  /// 定位是否返回逆地理信息，默认 true。
   final bool withReGeocode;
 
   /// 逆地址语言类型，默认是[GeoLanguage.none]
   final GeoLanguage reGeocodeLanguage;
 
   /// 检测是否存在虚拟定位风险，默认为NO，不检测。
-  ///  注意:设置为YES时，单次定位通过 errorInfo 给出虚拟定位风险提示；
-  ///  连续定位通过 []方法的
+  /// 注意:设置为YES时，单次定位通过 errorInfo 给出虚拟定位风险提示；
+  /// 连续定位通过 []方法的
   final bool detectRiskOfFakeLocation;
 
   Map<String, dynamic> toMap() => {

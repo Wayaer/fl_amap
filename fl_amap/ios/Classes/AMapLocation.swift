@@ -134,8 +134,10 @@ class AMapLocation: NSObject, AMapLocationManagerDelegate {
             return kCLLocationAccuracyKilometer
         case "kCLLocationAccuracyThreeKilometers":
             return kCLLocationAccuracyThreeKilometers
+        case "kCLLocationAccuracyBestForNavigation":
+            return kCLLocationAccuracyBestForNavigation
         default:
-            return kCLLocationAccuracyThreeKilometers
+            return kCLLocationAccuracyNearestTenMeters
         }
     }
 
