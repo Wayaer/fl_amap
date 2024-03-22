@@ -1,15 +1,15 @@
 import 'package:example/geo_fence_page.dart';
 import 'package:example/loaction_page.dart';
 import 'package:fl_amap/fl_amap.dart';
+import 'package:fl_extended/fl_extended.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_waya/flutter_waya.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(MaterialApp(
-      navigatorKey: GlobalWayUI().navigatorKey,
-      scaffoldMessengerKey: GlobalWayUI().scaffoldMessengerKey,
+      navigatorKey: FlExtended().navigatorKey,
+      scaffoldMessengerKey: FlExtended().scaffoldMessengerKey,
       debugShowCheckedModeBanner: false,
       title: 'FlAMap',
       home: Scaffold(

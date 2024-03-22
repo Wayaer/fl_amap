@@ -1,9 +1,9 @@
 import 'package:example/main.dart';
 import 'package:fl_amap/fl_amap.dart';
 import 'package:fl_dio/fl_dio.dart';
+import 'package:fl_extended/fl_extended.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_waya/flutter_waya.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class AMapLocationPage extends StatefulWidget {
@@ -21,7 +21,7 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
 
   /// 获取定位权限
   Future<bool> get getPermissions async {
-    if (!await getPermission(Permission.locationAlways)) {
+    if (!await getPermission(Permission.location)) {
       text.value = '未获取到定位权限';
       return false;
     }
