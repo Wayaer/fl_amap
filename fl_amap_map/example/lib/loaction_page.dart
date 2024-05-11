@@ -1,7 +1,7 @@
 import 'package:example/main.dart';
 import 'package:fl_amap_map/fl_amap_map.dart';
+import 'package:fl_extended/fl_extended.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_waya/flutter_waya.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class AMapLocationPage extends StatefulWidget {

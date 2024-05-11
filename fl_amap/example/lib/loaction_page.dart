@@ -30,6 +30,8 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
 
   final androidOption = AMapLocationOptionForAndroid(
       beiDouFirst: true,
+      gpsFirst: true,
+      onceLocationLatest: true,
       sensorEnable: true,
       locationMode: AMapLocationMode.heightAccuracy);
   final iosOption = AMapLocationOptionForIOS();
