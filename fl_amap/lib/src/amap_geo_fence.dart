@@ -67,61 +67,62 @@ class FlAMapGeoFence {
   }
 
   /// 添加高德POI地理围栏
-  Future<bool> addPOI(AMapPoiModel model) async {
-    if (!_supportPlatform || !_isInitialize) return false;
-    final bool? state = await _channel.invokeMethod('addPOI', model.toMap());
-    return state == true;
+  Future<AMapGeoFenceAddStatusModel?> addPOI(AMapPoiModel model) async {
+    if (!_supportPlatform || !_isInitialize) return null;
+    final result = await _channel.invokeMethod<Map>('addPOI', model.toMap());
+    return result == null ? null : AMapGeoFenceAddStatusModel.fromMap(result);
   }
 
   /// 添加高德经纬度地理围栏
-  Future<bool> addLatLng(AMapGeoFenceLatLngModel model) async {
-    if (!_supportPlatform || !_isInitialize) return false;
-    final bool? state = await _channel.invokeMethod('addLatLng', model.toMap());
-    return state == true;
+  Future<AMapGeoFenceAddStatusModel?> addLatLng(
+      AMapGeoFenceLatLngModel model) async {
+    if (!_supportPlatform || !_isInitialize) return null;
+    final result = await _channel.invokeMethod<Map>('addLatLng', model.toMap());
+    return result == null ? null : AMapGeoFenceAddStatusModel.fromMap(result);
   }
 
   /// 创建行政区划围栏  根据关键字创建围栏
   /// keyword 行政区划关键字  例如：朝阳区
   /// customID 与围栏关联的自有业务Id
-  Future<bool> addDistrict(
+  Future<AMapGeoFenceAddStatusModel?> addDistrict(
       {required String keyword, required String customID}) async {
-    if (!_supportPlatform || !_isInitialize) return false;
-    final bool? state = await _channel.invokeMethod(
+    if (!_supportPlatform || !_isInitialize) return null;
+    final result = await _channel.invokeMethod<Map>(
         'addDistrict', {'keyword': keyword, 'customID': customID});
-    return state == true;
+    return result == null ? null : AMapGeoFenceAddStatusModel.fromMap(result);
   }
 
   /// 创建圆形围栏
   /// latLng 经纬度 围栏中心点
   /// radius 要创建的围栏半径 ，半径无限制，单位米
   /// customID 与围栏关联的自有业务Id
-  Future<bool> addCircle(
+  Future<AMapGeoFenceAddStatusModel?> addCircle(
       {required LatLng latLng,
       required double radius,
       required String customID}) async {
-    if (!_supportPlatform || !_isInitialize) return false;
-    final bool? state = await _channel.invokeMethod('addCircle', {
+    if (!_supportPlatform || !_isInitialize) return null;
+    final result = await _channel.invokeMethod<Map>('addCircle', {
       'latitude': latLng.latitude,
       'longitude': latLng.longitude,
       'radius': radius,
       'customID': customID
     });
-    return state == true;
+    return result == null ? null : AMapGeoFenceAddStatusModel.fromMap(result);
   }
 
   /// 创建多边形围栏
   /// latLngs 多个经纬度点 最少3个点
   /// radius 要创建的围栏半径 ，半径无限制，单位米
   /// customID 与围栏关联的自有业务Id
-  Future<bool> addCustom(
+  Future<AMapGeoFenceAddStatusModel?> addCustom(
       {required List<LatLng> latLng, required String customID}) async {
-    if (!_supportPlatform || !_isInitialize) return false;
-    if (latLng.length < 3) return false;
-    final bool? state = await _channel.invokeMethod('addCustom', {
+    assert(latLng.length >= 3, '多边形围栏至少三个点');
+    if (!_supportPlatform || !_isInitialize) return null;
+    final result = await _channel.invokeMethod<Map>('addCustom', {
       'latLng': latLng.map((LatLng e) => e.toMap()).toList(),
       'customID': customID
     });
-    return state == true;
+    return result == null ? null : AMapGeoFenceAddStatusModel.fromMap(result);
   }
 
   /// 暂停监听围栏
@@ -131,7 +132,7 @@ class FlAMapGeoFence {
   Future<bool> pause({String? customID}) async {
     if (!_supportPlatform || !_isInitialize || !_hasListener) return false;
     if (_isIOS) assert(customID != null, 'ios 平台 customID 必须不为null');
-    final bool? state = await _channel.invokeMethod('pauseGeoFence', customID);
+    final bool? state = await _channel.invokeMethod('pause', customID);
     if (state == true) _channel.setMethodCallHandler(null);
     _hasListener = false;
     return state == true;
@@ -145,7 +146,8 @@ class FlAMapGeoFence {
       EventHandlerAMapGeoFenceStatus? onGeoFenceChanged}) async {
     if (!_supportPlatform || !_isInitialize || _hasListener) return false;
     if (_isIOS) assert(customID != null, 'ios 平台 customID 必须不为null');
-    final bool? state = await _channel.invokeMethod('startGeoFence', customID);
+    final bool? state =
+        await _channel.invokeMethod(_isIOS ? 'start' : 'resume', customID);
     if (state == true) {
       _hasListener = true;
       _channel.setMethodCallHandler((MethodCall call) async {
@@ -224,7 +226,7 @@ class AMapGeoFenceModel {
     customID = json['customID'] as String?;
     fenceID = json['fenceID'] as String?;
     final statusInt = json['status'] as int?;
-    if (statusInt != null && statusInt < 4) {
+    if (statusInt != null && statusInt < 5) {
       status = GenFenceStatus.values[statusInt];
     }
     final typeInt = json['type'] as int?;
@@ -314,19 +316,19 @@ class AMapPoiModel {
   });
 
   /// POI关键字  (北京大学)
-  late String keyword;
+  final String keyword;
 
   /// POI类型  (高等院校)
-  late String poiType;
+  final String poiType;
 
   /// POI所在的城市名称  (北京)
-  late String city;
+  final String city;
 
   /// 范围大小
-  late int size;
+  final int size;
 
   /// 与围栏关联的自有业务ID
-  late String customID;
+  final String customID;
 
   Map<String, dynamic> toMap() => {
         'keyword': keyword,
@@ -348,22 +350,22 @@ class AMapGeoFenceLatLngModel {
   });
 
   /// POI关键字  (北京大学)
-  late String keyword;
+  final String keyword;
 
   /// POI类型  (高等院校)
-  late String poiType;
+  final String poiType;
 
   /// 经纬度
-  late LatLng latLng;
+  final LatLng latLng;
 
   /// 周边半径
-  late double aroundRadius;
+  final double aroundRadius;
 
   /// 范围大小
-  late int size;
+  final int size;
 
   /// 与围栏关联的自有业务ID
-  late String customID;
+  final String customID;
 
   Map<String, dynamic> toMap() => {
         'keyword': keyword,
@@ -373,5 +375,47 @@ class AMapGeoFenceLatLngModel {
         'aroundRadius': aroundRadius,
         'size': size,
         'customID': customID
+      };
+}
+
+class AMapGeoFenceAddStatusModel {
+  /// 与围栏关联的自有业务ID
+  String? customID;
+
+  /// 错误码
+  /// ios
+  ///    AMapGeoFenceErrorUnknown = 1,                    ///< 未知错误
+  //     AMapGeoFenceErrorInvalidParameter = 2,           ///< 参数错误
+  //     AMapGeoFenceErrorFailureConnection = 3,          ///< 网络连接异常
+  //     AMapGeoFenceErrorFailureAuth  = 4,               ///< 鉴权失败
+  //     AMapGeoFenceErrorNoValidFence = 5,               ///< 无可用围栏
+  //     AMapGeoFenceErroFailureLocating = 6,             ///< 定位错误
+  //     AMapGeoFenceErroFailureFullAccuracyLocating = 7, ///< 精确定位错误
+  /// android
+  // public static final int ADDGEOFENCE_SUCCESS = 0;
+  // public static final int ERROR_CODE_INVALID_PARAMETER = 1;   ///< 错误码：参数错误
+  // public static final int ERROR_CODE_FAILURE_CONNECTION = 4;  ///< 错误码：网络连接异常
+  // public static final int ERROR_CODE_FAILURE_PARSER = 5;      ///< 错误码：解析数据失败（有可能是连接的需要登录的网络但是没有登录）
+  // public static final int ERROR_CODE_FAILURE_AUTH = 7;        ///< 错误码：鉴权失败
+  // public static final int ERROR_CODE_UNKNOWN = 8;             ///< 错误码：其他未知错误
+  // public static final int ERROR_NO_VALIDFENCE = 16;           ///< 错误码：无可用地理围栏
+  // public static final int ERROR_CODE_EXISTS = 17;             ///< 错误码： 相同的围栏已经存在，无需重复添加 当地理围栏的customID，半径，周边点（多边形），中心点坐标（圆形）这几个属性完全一致时，则认为是相同围栏
+  int? errorCode;
+
+  /// 围栏列表
+  List<AMapGeoFenceModel> fenceList = [];
+
+  AMapGeoFenceAddStatusModel.fromMap(Map<dynamic, dynamic> json) {
+    customID = json['customID'] as String?;
+    errorCode = json['errorCode'] as int?;
+    (json['geoFenceList'] as List<dynamic>?)?.forEach((element) {
+      fenceList.add(AMapGeoFenceModel.fromMap(element));
+    });
+  }
+
+  Map<String, dynamic> toMap() => {
+        'customID': customID,
+        'errorCode': errorCode,
+        'fenceList': fenceList.map((e) => e.toMap()).toList()
       };
 }

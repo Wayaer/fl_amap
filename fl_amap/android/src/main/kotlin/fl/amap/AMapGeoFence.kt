@@ -16,8 +16,7 @@ import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 
-class AMapGeoFence(plugin: FlutterPlugin.FlutterPluginBinding) :
-    MethodChannel.MethodCallHandler {
+class AMapGeoFence(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.MethodCallHandler {
 
     private var channel: MethodChannel = MethodChannel(plugin.binaryMessenger, "fl.amap.GeoFence")
 
@@ -78,6 +77,7 @@ class AMapGeoFence(plugin: FlutterPlugin.FlutterPluginBinding) :
                 } else {
                     context.registerReceiver(mGeoFenceReceiver, filter)
                 }
+                client!!.pauseGeoFence()
                 isRegisterReceiver = true
                 result.success(true)
             }
@@ -210,12 +210,11 @@ class AMapGeoFence(plugin: FlutterPlugin.FlutterPluginBinding) :
                     //获取围栏ID:
                     map["fenceID"] = bundle.getString(GeoFence.BUNDLE_KEY_FENCEID)
                     //获取当前有触发的围栏对象：
-                    val fence: GeoFence? =
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            bundle.getParcelable(GeoFence.BUNDLE_KEY_FENCE, GeoFence::class.java)
-                        } else {
-                            bundle.getParcelable(GeoFence.BUNDLE_KEY_FENCE)
-                        }
+                    val fence: GeoFence? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        bundle.getParcelable(GeoFence.BUNDLE_KEY_FENCE, GeoFence::class.java)
+                    } else {
+                        bundle.getParcelable(GeoFence.BUNDLE_KEY_FENCE)
+                    }
                     map["fence"] = fence?.data
                     map["type"] = fence?.type
                     handler.post {
