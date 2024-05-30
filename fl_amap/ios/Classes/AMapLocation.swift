@@ -12,6 +12,7 @@ class AMapLocation: NSObject, AMapLocationManagerDelegate {
         channel = FlutterMethodChannel(name: "fl.amap.Location", binaryMessenger:
             binaryMessenger)
         super.init()
+        channel.setMethodCallHandler(handle)
     }
 
     public func setMethodCallHandler() {

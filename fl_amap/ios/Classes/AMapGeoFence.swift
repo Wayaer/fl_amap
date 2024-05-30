@@ -11,6 +11,7 @@ class AMapGeoFence: NSObject, AMapGeoFenceManagerDelegate {
         channel = FlutterMethodChannel(name: "fl.amap.GeoFence", binaryMessenger:
             binaryMessenger)
         super.init()
+        channel.setMethodCallHandler(handle)
     }
 
     public func setMethodCallHandler() {
