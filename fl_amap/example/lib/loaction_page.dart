@@ -33,7 +33,7 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
       gpsFirst: true,
       onceLocationLatest: true,
       sensorEnable: true,
-      locationMode: AMapLocationMode.heightAccuracy);
+      locationMode: AMapLocationMode.batterySaving);
   final iosOption = AMapLocationOptionForIOS();
 
   /// 初始化定位

@@ -16,8 +16,7 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 
 
-class AMapLocation(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.MethodCallHandler,
-    AMapLocationListener {
+class AMapLocation(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.MethodCallHandler, AMapLocationListener {
     private var channel: MethodChannel = MethodChannel(plugin.binaryMessenger, "fl.amap.Location")
 
     private val context = plugin.applicationContext
@@ -76,7 +75,7 @@ class AMapLocation(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.M
 
             "getLocation" -> {
                 if (isLocation) {
-                    result.success(false)
+                    result.success(null)
                     return
                 }
                 try {
@@ -135,8 +134,7 @@ class AMapLocation(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.M
     private fun buildNotification(args: Map<*, *>): Notification {
         val builder: Notification.Builder
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationManager =
-                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             val channelId = args["channelId"] as String?
             val channel = NotificationChannel(
                 channelId, args["channelName"] as String, args["importance"] as Int
@@ -161,24 +159,21 @@ class AMapLocation(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.M
 
     private fun setLocationOption(arguments: Map<*, *>) {
         println(arguments)
-        option.locationMode =
-            AMapLocationClientOption.AMapLocationMode.values()[arguments["locationMode"] as Int]
-        val protocol =
-            AMapLocationClientOption.AMapLocationProtocol.values()[arguments["locationProtocol"] as Int]
+        option.locationMode = AMapLocationClientOption.AMapLocationMode.entries[arguments["locationMode"] as Int]
+        val protocol = AMapLocationClientOption.AMapLocationProtocol.entries[arguments["locationProtocol"] as Int]
         AMapLocationClientOption.setLocationProtocol(protocol)
         val locationPurpose = arguments["locationPurpose"] as Int?
         option.locationPurpose =
-            if (locationPurpose == null) null else AMapLocationClientOption.AMapLocationPurpose.values()[locationPurpose]
+            if (locationPurpose == null) null else AMapLocationClientOption.AMapLocationPurpose.entries[locationPurpose]
         option.geoLanguage =
-            AMapLocationClientOption.GeoLanguage.values()[(arguments["geoLanguage"] as Int)]
+            com.amap.api.location.AMapLocationClientOption.GeoLanguage.entries[(arguments["geoLanguage"] as Int)]
         option.isGpsFirst = arguments["gpsFirst"] as Boolean
         option.gpsFirstTimeout = (arguments["gpsFirstTimeout"] as Int).toLong()
         option.isMockEnable = arguments["mockEnable"] as Boolean
         option.isNeedAddress = arguments["needAddress"] as Boolean
         option.isWifiScan = arguments["wifiScan"] as Boolean
         option.isBeidouFirst = arguments["beiDouFirst"] as Boolean
-        option.deviceModeDistanceFilter =
-            (arguments["deviceModeDistanceFilter"] as Double).toFloat()
+        option.deviceModeDistanceFilter = (arguments["deviceModeDistanceFilter"] as Double).toFloat()
         option.httpTimeOut = (arguments["httpTimeOut"] as Int).toLong()
         option.interval = (arguments["interval"] as Int).toLong()
         option.isLocationCacheEnable = arguments["locationCacheEnable"] as Boolean

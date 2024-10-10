@@ -108,8 +108,9 @@ class FlAMapLocation {
       {AMapLocationOptionForIOS? optionForIOS,
       AMapLocationOptionForAndroid? optionForAndroid}) async {
     if (!_supportPlatform || !_isInitialize) return null;
-    final Map<dynamic, dynamic>? map = await _channel.invokeMethod(
-        'getLocation', _optionToMap(optionForIOS, optionForAndroid));
+    final Map<dynamic, dynamic>? map =
+        await _channel.invokeMethod<Map<dynamic, dynamic>>(
+            'getLocation', _optionToMap(optionForIOS, optionForAndroid));
     if (map == null) return null;
     return AMapLocation.mapToLocation(map);
   }

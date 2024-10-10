@@ -18,7 +18,7 @@ A new Flutter plugin.
   s.dependency 'AMapLocation'
   s.dependency 'fl_channel'
   s.static_framework = true
-  s.ios.deployment_target = '11.0'
+  s.ios.deployment_target = '12.0'
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
   s.swift_version = '5.0'
 

@@ -5,15 +5,15 @@ repository: https://github.com/Wayaer/fl_amap/tree/main/fl_amap_amap
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
-  flutter: '>=3.13.0'
+  flutter: '>=3.24.0'
 
 dependencies:
   flutter:
     sdk: flutter
-  fl_channel: ^0.1.0
+  fl_channel: ^0.2.0
 
 dev_dependencies:
-  flutter_lints: ^4.0.0
+  flutter_lints: ^5.0.0
 
 flutter:
   plugin:
