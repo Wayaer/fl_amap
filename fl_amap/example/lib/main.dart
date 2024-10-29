@@ -1,3 +1,4 @@
+import 'package:example/coordinate_converter_page.dart';
 import 'package:example/geo_fence_page.dart';
 import 'package:example/loaction_page.dart';
 import 'package:fl_amap/fl_amap.dart';
@@ -45,7 +46,6 @@ class _AppState extends State<App> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           ElevatedText(onPressed: setKey, text: '设置高德key'),
-          30.heightBox,
           ElevatedText(
               onPressed: () {
                 if (!isInit) {
@@ -55,7 +55,6 @@ class _AppState extends State<App> {
                 push(const AMapLocationPage());
               },
               text: '高德定位功能'),
-          30.heightBox,
           ElevatedText(
               onPressed: () {
                 if (!isInit) {
@@ -65,6 +64,11 @@ class _AppState extends State<App> {
                 push(const AMapGeoFencePage());
               },
               text: '高德地理围栏功能'),
+          ElevatedText(
+              onPressed: () {
+                push(const CoordinateConverterPage());
+              },
+              text: '坐标转换器'),
         ]);
   }
 }

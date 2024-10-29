@@ -54,7 +54,10 @@ class LatLng {
       : latitude = map['latitude'] as double?,
         longitude = map['longitude'] as double?;
 
+  /// 维度
   double? latitude;
+
+  /// 经度
   double? longitude;
 
   Map<String, dynamic> toMap() =>

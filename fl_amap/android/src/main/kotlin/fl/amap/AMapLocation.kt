@@ -11,12 +11,15 @@ import com.amap.api.location.AMapLocationClient
 import com.amap.api.location.AMapLocationClientOption
 import com.amap.api.location.AMapLocationListener
 import com.amap.api.location.AMapLocationQualityReport
+import com.amap.api.location.CoordinateConverter
+import com.amap.api.location.DPoint
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 
 
-class AMapLocation(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.MethodCallHandler, AMapLocationListener {
+class AMapLocation(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.MethodCallHandler,
+    AMapLocationListener {
     private var channel: MethodChannel = MethodChannel(plugin.binaryMessenger, "fl.amap.Location")
 
     private val context = plugin.applicationContext
@@ -127,14 +130,60 @@ class AMapLocation(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.M
                 result.success(true)
             }
 
+            "isAMapDataAvailable" -> {
+                result.success(isAMapDataAvailable(call.arguments as Map<*, *>))
+            }
+
+            "calculateLineDistance" -> {
+                result.success(calculateLineDistance(call.arguments as Map<*, *>))
+            }
+
+            "coordinateConverter" -> {
+                result.success(coordinateConverter(call.arguments as Map<*, *>))
+            }
+
             else -> result.notImplemented()
         }
+    }
+
+    private fun isAMapDataAvailable(args: Map<*, *>): Boolean {
+        return CoordinateConverter.isAMapDataAvailable(
+            args["latitude"] as Double,
+            args["longitude"] as Double,
+        )
+    }
+
+    private fun calculateLineDistance(args: Map<*, *>): Float {
+        val start = DPoint(args["startLatitude"] as Double, args["startLongitude"] as Double)
+        val end = DPoint(args["endLatitude"] as Double, args["endLongitude1"] as Double)
+        return CoordinateConverter.calculateLineDistance(start, end)
+    }
+
+    private fun coordinateConverter(args: Map<*, *>): Map<String, Any?> {
+        val dPoint = DPoint()
+        dPoint.latitude = args["latitude"] as Double
+        dPoint.longitude = args["longitude"] as Double
+        val coordinateConverter = CoordinateConverter(context)
+        coordinateConverter.from(CoordinateConverter.CoordType.entries[args["from"] as Int])
+        try {
+            coordinateConverter.coord(dPoint)
+            val point = coordinateConverter.convert()
+            return mapOf(
+                "code" to 0, "latitude" to point.latitude, "longitude" to point.longitude
+            )
+        } catch (e: Exception) {
+            return mapOf(
+                "code" to 1, "message" to e.message
+            )
+        }
+
     }
 
     private fun buildNotification(args: Map<*, *>): Notification {
         val builder: Notification.Builder
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val notificationManager =
+                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             val channelId = args["channelId"] as String?
             val channel = NotificationChannel(
                 channelId, args["channelName"] as String, args["importance"] as Int
@@ -159,8 +208,10 @@ class AMapLocation(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.M
 
     private fun setLocationOption(arguments: Map<*, *>) {
         println(arguments)
-        option.locationMode = AMapLocationClientOption.AMapLocationMode.entries[arguments["locationMode"] as Int]
-        val protocol = AMapLocationClientOption.AMapLocationProtocol.entries[arguments["locationProtocol"] as Int]
+        option.locationMode =
+            AMapLocationClientOption.AMapLocationMode.entries[arguments["locationMode"] as Int]
+        val protocol =
+            AMapLocationClientOption.AMapLocationProtocol.entries[arguments["locationProtocol"] as Int]
         AMapLocationClientOption.setLocationProtocol(protocol)
         val locationPurpose = arguments["locationPurpose"] as Int?
         option.locationPurpose =
@@ -173,7 +224,8 @@ class AMapLocation(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.M
         option.isNeedAddress = arguments["needAddress"] as Boolean
         option.isWifiScan = arguments["wifiScan"] as Boolean
         option.isBeidouFirst = arguments["beiDouFirst"] as Boolean
-        option.deviceModeDistanceFilter = (arguments["deviceModeDistanceFilter"] as Double).toFloat()
+        option.deviceModeDistanceFilter =
+            (arguments["deviceModeDistanceFilter"] as Double).toFloat()
         option.httpTimeOut = (arguments["httpTimeOut"] as Int).toLong()
         option.interval = (arguments["interval"] as Int).toLong()
         option.isLocationCacheEnable = arguments["locationCacheEnable"] as Boolean

@@ -99,7 +99,7 @@ class FlAMapLocation {
   Future<bool> dispose() async {
     if (!_supportPlatform || !_isInitialize) return false;
     _channel.setMethodCallHandler(null);
-    final bool? state = await _channel.invokeMethod('dispose');
+    final state = await _channel.invokeMethod('dispose');
     return state ?? false;
   }
 
@@ -120,7 +120,7 @@ class FlAMapLocation {
       {AMapLocationOptionForIOS? optionForIOS,
       AMapLocationOptionForAndroid? optionForAndroid}) async {
     if (!_supportPlatform || !_isInitialize) return false;
-    final bool? state = await _channel.invokeMethod<bool?>(
+    final state = await _channel.invokeMethod<bool?>(
         'startLocation', _optionToMap(optionForIOS, optionForAndroid));
     return state ?? false;
   }
@@ -128,7 +128,7 @@ class FlAMapLocation {
   /// 停止监听位置改变
   Future<bool> stopLocation() async {
     if (!_supportPlatform || !_isInitialize) return false;
-    final bool? state = await _channel.invokeMethod('stopLocation');
+    final state = await _channel.invokeMethod('stopLocation');
     return state ?? false;
   }
 
@@ -137,7 +137,7 @@ class FlAMapLocation {
   /// ture:设备支持方向识别 ; false:设备不支持支持方向识别
   Future<bool> headingAvailable() async {
     if (!_isIOS || !_isInitialize) return false;
-    final bool? state = await _channel.invokeMethod<bool>('headingAvailable');
+    final state = await _channel.invokeMethod<bool>('headingAvailable');
     return state ?? false;
   }
 
@@ -145,8 +145,7 @@ class FlAMapLocation {
   /// 开始获取设备朝向，如果设备支持方向识别，则会通过代理回调方法
   Future<bool> startUpdatingHeading() async {
     if (!_isIOS || !_isInitialize) return false;
-    final bool? state =
-        await _channel.invokeMethod<bool>('startUpdatingHeading');
+    final state = await _channel.invokeMethod<bool>('startUpdatingHeading');
     return state ?? false;
   }
 
@@ -154,8 +153,7 @@ class FlAMapLocation {
   /// 停止获取设备朝向
   Future<bool> stopUpdatingHeading() async {
     if (!_isIOS || !_isInitialize) return false;
-    final bool? state =
-        await _channel.invokeMethod<bool>('stopUpdatingHeading');
+    final state = await _channel.invokeMethod<bool>('stopUpdatingHeading');
     return state ?? false;
   }
 
@@ -163,7 +161,7 @@ class FlAMapLocation {
   /// 停止设备朝向校准显示
   Future<bool> dismissHeadingCalibrationDisplay() async {
     if (!_isIOS || !_isInitialize) return false;
-    final bool? state =
+    final state =
         await _channel.invokeMethod<bool>('dismissHeadingCalibrationDisplay');
     return state ?? false;
   }
@@ -177,7 +175,7 @@ class FlAMapLocation {
   Future<bool> enableBackgroundLocation(
       AMapNotificationForAndroid notification) async {
     if (!_isAndroid || !_isInitialize) return false;
-    final bool? state = await _channel.invokeMethod<bool>(
+    final state = await _channel.invokeMethod<bool>(
         'enableBackgroundLocation', notification.toMap());
     return state ?? false;
   }
@@ -188,9 +186,46 @@ class FlAMapLocation {
   Future<bool> disableBackgroundLocation(
       {bool removeNotification = true}) async {
     if (!_isAndroid || !_isInitialize) return false;
-    final bool? state = await _channel.invokeMethod<bool>(
+    final state = await _channel.invokeMethod<bool>(
         'disableBackgroundLocation', removeNotification);
     return state ?? false;
+  }
+
+  /// isAMapDataAvailable
+  /// 是否是高德地图可用数据
+  /// 返回true代表当前位置在大陆、港澳地区，反之不在。
+  Future<bool> isAMapDataAvailable(LatLng latLng) async {
+    if (!_supportPlatform) return false;
+    final state = await _channel.invokeMethod<bool>(
+        'isAMapDataAvailable', latLng.toMap());
+    return state ?? false;
+  }
+
+  /// calculateLineDistance
+  /// 计算两点间距离 单位：米
+  Future<double?> calculateLineDistance(
+      LatLng startLatLng, LatLng endLatLng) async {
+    if (!_isAndroid || !_isInitialize) return null;
+    final distance =
+        await _channel.invokeMethod<double>('calculateLineDistance', {
+      'startLatitude': startLatLng.latitude,
+      'startLongitude': startLatLng.longitude,
+      'endLatitude': endLatLng.latitude,
+      'endLongitude': endLatLng.longitude,
+    });
+    return distance;
+  }
+
+  /// coordinateConverter
+  /// 进行坐标转换
+  Future<CoordinateConverterResult?> coordinateConverter(
+      LatLng latLng, CoordType from) async {
+    if (!_supportPlatform) return null;
+    assert(latLng.latitude != null && latLng.longitude != null);
+    final map = await _channel.invokeMethod<Map<dynamic, dynamic>>(
+        'coordinateConverter', {...latLng.toMap(), 'from': from.index});
+    if (map == null) return null;
+    return CoordinateConverterResult.fromMap(map);
   }
 
   Map<String, dynamic>? _optionToMap(AMapLocationOptionForIOS? optionForIOS,
@@ -199,6 +234,65 @@ class FlAMapLocation {
     if (optionForAndroid != null && _isAndroid) return optionForAndroid.toMap();
     return null;
   }
+}
+
+class CoordinateConverterResult {
+  CoordinateConverterResult.fromMap(Map<dynamic, dynamic> map)
+      : latLng = LatLng.fromMap(map),
+        code = CoordinateConverterResultCode.fromMap(map),
+        message = map['message'] as String?;
+
+  /// 转换后的经纬度
+  final LatLng? latLng;
+
+  /// 0 成功  1 Exception  2 无效坐标
+  final CoordinateConverterResultCode? code;
+
+  /// Exception 时，返回错误信息
+  final String? message;
+}
+
+enum CoordinateConverterResultCode {
+  /// 0 成功
+  success,
+
+  /// 1 Exception
+  exception;
+
+  static CoordinateConverterResultCode fromMap(Map<dynamic, dynamic> map) {
+    final code = map['code'];
+    switch (code) {
+      case 0:
+        return CoordinateConverterResultCode.success;
+      case 1:
+        return CoordinateConverterResultCode.exception;
+      default:
+        return CoordinateConverterResultCode.exception;
+    }
+  }
+}
+
+enum CoordType {
+  /// 百度坐标
+  baidu,
+
+  /// 图吧坐标
+  mapBar,
+
+  /// 图盟坐标
+  mapAbc,
+
+  /// 搜搜坐标
+  sosoMap,
+
+  /// 阿里云
+  aliYun,
+
+  /// 谷歌坐标
+  google,
+
+  /// GPS原始坐标
+  gps;
 }
 
 class AMapLocationQualityReport {

@@ -99,9 +99,31 @@ class AMapLocation: NSObject, AMapLocationManagerDelegate {
         case "dismissHeadingCalibrationDisplay":
             manager?.dismissHeadingCalibrationDisplay()
             result(manager != nil)
+        case "isAMapDataAvailable":
+            result(isAMapDataAvailable(call))
+        case "coordinateConverter":
+            result(coordinateConverter(call))
         default:
             result(FlutterMethodNotImplemented)
         }
+    }
+
+    func coordinateConverter(_ call: FlutterMethodCall) -> [String: Any] {
+        let args = call.arguments as! [AnyHashable: Any]
+        var coodinate = CLLocationCoordinate2DMake(args["latitude"] as! Double, args["longitude"] as! Double)
+        var type = AMapLocationCoordinateType(rawValue: UInt(args["from"] as! Int))!
+        var newCoodinate = AMapLocationCoordinateConvert(coodinate, type)
+        return [
+            "code": 0,
+            "latitude": newCoodinate.latitude,
+            "longitude": newCoodinate.longitude,
+        ]
+    }
+
+    func isAMapDataAvailable(_ call: FlutterMethodCall) -> Bool {
+        let args = call.arguments as! [AnyHashable: Any]
+        var coodinate = CLLocationCoordinate2DMake(args["latitude"] as! Double, args["longitude"] as! Double)
+        return AMapLocationDataAvailableForCoordinate(coodinate)
     }
 
     func setLocationOption(_ call: FlutterMethodCall) {

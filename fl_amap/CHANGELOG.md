@@ -1,3 +1,9 @@
+## 3.2.0
+
+* 支持其他地图经纬度转换 `coordinateConverter()`
+* 支持校验是否为有效经纬度 `isAMapDataAvailable()`
+* 支持坐标点距离计算（仅支持android）`calculateLineDistance()`
+
 ## 3.1.0
 
 * 更新 android sdk版本
