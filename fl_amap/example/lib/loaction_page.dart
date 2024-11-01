@@ -28,14 +28,6 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
     return true;
   }
 
-  final androidOption = AMapLocationOptionForAndroid(
-      beiDouFirst: true,
-      gpsFirst: true,
-      onceLocationLatest: true,
-      sensorEnable: true,
-      locationMode: AMapLocationMode.batterySaving);
-  final iosOption = AMapLocationOptionForIOS();
-
   /// 初始化定位
   Future<void> initLocation() async {
     if (!await getPermissions) return;
@@ -193,15 +185,13 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
     if (!await getPermissions) return;
     text.value = '单次定位获取';
     locationState.value = null;
-    locationState.value = await location.getLocation(
-        optionForAndroid: androidOption, optionForIOS: iosOption);
+    locationState.value = await location.getLocation();
   }
 
   Future<void> startLocationState() async {
     if (!await getPermissions) return;
     locationState.value = null;
-    final bool data = await FlAMapLocation().startLocation(
-        optionForAndroid: androidOption, optionForIOS: iosOption);
+    final bool data = await FlAMapLocation().startLocation();
     text.value = '开启连续定位${!data ? '失败' : '成功'}';
   }
 

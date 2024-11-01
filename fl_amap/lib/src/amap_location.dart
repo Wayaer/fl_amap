@@ -47,10 +47,11 @@ class FlAMapLocation {
 
   /// 初始化定位
   Future<bool> initialize(
-      {AMapLocationOptionForIOS? optionForIOS,
-      AMapLocationOptionForAndroid? optionForAndroid}) async {
+      {AMapLocationOptionForIOS optionForIOS = const AMapLocationOptionForIOS(),
+      AMapLocationOptionForAndroid optionForAndroid =
+          const AMapLocationOptionForAndroid()}) async {
     if (!_supportPlatform) return false;
-    final bool? isInitialize = await _channel.invokeMethod(
+    final isInitialize = await _channel.invokeMethod(
         'initialize', _optionToMap(optionForIOS, optionForAndroid));
     return _isInitialize = isInitialize ?? false;
   }
@@ -120,7 +121,7 @@ class FlAMapLocation {
       {AMapLocationOptionForIOS? optionForIOS,
       AMapLocationOptionForAndroid? optionForAndroid}) async {
     if (!_supportPlatform || !_isInitialize) return false;
-    final state = await _channel.invokeMethod<bool?>(
+    final state = await _channel.invokeMethod<bool>(
         'startLocation', _optionToMap(optionForIOS, optionForAndroid));
     return state ?? false;
   }
@@ -867,7 +868,7 @@ enum LockscreenVisibility {
 }
 
 class AMapLocationOptionForAndroid {
-  AMapLocationOptionForAndroid({
+  const AMapLocationOptionForAndroid({
     this.locationMode = AMapLocationMode.batterySaving,
     this.locationProtocol = AMapLocationProtocol.http,
     this.locationPurpose,
@@ -877,14 +878,14 @@ class AMapLocationOptionForAndroid {
     this.mockEnable = false,
     this.needAddress = true,
     this.wifiScan = true,
-    this.beiDouFirst = false,
+    this.beiDouFirst = true,
     this.deviceModeDistanceFilter = 0,
     this.httpTimeOut = 30000,
     this.interval = 2000,
     this.locationCacheEnable = true,
-    this.onceLocationLatest = false,
+    this.onceLocationLatest = true,
     this.selfStartServiceEnable = false,
-    this.sensorEnable = false,
+    this.sensorEnable = true,
   })  : assert(gpsFirstTimeout >= 1),
         assert(deviceModeDistanceFilter >= 0);
 
@@ -977,7 +978,7 @@ class AMapLocationOptionForAndroid {
 }
 
 class AMapLocationOptionForIOS {
-  AMapLocationOptionForIOS({
+  const AMapLocationOptionForIOS({
     this.locationAccuracyMode = AMapLocationAccuracyMode.fullAndReduceAccuracy,
     this.distanceFilter,
     this.desiredAccuracy =
