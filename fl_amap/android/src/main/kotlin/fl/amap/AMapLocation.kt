@@ -193,15 +193,8 @@ class AMapLocation(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.M
             channel.lockscreenVisibility = args["lockscreenVisibility"] as Int
             channel.enableLights(args["enableLights"] as Boolean) //是否在桌面icon右上角展示小圆点
             val lightColor = args["lightColor"] as Map<*, *>?
-            if (lightColor != null) {
-                val color = Color.valueOf(
-                    (lightColor["r"] as Double).toFloat(),
-                    (lightColor["g"] as Double).toFloat(),
-                    (lightColor["b"] as Double).toFloat(),
-                    (lightColor["a"] as Double).toFloat(),
-                    ColorSpace.get(ColorSpace.Named.entries[lightColor["colorSpace"] as Int]),
-                )
-                channel.lightColor = color.toArgb() //小圆点颜色
+            lightColor?.let {
+                channel.lightColor = it.toColorInt() //小圆点颜色
             }
             channel.setShowBadge(args["showBadge"] as Boolean) //是否在久按桌面图标时显示此渠道的通知
             notificationManager.createNotificationChannel(channel)
@@ -297,5 +290,24 @@ class AMapLocation(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.M
             "isInstalledHighDangerMockApp" to isInstalledHighDangerMockApp,
         )
 
+    // map to color
+    private fun Map<*, *>.toColorInt(): Int {
+        val a = this["a"] as Double
+        val r = this["r"] as Double
+        val g = this["g"] as Double
+        val b = this["b"] as Double
+        val colorSpace = this["colorSpace"] as Int
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Color.valueOf(
+                r.toFloat(),
+                g.toFloat(),
+                b.toFloat(),
+                a.toFloat(),
+                ColorSpace.get(ColorSpace.Named.entries[colorSpace])
+            ).toArgb()
+        } else {
+            Color.argb((a * 255).toInt(), (r * 255).toInt(), (g * 255).toInt(), (b * 255).toInt())
+        }
+    }
 
 }
