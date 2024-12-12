@@ -5,6 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.graphics.Color
+import android.graphics.ColorSpace
 import android.os.Build
 import com.amap.api.location.AMapLocation
 import com.amap.api.location.AMapLocationClient
@@ -191,7 +192,17 @@ class AMapLocation(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.M
             channel.description = args["description"] as String?
             channel.lockscreenVisibility = args["lockscreenVisibility"] as Int
             channel.enableLights(args["enableLights"] as Boolean) //是否在桌面icon右上角展示小圆点
-            channel.lightColor = Color.parseColor(args["lightColor"] as String) //小圆点颜色
+            val lightColor = args["lightColor"] as Map<*, *>?
+            if (lightColor != null) {
+                val color = Color.valueOf(
+                    (lightColor["r"] as Double).toFloat(),
+                    (lightColor["g"] as Double).toFloat(),
+                    (lightColor["b"] as Double).toFloat(),
+                    (lightColor["a"] as Double).toFloat(),
+                    ColorSpace.get(ColorSpace.Named.entries[lightColor["colorSpace"] as Int]),
+                )
+                channel.lightColor = color.toArgb() //小圆点颜色
+            }
             channel.setShowBadge(args["showBadge"] as Boolean) //是否在久按桌面图标时显示此渠道的通知
             notificationManager.createNotificationChannel(channel)
             builder = Notification.Builder(context, channelId)

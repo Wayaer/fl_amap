@@ -78,7 +78,7 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
-                    color: Colors.grey.withOpacity(0.3)),
+                    color: Colors.grey.withValues(alpha: 0.3)),
                 child: ValueListenableBuilder<String>(
                     valueListenable: text,
                     builder: (_, String value, __) => Text(value,
@@ -113,8 +113,10 @@ class _AMapLocationPageState extends State<AMapLocationPage> {
                                   channelId: 'channelId',
                                   channelName: 'name',
                                   lightColor: Colors.red));
+                          text.value = '开启前台任务 $result';
+                        } else {
+                          text.value = '开启前台任务 未获得权限';
                         }
-                        text.value = '开启前台任务 $result';
                       },
                       text: '开启前台任务'),
                   ElevatedText(

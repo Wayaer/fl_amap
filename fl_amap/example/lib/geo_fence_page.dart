@@ -56,7 +56,7 @@ class _AMapGeoFencePageState extends State<AMapGeoFencePage> {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
-                    color: Colors.grey.withOpacity(0.3)),
+                    color: Colors.grey.withValues(alpha: 0.3)),
                 child: ValueListenableBuilder<String>(
                     valueListenable: text,
                     builder: (_, String value, __) => Text(value,

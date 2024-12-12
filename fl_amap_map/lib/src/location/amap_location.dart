@@ -232,8 +232,6 @@ class AMapLocationOption {
         return 'EN';
       case GeoLanguage.zh:
         return 'ZH';
-      default:
-        return 'unknown';
     }
   }
 
@@ -245,8 +243,6 @@ class AMapLocationOption {
         return 'Battery_Saving';
       case AMapLocationMode.deviceSensors:
         return 'Device_Sensors';
-      default:
-        return 'unknown';
     }
   }
 
@@ -262,8 +258,6 @@ class AMapLocationOption {
         return 'kCLLocationAccuracyNearestTenMeters';
       case CLLocationAccuracy.kCLLocationAccuracyThreeKilometers:
         return 'kCLLocationAccuracyThreeKilometers';
-      default:
-        return 'unknown';
     }
   }
 
