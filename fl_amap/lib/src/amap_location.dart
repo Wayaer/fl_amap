@@ -176,7 +176,6 @@ class FlAMapLocation {
   Future<bool> enableBackgroundLocation(
       AMapNotificationForAndroid notification) async {
     if (!_isAndroid || !_isInitialize) return false;
-    print(notification.toMap());
     final state = await _channel.invokeMethod<bool>(
         'enableBackgroundLocation', notification.toMap());
     return state ?? false;
