@@ -54,18 +54,19 @@ public class AMapView: NSObject, FlutterPlatformView {
             mapviewDelegate = nil
             mapview?.delegate = nil
             result(mapviewDelegate == nil)
-        case "addOverlays":
-//            mapview?.addOverlays( /* <#T##overlays: [Any]!##[Any]!#> */, level: <#T##MAOverlayLevel#>)
-        case "addAnnotation":
-            let point = MAPointAnnotation()
-            point.coordinate = CLLocationCoordinate2D(latitude: 39.979590, longitude: 116.352792)
-            mapview?.addAnnotation(point)
+
         case "dispose":
             mapview = nil
             mapview?.removeObserver(self, forKeyPath: "frame")
             channel?.setMethodCallHandler(nil)
             channel = nil
             result(true)
+        case "addOverlays":
+//            mapview?.addOverlays( /* <#T##overlays: [Any]!##[Any]!#> */, level: <#T##MAOverlayLevel#>)
+        case "addAnnotation":
+            let point = MAPointAnnotation()
+            point.coordinate = CLLocationCoordinate2D(latitude: 39.979590, longitude: 116.352792)
+            mapview?.addAnnotation(point)
         default:
             result(FlutterMethodNotImplemented)
         }
