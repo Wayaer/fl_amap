@@ -1,3 +1,7 @@
+## 3.4.1
+
+* JDK to 17
+
 ## 3.4.0
 
 * 迁移至 3.27
@@ -25,7 +29,8 @@
 
 * 设置定位参数，返回定位信息均添加详细文档说明，且数据完整
 * 区分`android`和`ios`
-  的返回定位信息，返回数据均有不同,且数据完整，`AMapLocation`、`AMapLocationForIOS`、`AMapLocationForAndroid`
+  的返回定位信息，返回数据均有不同,且数据完整，`AMapLocation`、`AMapLocationForIOS`、
+  `AMapLocationForAndroid`
 * 区分`android`和`ios`
   的定位参数配置，可进行多次配置更新，`AMapLocationOptionForIOS`、`AMapLocationOptionForAndroid`
 * `android`支持设置前台任务服务，保证后台定位常驻，使用`enableBackgroundLocation`

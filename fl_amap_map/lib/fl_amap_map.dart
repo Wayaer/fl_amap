@@ -21,8 +21,6 @@ part 'src/location/amap_geo_fence.dart';
 
 part 'src/location/amap_location.dart';
 
-part 'src/map_event.dart';
-
 const MethodChannel _channel = MethodChannel('fl_amap');
 
 /// 设置ios&android的key
@@ -45,14 +43,13 @@ Future<bool> setAMapKey({
   if (_isAndroid) key = androidKey;
   if (_isIOS) key = iosKey;
   if (key == null) return false;
-  final bool? state = await _channel.invokeMethod('setApiKey', {
+  final state = await _channel.invokeMethod('setApiKey', {
     'key': key,
     'isAgree': isAgree,
     'isContains': isContains,
     'isShow': isShow,
     'enableHTTPS': enableHTTPS
   });
-  FlMapEvent();
   return state ?? false;
 }
 
