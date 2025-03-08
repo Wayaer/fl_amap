@@ -1,14 +1,9 @@
 package fl.amap.map
 
 import android.location.Location
-import com.amap.api.fence.GeoFence
-import com.amap.api.fence.PoiItem
-import com.amap.api.location.AMapLocation
-import com.amap.api.location.DPoint
-import com.amap.api.maps.model.CameraPosition
-import com.amap.api.maps.model.LatLng
-import com.amap.api.maps.model.Marker
-import com.amap.api.maps.model.Poi
+import com.amap.api.maps.model.*
+import com.autonavi.amap.mapcore.DPoint
+import com.autonavi.amap.mapcore.IPoint
 
 val Location.data: Map<String, Any?>
     get() = mapOf(
@@ -29,6 +24,16 @@ val LatLng.data: Map<String, Any>
         "latitude" to latitude,
         "longitude" to longitude,
     )
+val IPoint.data: Map<String, Any>
+    get() = mapOf(
+        "x" to x,
+        "y" to y,
+    )
+val DPoint.data: Map<String, Any>
+    get() = mapOf(
+        "x" to x,
+        "y" to y,
+    )
 val CameraPosition.data: Map<String, Any>
     get() = mapOf(
         "target" to target.data,
@@ -38,15 +43,50 @@ val CameraPosition.data: Map<String, Any>
         "isAbroad" to isAbroad,
     )
 
-val Marker.data: Map<String, Any>
+
+val MarkerOptions.data: Map<String, Any?>
     get() = mapOf(
-        "title" to options.title,
-        "latLng" to options.position.data,
-        "snippet" to snippet,
-        "draggable" to isDraggable,
-        "visible" to isVisible,
+        "anchorU" to anchorU,
+        "anchorV" to anchorV,
+        "infoWindowOffsetX" to infoWindowOffsetX,
+        "infoWindowOffsetY" to infoWindowOffsetY,
         "alpha" to alpha,
+        "altitude" to altitude,
+        "period" to period,
+        "position" to position,
+        "rotateAngle" to rotateAngle,
+        "snippet" to snippet,
+        "title" to title,
+        "zIndex" to zIndex,
+        "isDraggable" to isDraggable,
+        "isVisible" to isVisible,
+        "isFlat" to isFlat,
+        "isInfoWindowAutoOverturn" to isInfoWindowAutoOverturn,
+        "isInfoWindowEnable" to isInfoWindowEnable,
     )
+val Marker.data: Map<String, Any?>
+    get() = mapOf(
+        "options" to options.data,
+        "alpha" to alpha,
+        "altitude" to altitude,
+        "id" to id,
+        "period" to period,
+        "position" to position,
+        "rotateAngle" to rotateAngle,
+        "snippet" to snippet,
+        "title" to title,
+        "zIndex" to zIndex,
+        "geoPoint" to geoPoint.data,
+        "isRemoved" to isRemoved,
+        "isClickable" to isClickable,
+        "isDraggable" to isDraggable,
+        "isVisible" to isVisible,
+        "isFlat" to isFlat,
+        "isViewMode" to isViewMode,
+        "isInfoWindowAutoOverturn" to isInfoWindowAutoOverturn,
+        "isInfoWindowEnable" to isInfoWindowEnable,
+    )
+
 
 val Poi.data: Map<String, Any>
     get() = mapOf(

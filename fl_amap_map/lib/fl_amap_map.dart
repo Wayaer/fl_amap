@@ -7,13 +7,17 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-part 'src/map/amap_view.dart';
+part 'src/amap_view.dart';
 
-part 'src/map/controller.dart';
+part 'src/controller.dart';
 
-part 'src/map/model.dart';
+part 'src/model.dart';
 
 part 'src/enum.dart';
+
+part 'src/controller_for_android.dart';
+
+part 'src/controller_for_ios.dart';
 
 class FlAMapMap {
   final MethodChannel _channel = MethodChannel('fl_amap_map');

@@ -27,7 +27,8 @@ class _MapViewPageState extends State<MapViewPage> {
             onCreateController: (AMapController controller) {
               this.controller = controller;
               controller.setTrackingMode(TrackingMode.none);
-              controller.addListener();
+              controller.android?.addListener();
+              controller.ios?.addListener();
             }));
   }
 

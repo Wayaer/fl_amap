@@ -1,4 +1,4 @@
-part of '../../fl_amap_map.dart';
+part of '../fl_amap_map.dart';
 
 typedef AMapLocationChangeListener = void Function(Location location);
 typedef AMapLoadedListener = void Function();
@@ -6,43 +6,11 @@ typedef AMapLatLngListener = void Function(LatLng latLng);
 typedef AMapPOIPressedListener = void Function(List<Poi> poi);
 typedef AMapMarkerPressedListener = void Function(Marker marker);
 
-class AMapController {
-  AMapController({required this.id}) {
-    _channel = MethodChannel('fl_amap_map_$id');
-  }
+class AMapControllerForAndroid {
+  AMapControllerForAndroid(this._channel, this._id);
 
-  final int id;
-
-  late MethodChannel _channel;
-
-  /// 设置地图配置信息
-  Future<bool> setOptions(AMapOptions options) async {
-    final result = await _channel.invokeMethod<bool>('setOptions', options.toMap());
-    return result ?? false;
-  }
-
-  /// 最大帧数，有效的帧数为：60、30、20、10等能被60整除的数。默认为60
-  Future<bool> setRenderFps(int fps) async {
-    final result = await _channel.invokeMethod<bool>('setRenderFps', fps);
-    return result ?? false;
-  }
-
-  /// 重新加载地图
-  Future<bool> reloadMap() async {
-    final result = await _channel.invokeMethod<bool>('reloadMap');
-    return result ?? false;
-  }
-
-  /// 设置地图定位跟随模式
-  Future<bool> setTrackingMode(TrackingMode mode, {bool animated = true}) async {
-    int modeIndex = mode.index;
-    if (modeIndex > 2 && _isIOS) modeIndex = 1;
-    final result = await _channel.invokeMethod<bool>('setTrackingMode', {
-      'mode': modeIndex,
-      'animated': animated,
-    });
-    return result ?? false;
-  }
+  final MethodChannel _channel;
+  final int _id;
 
   /// 添加回调监听
   Future<bool> addListener({
@@ -69,11 +37,9 @@ class AMapController {
 
     /// 添加消息监听通道
     FlAMapMap()._flEventChannel?.listen((data) {
-      if (data is! Map) return;
-      debugPrint('消息回调==${data['method']}===$data');
-      final id = data['id'];
-      if (id != this.id) return;
+      if (data is! Map || data['id'] != _id) return;
       final method = data['method'];
+      debugPrint('消息回调==$method===$data');
       switch (method) {
         case 'Loaded':
           onMapLoaded?.call();
@@ -98,11 +64,39 @@ class AMapController {
     return result == true;
   }
 
-  /// 销毁地图
-  /// 当只存在一个地图且被销毁时 需要关系消息通道
-  /// [controller.mapEvent.dispose()]
-  Future<bool> dispose() async {
-    final result = await _channel.invokeMethod('dispose');
-    return result ?? false;
+  /// 重新加载地图
+  Future<Marker?> addMarker() async {
+    final marker = await _channel.invokeMapMethod('addMarker');
+    return marker == null ? null : Marker.formMap(marker);
   }
+}
+
+class MarkerOptions {}
+
+class Marker {
+  Marker.formMap(Map<dynamic, dynamic> map)
+      : title = map['title'] as String?,
+        snippet = map['snippet'] as String?,
+        draggable = map['draggable'] as bool?,
+        visible = map['visible'] as bool?,
+        alpha = map['alpha'] as Double?,
+        latLng = LatLng.fromMap(map['latLng']);
+
+  /// 在地图上标记位置的经纬度值
+  final LatLng? latLng;
+
+  /// 点标记的标题
+  final String? title;
+
+  /// 点标记的内容
+  final String? snippet;
+
+  /// 点标记是否可拖拽
+  final bool? draggable;
+
+  /// 点标记是否可见
+  final bool? visible;
+
+  /// 点的透明度
+  final Double? alpha;
 }

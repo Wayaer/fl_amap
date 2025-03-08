@@ -1,4 +1,4 @@
-part of '../../fl_amap_map.dart';
+part of '../fl_amap_map.dart';
 
 class AMapOptions {
   const AMapOptions(
@@ -131,34 +131,6 @@ class AMapOptions {
     map.addAll(latLng.toMap());
     return map;
   }
-}
-
-class Marker {
-  Marker.formMap(Map<dynamic, dynamic> map)
-      : title = map['title'] as String?,
-        snippet = map['snippet'] as String?,
-        draggable = map['draggable'] as bool?,
-        visible = map['visible'] as bool?,
-        alpha = map['alpha'] as Double?,
-        latLng = LatLng.fromMap(map['latLng']);
-
-  /// 在地图上标记位置的经纬度值
-  final LatLng? latLng;
-
-  /// 点标记的标题
-  final String? title;
-
-  /// 点标记的内容
-  final String? snippet;
-
-  /// 点标记是否可拖拽
-  final bool? draggable;
-
-  /// 点标记是否可见
-  final bool? visible;
-
-  /// 点的透明度
-  final Double? alpha;
 }
 
 List<Poi> getPoiList(List<dynamic> list) {
