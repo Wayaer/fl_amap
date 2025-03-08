@@ -18,11 +18,11 @@ class _MapViewPageState extends State<MapViewPage> {
         body: AMapView(
             options: const AMapOptions(
                 mapType: MapType.standardNight,
-                showCompass: false,
+                showCompass: true,
                 showMapText: true,
-                showTraffic: false,
+                showTraffic: true,
                 showUserLocation: true,
-                showUserLocationButton: false,
+                showUserLocationButton: true,
                 latLng: LatLng(30.572961, 104.066301)),
             onCreateController: (AMapController controller) {
               this.controller = controller;

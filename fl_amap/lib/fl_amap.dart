@@ -8,29 +8,40 @@ part 'src/amap_location.dart';
 
 part 'src/enum.dart';
 
-/// 设置ios&android的key
-Future<bool> setAMapKey({
-  required String iosKey,
-  required String androidKey,
+class FlAMap {
+  factory FlAMap() => _singleton ??= FlAMap._();
 
-  /// 设置是否同意用户授权政策 设置为true才可以调用其他功能
-  bool isAgree = true,
+  FlAMap._();
 
-  /// 设置包含隐私政策 设置为true才可以调用其他功能
-  bool isContains = true,
+  static FlAMap? _singleton;
 
-  /// 并展示用户授权弹窗 设置为true才可以调用其他功能
-  bool isShow = true,
-}) async {
-  if (!_supportPlatform) return false;
-  String? key;
-  if (_isAndroid) key = androidKey;
-  if (_isIOS) key = iosKey;
-  if (key == null) return false;
-  final state = await FlAMapLocation()
-      ._channel
-      .invokeMethod('setApiKey', {'key': key, 'isAgree': isAgree, 'isContains': isContains, 'isShow': isShow});
-  return state == true;
+  /// 设置ios&android的key
+  Future<bool> setAMapKey({
+    required String iosKey,
+    required String androidKey,
+
+    /// 设置是否同意用户授权政策 设置为true才可以调用其他功能
+    bool isAgree = true,
+
+    /// 设置包含隐私政策 设置为true才可以调用其他功能
+    bool isContains = true,
+
+    /// 并展示用户授权弹窗 设置为true才可以调用其他功能
+    bool isShow = true,
+  }) async {
+    if (!_supportPlatform) return false;
+    String? key;
+    if (_isAndroid) key = androidKey;
+    if (_isIOS) key = iosKey;
+    if (key == null) return false;
+    final state = await FlAMapLocation()._channel.invokeMethod('setApiKey', {
+      'key': key,
+      'isAgree': isAgree,
+      'isContains': isContains,
+      'isShow': isShow
+    });
+    return state == true;
+  }
 }
 
 bool get _supportPlatform {
@@ -56,5 +67,6 @@ class LatLng {
   /// 经度
   double? longitude;
 
-  Map<String, dynamic> toMap() => {'latitude': latitude, 'longitude': longitude};
+  Map<String, dynamic> toMap() =>
+      {'latitude': latitude, 'longitude': longitude};
 }

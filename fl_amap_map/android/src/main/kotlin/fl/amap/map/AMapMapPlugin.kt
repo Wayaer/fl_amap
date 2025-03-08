@@ -5,7 +5,8 @@ import androidx.lifecycle.Lifecycle
 import com.amap.api.location.AMapLocationClient
 import com.amap.api.maps.MapsInitializer
 import fl.amap.map.map.AMapPlatformViewFactory
-import fl.channel.FlEvent
+import fl.channel.FlChannelPlugin
+import fl.channel.FlEventChannel
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -19,19 +20,17 @@ class AMapMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAw
     private lateinit var channel: MethodChannel
     private lateinit var context: Context
     private lateinit var binaryMessenger: BinaryMessenger
-    private var methodCall: AMapLocationMethodCall? = null
 
 
     companion object {
         var lifecycle: Lifecycle? = null
-        var flMapViewEvent: FlEvent? = null
+        var flEventChannel: FlEventChannel? = null
     }
 
     override fun onAttachedToEngine(plugin: FlutterPlugin.FlutterPluginBinding) {
         binaryMessenger = plugin.binaryMessenger
-        channel = MethodChannel(plugin.binaryMessenger, "fl_amap")
+        channel = MethodChannel(plugin.binaryMessenger, "fl_amap_map")
         context = plugin.applicationContext
-        methodCall = AMapLocationMethodCall(context, channel)
         channel.setMethodCallHandler(this)
         plugin.platformViewRegistry.registerViewFactory(
             "fl_amap_map", AMapPlatformViewFactory(plugin.binaryMessenger)
@@ -41,7 +40,6 @@ class AMapMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAw
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
             "setApiKey" -> {
-                flMapViewEvent = FlEvent("fl_amap_map/event", binaryMessenger)
                 val key = call.argument<String>("key")!!
                 val isAgree = call.argument<Boolean>("isAgree")!!
                 val isContains = call.argument<Boolean>("isContains")!!
@@ -55,18 +53,15 @@ class AMapMapPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAw
                 MapsInitializer.setProtocol(if (enableHTTPS) MapsInitializer.HTTPS else MapsInitializer.HTTP)
                 MapsInitializer.updatePrivacyAgree(context, isAgree)
                 MapsInitializer.updatePrivacyShow(context, isContains, isShow)
+                flEventChannel = FlChannelPlugin.getEventChannel("fl_amap_map_event")
                 result.success(true)
             }
-
-            else -> methodCall?.onMethodCall(call, result)
         }
 
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         channel.setMethodCallHandler(null)
-        methodCall = null
-        flMapViewEvent = null
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
