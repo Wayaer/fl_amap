@@ -1,6 +1,7 @@
-## 3.4.1
+## 3.4.2
 
 * JDK to 17
+* `setAMapKey` 改为 ` FlAMap().setAMapKey()`
 
 ## 3.4.0
 
