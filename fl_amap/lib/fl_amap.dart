@@ -27,13 +27,9 @@ Future<bool> setAMapKey({
   if (_isAndroid) key = androidKey;
   if (_isIOS) key = iosKey;
   if (key == null) return false;
-  final bool? state = await FlAMapLocation()._channel.invokeMethod(
-      'setApiKey', {
-    'key': key,
-    'isAgree': isAgree,
-    'isContains': isContains,
-    'isShow': isShow
-  });
+  final state = await FlAMapLocation()
+      ._channel
+      .invokeMethod('setApiKey', {'key': key, 'isAgree': isAgree, 'isContains': isContains, 'isShow': isShow});
   return state == true;
 }
 
@@ -60,6 +56,5 @@ class LatLng {
   /// 经度
   double? longitude;
 
-  Map<String, dynamic> toMap() =>
-      {'latitude': latitude, 'longitude': longitude};
+  Map<String, dynamic> toMap() => {'latitude': latitude, 'longitude': longitude};
 }

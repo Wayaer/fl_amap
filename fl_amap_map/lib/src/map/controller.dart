@@ -17,8 +17,7 @@ class AMapController {
 
   /// 设置地图配置信息
   Future<bool> setOptions(AMapOptions options) async {
-    final result =
-        await _channel.invokeMethod<bool>('setOptions', options.toMap());
+    final result = await _channel.invokeMethod<bool>('setOptions', options.toMap());
     return result ?? false;
   }
 
@@ -35,8 +34,7 @@ class AMapController {
   }
 
   /// 设置地图定位跟随模式
-  Future<bool> setTrackingMode(TrackingMode mode,
-      {bool animated = true}) async {
+  Future<bool> setTrackingMode(TrackingMode mode, {bool animated = true}) async {
     int modeIndex = mode.index;
     if (modeIndex > 2 && _isIOS) modeIndex = 1;
     final result = await _channel.invokeMethod<bool>('setTrackingMode', {
@@ -46,7 +44,7 @@ class AMapController {
     return result ?? false;
   }
 
-  FlMapEventListenCancel? _cancel;
+  FlEventChannel? _flEventChannel;
 
   /// 添加回调监听
   Future<bool> addListener({
@@ -69,10 +67,11 @@ class AMapController {
     AMapMarkerPressedListener? onMarkerPressed,
   }) async {
     /// 初始化原生sdk listener
-    final bool? result = await _channel.invokeMethod('addListener');
+    final result = await _channel.invokeMethod('addListener');
+    _flEventChannel ??= await FlChannel().create('${_channel.name}_event');
 
     /// 添加消息监听通道
-    _cancel = FlMapEvent().listen((data) {
+    _flEventChannel?.listen((data) {
       if (data is! Map) return;
       debugPrint('消息回调==${data['method']}===$data');
       final id = data['id'];
@@ -106,7 +105,8 @@ class AMapController {
   /// 当只存在一个地图且被销毁时 需要关系消息通道
   /// [controller.mapEvent.dispose()]
   Future<bool> dispose() async {
-    _cancel?.call();
+    _flEventChannel?.dispose();
+    _flEventChannel = null;
     final bool? result = await _channel.invokeMethod('dispose');
     return result ?? false;
   }

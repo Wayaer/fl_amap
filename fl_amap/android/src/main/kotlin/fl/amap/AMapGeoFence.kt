@@ -210,11 +210,12 @@ class AMapGeoFence(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.M
                     //获取围栏ID:
                     map["fenceID"] = bundle.getString(GeoFence.BUNDLE_KEY_FENCEID)
                     //获取当前有触发的围栏对象：
-                    val fence: GeoFence? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        bundle.getParcelable(GeoFence.BUNDLE_KEY_FENCE, GeoFence::class.java)
-                    } else {
-                        bundle.getParcelable(GeoFence.BUNDLE_KEY_FENCE)
-                    }
+                    val fence: GeoFence? =
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            bundle.getParcelable(GeoFence.BUNDLE_KEY_FENCE, GeoFence::class.java)
+                        } else {
+                            bundle.getParcelable(GeoFence.BUNDLE_KEY_FENCE)
+                        }
                     map["fence"] = fence?.data
                     map["type"] = fence?.type
                     handler.post {
