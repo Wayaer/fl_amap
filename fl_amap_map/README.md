@@ -44,17 +44,12 @@ iOS14及以上版本使用地理围栏功能，需要在plist中配置NSLocation
 
 ```dart
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  final bool key = await setAMapKey(
+Future<void> setAMapKey() async {
+  final key = await FlAMapMap().setAMapKey(
       iosKey: 'ios key',
       androidKey: 'android key');
 
   if (key != null && key) print('高德地图ApiKey设置成功');
-
-  runApp(MaterialApp(
-      debugShowCheckedModeBanner: false, title: 'FlAMap', home: Home()));
 }
 
 ```

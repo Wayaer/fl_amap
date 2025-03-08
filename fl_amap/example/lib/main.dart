@@ -1,6 +1,6 @@
-import 'package:example/coordinate_converter_page.dart';
-import 'package:example/geo_fence_page.dart';
-import 'package:example/loaction_page.dart';
+import 'package:example/src/coordinate_converter_page.dart';
+import 'package:example/src/geo_fence_page.dart';
+import 'package:example/src/loaction_page.dart';
 import 'package:fl_amap/fl_amap.dart';
 import 'package:fl_extended/fl_extended.dart';
 import 'package:flutter/material.dart';
@@ -13,39 +13,35 @@ void main() {
       scaffoldMessengerKey: FlExtended().scaffoldMessengerKey,
       debugShowCheckedModeBanner: false,
       title: 'FlAMap',
+      theme: ThemeData.light(),
+      darkTheme: ThemeData.dark(),
       home: Scaffold(
-          appBar: AppBar(title: const Text('高德地图')), body: const App())));
+          appBar: AppBar(title: const Text('高德定位')), body: const App())));
 }
 
-class App extends StatefulWidget {
+class App extends StatelessWidget {
   const App({super.key});
 
   @override
-  State<App> createState() => _AppState();
-}
-
-class _AppState extends State<App> {
-  bool isInit = false;
-
-  void setKey() async {
-    isInit = await setAMapKey(
-        iosKey: '7d3261c06027bdc87aca547c99ad5b2f',
-        // iosKey: 'e0e98395277890e48caa0c4bed423ead',
-        androidKey: '77418e726d0eefc0ac79a8619b5f4d97',
-        isAgree: true,
-        isContains: true,
-        isShow: true);
-    showToast('高德地图ApiKey设置$isInit');
-  }
-
-  @override
   Widget build(BuildContext context) {
+    bool isInit = false;
     return Universal(
         width: double.infinity,
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          ElevatedText(onPressed: setKey, text: '设置高德key'),
+          ElevatedText(
+              onPressed: () async {
+                isInit = await FlAMap().setAMapKey(
+                    iosKey: '7d3261c06027bdc87aca547c99ad5b2f',
+                    // iosKey: 'e0e98395277890e48caa0c4bed423ead',
+                    androidKey: '77418e726d0eefc0ac79a8619b5f4d97',
+                    isAgree: true,
+                    isContains: true,
+                    isShow: true);
+                showToast('高德地图ApiKey设置$isInit');
+              },
+              text: '设置高德key'),
           ElevatedText(
               onPressed: () {
                 if (!isInit) {

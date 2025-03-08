@@ -15,7 +15,6 @@ A new Flutter plugin.
   s.source_files = 'Classes/**/*'
   s.dependency 'Flutter'
   s.dependency 'AMap3DMap'
-  s.dependency 'AMapLocation'
   s.dependency 'fl_channel'
   s.static_framework = true
   s.ios.deployment_target = '12.0'

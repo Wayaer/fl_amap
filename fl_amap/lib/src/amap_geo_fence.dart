@@ -1,6 +1,7 @@
 part of '../fl_amap.dart';
 
-typedef EventHandlerAMapGeoFenceStatus = void Function(AMapGeoFenceStatusModel? geoFence);
+typedef EventHandlerAMapGeoFenceStatus = void Function(
+    AMapGeoFenceStatusModel? geoFence);
 
 class FlAMapGeoFence {
   factory FlAMapGeoFence() => _singleton ??= FlAMapGeoFence._();
@@ -20,10 +21,13 @@ class FlAMapGeoFence {
   ///  如果您希望程序在后台持续检测围栏触发行为，需要保证manager 的 allowsBackgroundLocationUpdates 为YES，
   ///  设置为YES的时候必须保证 Background Modes 中的 Location updates 处于选中状态，否则会抛出异常。
   ///  ios 添加代理
-  Future<bool> initialize(GeoFenceActivateAction action, [bool allowsBackgroundLocationUpdates = false]) async {
+  Future<bool> initialize(GeoFenceActivateAction action,
+      [bool allowsBackgroundLocationUpdates = false]) async {
     if (!_supportPlatform) return false;
-    final bool? isInit = await _channel
-        .invokeMethod('initialize', {'action': action.index, 'allowsBackgroundLocationUpdates': allowsBackgroundLocationUpdates});
+    final bool? isInit = await _channel.invokeMethod('initialize', {
+      'action': action.index,
+      'allowsBackgroundLocationUpdates': allowsBackgroundLocationUpdates
+    });
     if (isInit == true) _isInitialize = isInit!;
     return isInit ?? false;
   }
@@ -52,7 +56,11 @@ class FlAMapGeoFence {
   Future<List<AMapGeoFenceModel>> getAll({String? customID}) async {
     if (!_supportPlatform || !_isInitialize) return [];
     final list = await _channel.invokeListMethod('getAll', customID);
-    return list?.map((dynamic e) => AMapGeoFenceModel.fromMap(e as Map<dynamic, dynamic>)).toList() ?? [];
+    return list
+            ?.map((dynamic e) =>
+                AMapGeoFenceModel.fromMap(e as Map<dynamic, dynamic>))
+            .toList() ??
+        [];
   }
 
   /// 添加高德POI地理围栏
@@ -63,7 +71,8 @@ class FlAMapGeoFence {
   }
 
   /// 添加高德经纬度地理围栏
-  Future<AMapGeoFenceAddStatusModel?> addLatLng(AMapGeoFenceLatLngModel model) async {
+  Future<AMapGeoFenceAddStatusModel?> addLatLng(
+      AMapGeoFenceLatLngModel model) async {
     if (!_supportPlatform || !_isInitialize) return null;
     final result = await _channel.invokeMapMethod('addLatLng', model.toMap());
     return result == null ? null : AMapGeoFenceAddStatusModel.fromMap(result);
@@ -72,9 +81,11 @@ class FlAMapGeoFence {
   /// 创建行政区划围栏  根据关键字创建围栏
   /// keyword 行政区划关键字  例如：朝阳区
   /// customID 与围栏关联的自有业务Id
-  Future<AMapGeoFenceAddStatusModel?> addDistrict({required String keyword, required String customID}) async {
+  Future<AMapGeoFenceAddStatusModel?> addDistrict(
+      {required String keyword, required String customID}) async {
     if (!_supportPlatform || !_isInitialize) return null;
-    final result = await _channel.invokeMapMethod('addDistrict', {'keyword': keyword, 'customID': customID});
+    final result = await _channel.invokeMapMethod(
+        'addDistrict', {'keyword': keyword, 'customID': customID});
     return result == null ? null : AMapGeoFenceAddStatusModel.fromMap(result);
   }
 
@@ -83,10 +94,16 @@ class FlAMapGeoFence {
   /// radius 要创建的围栏半径 ，半径无限制，单位米
   /// customID 与围栏关联的自有业务Id
   Future<AMapGeoFenceAddStatusModel?> addCircle(
-      {required LatLng latLng, required double radius, required String customID}) async {
+      {required LatLng latLng,
+      required double radius,
+      required String customID}) async {
     if (!_supportPlatform || !_isInitialize) return null;
-    final result = await _channel.invokeMapMethod(
-        'addCircle', {'latitude': latLng.latitude, 'longitude': latLng.longitude, 'radius': radius, 'customID': customID});
+    final result = await _channel.invokeMapMethod('addCircle', {
+      'latitude': latLng.latitude,
+      'longitude': latLng.longitude,
+      'radius': radius,
+      'customID': customID
+    });
     return result == null ? null : AMapGeoFenceAddStatusModel.fromMap(result);
   }
 
@@ -94,11 +111,14 @@ class FlAMapGeoFence {
   /// latLngs 多个经纬度点 最少3个点
   /// radius 要创建的围栏半径 ，半径无限制，单位米
   /// customID 与围栏关联的自有业务Id
-  Future<AMapGeoFenceAddStatusModel?> addCustom({required List<LatLng> latLng, required String customID}) async {
+  Future<AMapGeoFenceAddStatusModel?> addCustom(
+      {required List<LatLng> latLng, required String customID}) async {
     assert(latLng.length >= 3, '多边形围栏至少三个点');
     if (!_supportPlatform || !_isInitialize) return null;
-    final result = await _channel
-        .invokeMapMethod('addCustom', {'latLng': latLng.map((LatLng e) => e.toMap()).toList(), 'customID': customID});
+    final result = await _channel.invokeMapMethod('addCustom', {
+      'latLng': latLng.map((LatLng e) => e.toMap()).toList(),
+      'customID': customID
+    });
     return result == null ? null : AMapGeoFenceAddStatusModel.fromMap(result);
   }
 
@@ -118,17 +138,22 @@ class FlAMapGeoFence {
   /// 开启围栏状态监听
   ///  customID !=null 监听指定customID 的围栏 仅支持ios
   ///  android 第一次 调用 开启广播监听
-  Future<bool> start({String? customID, EventHandlerAMapGeoFenceStatus? onGeoFenceChanged}) async {
+  Future<bool> start(
+      {String? customID,
+      EventHandlerAMapGeoFenceStatus? onGeoFenceChanged}) async {
     if (!_supportPlatform || !_isInitialize || _hasListener) return false;
     if (_isIOS) assert(customID != null, 'ios 平台 customID 必须不为null');
-    final state = await _channel.invokeMethod<bool>(_isIOS ? 'start' : 'resume', customID);
+    final state = await _channel.invokeMethod<bool>(
+        _isIOS ? 'start' : 'resume', customID);
     if (state == true) {
       _hasListener = true;
       _channel.setMethodCallHandler((MethodCall call) async {
         switch (call.method) {
           case 'updateGeoFence':
-            onGeoFenceChanged
-                ?.call(call.arguments == null ? null : AMapGeoFenceStatusModel.fromMap(call.arguments as Map<dynamic, dynamic>));
+            onGeoFenceChanged?.call(call.arguments == null
+                ? null
+                : AMapGeoFenceStatusModel.fromMap(
+                    call.arguments as Map<dynamic, dynamic>));
         }
       });
     }
@@ -146,7 +171,9 @@ class AMapGeoFenceStatusModel {
     }
     final typeInt = json['type'] as int?;
     if (typeInt != null && typeInt < 4) type = GenFenceType.values[typeInt];
-    fence = json['fence'] == null ? null : AMapGeoFenceModel.fromMap(json['fence'] as Map<dynamic, dynamic>);
+    fence = json['fence'] == null
+        ? null
+        : AMapGeoFenceModel.fromMap(json['fence'] as Map<dynamic, dynamic>);
   }
 
   /// 自定义id
@@ -164,8 +191,13 @@ class AMapGeoFenceStatusModel {
   /// 仅 Android 有数据
   AMapGeoFenceModel? fence;
 
-  Map<String, dynamic> toMap() =>
-      {'customID': customID, 'status': status, 'type': type, 'fenceID': fenceID, 'fence': fence?.toMap()};
+  Map<String, dynamic> toMap() => {
+        'customID': customID,
+        'status': status,
+        'type': type,
+        'fenceID': fenceID,
+        'fence': fence?.toMap()
+      };
 }
 
 /// 围栏数据
@@ -176,11 +208,17 @@ class AMapGeoFenceModel {
     if (points is List) {
       for (var v in points) {
         final points = v as List<dynamic>;
-        pointList!.add(points.map((dynamic e) => LatLng.fromMap(e as Map<dynamic, dynamic>)).toList());
+        pointList!.add(points
+            .map((dynamic e) => LatLng.fromMap(e as Map<dynamic, dynamic>))
+            .toList());
       }
     }
-    center = json['center'] != null ? LatLng.fromMap(json['center'] as Map<dynamic, dynamic>) : null;
-    poiItem = json['poiItem'] != null ? AMapPoiItemModel.fromMap(json['poiItem'] as Map<dynamic, dynamic>) : null;
+    center = json['center'] != null
+        ? LatLng.fromMap(json['center'] as Map<dynamic, dynamic>)
+        : null;
+    poiItem = json['poiItem'] != null
+        ? AMapPoiItemModel.fromMap(json['poiItem'] as Map<dynamic, dynamic>)
+        : null;
     radius = json['radius'] as double?;
     customID = json['customID'] as String?;
     fenceID = json['fenceID'] as String?;
@@ -218,7 +256,9 @@ class AMapGeoFenceModel {
   AMapPoiItemModel? poiItem;
 
   Map<String, dynamic> toMap() => {
-        'pointList': pointList?.map((List<LatLng> v) => v.map((LatLng e) => e.toMap()).toList()).toList(),
+        'pointList': pointList
+            ?.map((List<LatLng> v) => v.map((LatLng e) => e.toMap()).toList())
+            .toList(),
         'center': center?.toMap(),
         'poiItem': poiItem?.toMap(),
         'type': type,
@@ -287,7 +327,13 @@ class AMapPoiModel {
   /// 与围栏关联的自有业务ID
   final String customID;
 
-  Map<String, dynamic> toMap() => {'keyword': keyword, 'poiType': poiType, 'city': city, 'size': size, 'customID': customID};
+  Map<String, dynamic> toMap() => {
+        'keyword': keyword,
+        'poiType': poiType,
+        'city': city,
+        'size': size,
+        'customID': customID
+      };
 }
 
 class AMapGeoFenceLatLngModel {
@@ -364,6 +410,9 @@ class AMapGeoFenceAddStatusModel {
     });
   }
 
-  Map<String, dynamic> toMap() =>
-      {'customID': customID, 'errorCode': errorCode, 'fenceList': fenceList.map((e) => e.toMap()).toList()};
+  Map<String, dynamic> toMap() => {
+        'customID': customID,
+        'errorCode': errorCode,
+        'fenceList': fenceList.map((e) => e.toMap()).toList()
+      };
 }

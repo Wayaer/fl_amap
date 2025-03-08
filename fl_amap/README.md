@@ -80,16 +80,12 @@ allowsBackgroundLocationUpdates 为 YES，
 
 ```dart
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  final bool key = await setAMapKey(
+Future<void> setAMapKey() async {
+  final bool key = await FlAMap().setAMapKey(
       iosKey: 'ios key',
       androidKey: 'android key');
 
   if (key != null && key) print('高德地图ApiKey设置成功');
-
-  runApp(MaterialApp(title: 'FlAMap', home: Home()));
 }
 
 ```

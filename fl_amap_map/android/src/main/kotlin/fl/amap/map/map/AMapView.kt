@@ -27,7 +27,7 @@ class AMapView(
         channel.setMethodCallHandler(this)
         mapview = TextureMapView(context)
         setOptions(args)
-        mapViewListener = AMapViewListener(viewId, mapview.map)
+
         lifecycle?.addObserver(this)
     }
 
@@ -75,13 +75,25 @@ class AMapView(
                 lifecycle?.removeObserver(this)
             }
 
+            "addListener" -> {
+                if (mapViewListener == null) {
+                    mapViewListener = AMapViewListener(viewId, mapview.map)
+                }
+                result.success(true)
+            }
+
+            "removeListener" -> {
+                mapViewListener?.removeListener()
+                mapViewListener = null
+                result.success(true)
+            }
+
             "setCenter" -> {
                 val animated = call.argument<Boolean>("animated")!!
                 val cameraUpdate = CameraUpdateFactory.newCameraPosition(
                     CameraPosition(
                         LatLng(
-                            call.argument<Double>("latitude")!!,
-                            call.argument<Double>("longitude")!!
+                            call.argument<Double>("latitude")!!, call.argument<Double>("longitude")!!
                         ),
                         call.argument<Double>("zoom")!!.toFloat(),
                         call.argument<Double>("tilt")!!.toFloat(),
@@ -158,6 +170,5 @@ class AMapView(
         map.maxZoomLevel = (args["maxZoom"] as Double).toFloat()
         map.minZoomLevel = (args["minZoom"] as Double).toFloat()
     }
-
 
 }

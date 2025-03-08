@@ -1,96 +1,149 @@
 package fl.amap.map.map
 
+import android.graphics.Bitmap
+import android.graphics.Rect
 import android.location.Location
+import android.view.MotionEvent
+import android.view.View
 import com.amap.api.maps.AMap
+import com.amap.api.maps.CustomRenderer
 import com.amap.api.maps.LocationSource
+import com.amap.api.maps.SwipeDismissTouchListener
+import com.amap.api.maps.WearMapView
 import com.amap.api.maps.model.*
-import fl.amap.map.AMapMapPlugin.Companion.flMapViewEvent
+import com.autonavi.base.ae.gmap.AMapAppRequestParam
+import fl.amap.map.AMapMapPlugin.Companion.flEventChannel
 import fl.amap.map.data
+import fl.channel.FlChannelPlugin
+import fl.channel.FlEventChannel
+import javax.microedition.khronos.egl.EGLConfig
+import javax.microedition.khronos.opengles.GL10
 
-class AMapViewListener(private var viewId: Int, private var map: AMap) : AMap.OnMapLoadedListener,
-    AMap.OnMyLocationChangeListener, AMap.OnCameraChangeListener, AMap.OnMarkerClickListener,
-    AMap.OnMarkerDragListener, AMap.OnMapClickListener, AMap.OnMapLongClickListener,
-    AMap.OnPOIClickListener, LocationSource.OnLocationChangedListener {
+// AMap.CancelableCallback, AMap.ImageInfoWindowAdapter,AMap.OnCacheRemoveListener,AMap.InfoWindowAdapter, AMap.OnMapScreenShotListener, AMap.OnMapSnapshotListener, AMap.OnPolylineClickListener, CustomRenderer, LocationSource, LocationSource.OnLocationChangedListener, AMap.OnMultiPointClickListener,  SwipeDismissTouchListener.DismissCallbacks, WearMapView.OnDismissCallback
+class AMapViewListener(private var viewId: Int, private var map: AMap) : AMap.AMapAppResourceRequestListener,
+
+    AMap.OnCameraChangeListener, AMap.OnIndoorBuildingActiveListener, AMap.OnInfoWindowClickListener,
+    AMap.OnMapClickListener, AMap.OnMapLoadedListener, AMap.OnMapLongClickListener, AMap.OnMapTouchListener,
+    AMap.OnMarkerClickListener, AMap.OnMarkerDragListener, AMap.OnMyLocationChangeListener, AMap.OnPOIClickListener {
 
     init {
-        map.addOnMapLoadedListener(this)
-        map.addOnMyLocationChangeListener(this)
+        map.addAMapAppResourceListener(this)
         map.addOnCameraChangeListener(this)
-        map.addOnMapLongClickListener(this)
+        map.addOnIndoorBuildingActiveListener(this)
+        map.addOnInfoWindowClickListener(this)
         map.addOnMapClickListener(this)
+        map.addOnMapLoadedListener(this)
+        map.addOnMapLongClickListener(this)
+        map.addOnMapTouchListener(this)
+        map.addOnMarkerClickListener(this)
+        map.addOnMarkerDragListener(this)
+        map.addOnMyLocationChangeListener(this)
         map.addOnPOIClickListener(this)
     }
 
     override fun onMapLoaded() {
-        // 地图加载完成监听接口
         val map = getIdMap()
-        map["method"] = "Loaded"
-        flMapViewEvent?.send(map)
+        map["method"] = "onMapLoaded"
+        flEventChannel?.send(map)
     }
 
     override fun onMyLocationChange(location: Location?) {
-        // 用户定位信息监听接口。
         val map = getIdMap()
-        map["method"] = "LocationChange"
+        map["method"] = "onMyLocationChange"
         location?.data?.let { map.putAll(it) }
-        flMapViewEvent?.send(map)
+        flEventChannel?.send(map)
     }
 
     override fun onCameraChange(position: CameraPosition?) {
-        // 地图状态发生变化的监听接口
+        val map = getIdMap()
+        map["method"] = "onCameraChange"
+        position?.data?.let { map.putAll(it) }
+        flEventChannel?.send(map)
     }
 
     override fun onCameraChangeFinish(position: CameraPosition?) {
-        // 地图状态发生变化完成的监听接口
+        val map = getIdMap()
+        map["method"] = "onCameraChangeFinish"
+        position?.data?.let { map.putAll(it) }
+        flEventChannel?.send(map)
     }
 
     override fun onMapClick(latlng: LatLng?) {
-        // 地图点击事件监听接口。
         val map = getIdMap()
-        map["method"] = "Pressed"
+        map["method"] = "onMapClick"
         latlng?.let { map.putAll(it.data) }
-        flMapViewEvent?.send(map)
+        flEventChannel?.send(map)
     }
 
     override fun onMapLongClick(latlng: LatLng?) {
-        // 地图长按事件监听接口。
         val map = getIdMap()
-        map["method"] = "LongPressed"
+        map["method"] = "onMapLongClick"
         latlng?.let { map.putAll(it.data) }
-        flMapViewEvent?.send(map)
+        flEventChannel?.send(map)
     }
 
     override fun onPOIClick(poi: Poi?) {
-        // 地图poi点击事件监听接口。
         val map = getIdMap()
-        map["method"] = "POIPressed"
+        map["method"] = "onPOIClick"
         poi?.let { map["poi"] = listOf(it.data) }
-        flMapViewEvent?.send(map)
+        flEventChannel?.send(map)
     }
 
     override fun onMarkerClick(marker: Marker?): Boolean {
-        // marker点击事件监听接口。
         val map = getIdMap()
-        map["method"] = "MarkerPressed"
-        marker?.let { map.putAll(marker.data) }
-        flMapViewEvent?.send(map)
+        map["method"] = "onMarkerClick"
+        marker?.let { map.putAll(it.data) }
+        flEventChannel?.send(map)
         return true
     }
 
     override fun onMarkerDragStart(marker: Marker?) {
-        // marker开始拖拽事件监听接口。
+        val map = getIdMap()
+        map["method"] = "onMarkerDragStart"
+        marker?.let { map.putAll(it.data) }
+        flEventChannel?.send(map)
     }
 
     override fun onMarkerDrag(marker: Marker?) {
-        // marker拖拽事件监听接口。
+        val map = getIdMap()
+        map["method"] = "onMarkerDrag"
+        marker?.let { map.putAll(it.data) }
+        flEventChannel?.send(map)
     }
 
     override fun onMarkerDragEnd(marker: Marker?) {
-        // marker结束拖拽事件监听接口。
+        val map = getIdMap()
+        map["method"] = "onMarkerDragEnd"
+        marker?.let { map.putAll(it.data) }
+        flEventChannel?.send(map)
     }
 
-    override fun onLocationChanged(location: Location?) {
-        // 当定位源获取的位置信息发生变化时回调此接口。
+
+    override fun onRequest(param: AMapAppRequestParam?) {
+        val map = getIdMap()
+        map["method"] = "onRequest"
+        flEventChannel?.send(map)
+    }
+
+
+    override fun OnIndoorBuilding(info: IndoorBuildingInfo?) {
+        val map = getIdMap()
+        map["method"] = "onIndoorBuilding"
+        flEventChannel?.send(map)
+    }
+
+    override fun onInfoWindowClick(marker: Marker?) {
+        val map = getIdMap()
+        map["method"] = "onInfoWindowClick"
+        marker?.let { map.putAll(it.data) }
+        flEventChannel?.send(map)
+    }
+
+
+    override fun onTouch(event: MotionEvent?) {
+        val map = getIdMap()
+        map["method"] = "onTouch"
+        flEventChannel?.send(map)
     }
 
 
@@ -99,13 +152,18 @@ class AMapViewListener(private var viewId: Int, private var map: AMap) : AMap.On
     }
 
     fun removeListener() {
-        map.removeOnMapLoadedListener(this)
-        map.removeOnMyLocationChangeListener(this)
+        map.removeAMapAppResourceListener(this)
         map.removeOnCameraChangeListener(this)
-        map.removeOnMapLongClickListener(this)
+        map.removeOnIndoorBuildingActiveListener(this)
+        map.removeOnInfoWindowClickListener(this)
         map.removeOnMapClickListener(this)
+        map.removeOnMapLoadedListener(this)
+        map.removeOnMapLongClickListener(this)
+        map.removeOnMapTouchListener(this)
+        map.removeOnMarkerClickListener(this)
+        map.removeOnMarkerDragListener(this)
+        map.removeOnMyLocationChangeListener(this)
         map.removeOnPOIClickListener(this)
     }
-
 
 }

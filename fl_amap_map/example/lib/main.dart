@@ -1,29 +1,17 @@
-import 'package:example/geo_fence_page.dart';
-import 'package:example/loaction_page.dart';
-import 'package:example/map_view_page.dart';
+import 'package:example/src/map_view_page.dart';
 import 'package:fl_amap_map/fl_amap_map.dart';
 import 'package:fl_extended/fl_extended.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-Future<void> main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  setAMapKey(
-          iosKey: '7d3261c06027bdc87aca547c99ad5b2f',
-          androidKey: '77418e726d0eefc0ac79a8619b5f4d97',
-          isAgree: true,
-          isContains: true,
-          isShow: true)
-      .then((value) {
-    debugPrint('高德地图ApiKey设置$value');
-  });
   runApp(MaterialApp(
       navigatorKey: FlExtended().navigatorKey,
       scaffoldMessengerKey: FlExtended().scaffoldMessengerKey,
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.light(useMaterial3: true),
-      darkTheme: ThemeData.dark(useMaterial3: true),
+      theme: ThemeData.light(),
+      darkTheme: ThemeData.dark(),
       title: 'FlAMap',
       home: const App()));
 }
@@ -33,34 +21,39 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool isInit = false;
     return Scaffold(
         appBar: AppBar(title: const Text('高德地图')),
         body: Universal(
             width: double.infinity,
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
+            children: [
               ElevatedText(
-                  onPressed: () => showCupertinoModalPopup<dynamic>(
-                      context: context,
-                      builder: (_) => const AMapLocationPage()),
-                  text: '高德定位功能'),
+                  onPressed: () async {
+                    isInit = await FlAMapMap().setAMapKey(
+                        iosKey: '7d3261c06027bdc87aca547c99ad5b2f',
+                        androidKey: '77418e726d0eefc0ac79a8619b5f4d97',
+                        isAgree: true,
+                        isContains: true,
+                        isShow: true);
+                    showToast('高德地图ApiKey设置$isInit');
+                  },
+                  text: '设置高德key'),
               ElevatedText(
-                  onPressed: () => showCupertinoModalPopup<dynamic>(
-                      context: context,
-                      builder: (_) => const AMapGeoFencePage()),
-                  text: '高德地理围栏功能'),
-              ElevatedText(onPressed: pushMapViewPage, text: '高德地图'),
+                  onPressed: () async {
+                    if (!isInit) {
+                      showToast('请先设置高德key');
+                      return;
+                    }
+                    if (!await getPermission(Permission.location)) {
+                      showToast('未获取到定位权限');
+                      return;
+                    }
+                    push(const MapViewPage());
+                  },
+                  text: '高德地图'),
             ]));
-  }
-
-  /// 获取定位权限
-  Future<void> pushMapViewPage() async {
-    if (!await getPermission(Permission.location)) {
-      showToast('未获取到定位权限');
-      return;
-    }
-    push(const MapViewPage());
   }
 }
 
@@ -71,8 +64,7 @@ class ElevatedText extends StatelessWidget {
   final VoidCallback onPressed;
 
   @override
-  Widget build(BuildContext context) =>
-      ElevatedButton(onPressed: onPressed, child: Text(text));
+  Widget build(BuildContext context) => ElevatedButton(onPressed: onPressed, child: Text(text));
 }
 
 Future<bool> getPermission(Permission permission) async {

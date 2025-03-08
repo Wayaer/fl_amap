@@ -1,17 +1,14 @@
-import AMapLocationKit
 import fl_channel
 import Flutter
 import MAMapKit
 
 public class AMapMapPlugin: NSObject, FlutterPlugin {
     private var channel: FlutterMethodChannel?
-    private var methodCall: AMapLocationMethodCall?
     private var binaryMessenger: FlutterBinaryMessenger
-
-    public static var flMapEvent: FlEvent?
+    public static var flEventChannel: FlEventChannel?
 
     public static func register(with registrar: FlutterPluginRegistrar) {
-        let channel = FlutterMethodChannel(name: "fl_amap", binaryMessenger:
+        let channel = FlutterMethodChannel(name: "fl_amap_map", binaryMessenger:
             registrar.messenger())
         let instance = AMapMapPlugin(channel, registrar.messenger())
         registrar.addMethodCallDelegate(instance, channel: channel)
@@ -21,14 +18,12 @@ public class AMapMapPlugin: NSObject, FlutterPlugin {
     init(_ channel: FlutterMethodChannel, _ binaryMessenger: FlutterBinaryMessenger) {
         self.channel = channel
         self.binaryMessenger = binaryMessenger
-        methodCall = AMapLocationMethodCall(channel)
         super.init()
     }
 
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
         case "setApiKey":
-            AMapMapPlugin.flMapEvent = FlEvent("fl_amap_map/event", binaryMessenger)
             let args = call.arguments as! [String: Any?]
             let key = args["key"] as! String
             let isAgree = args["isAgree"] as! Bool
@@ -36,23 +31,16 @@ public class AMapMapPlugin: NSObject, FlutterPlugin {
             let isShow = args["isShow"] as! Bool
             AMapServices.shared().apiKey = key
             AMapServices.shared().enableHTTPS = args["enableHTTPS"] as! Bool
-            AMapLocationManager.updatePrivacyAgree(isAgree ? .didAgree : .notAgree)
-            AMapLocationManager.updatePrivacyShow(isShow ? .didShow : .notShow, privacyInfo: isContains ? .didContain : .notContain)
             MAMapView.updatePrivacyAgree(isAgree ? .didAgree : .notAgree)
             MAMapView.updatePrivacyShow(isShow ? .didShow : .notShow, privacyInfo: isContains ? .didContain : .notContain)
+            AMapMapPlugin.flEventChannel = FlChannelPlugin.getEventChannel("fl_amap_map_event")
             result(true)
         default:
-            methodCall?.handle(call, result)
+            result(FlutterMethodNotImplemented)
         }
     }
 
     public func detachFromEngine(for registrar: FlutterPluginRegistrar) {
         channel?.setMethodCallHandler(nil)
-        AMapMapPlugin.flMapEvent = nil
-    }
-
-    deinit {
-        methodCall = nil
-        channel = nil
     }
 }

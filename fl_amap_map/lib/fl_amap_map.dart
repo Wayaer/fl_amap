@@ -15,42 +15,47 @@ part 'src/map/model.dart';
 
 part 'src/enum.dart';
 
-part 'src/location/enum.dart';
+class FlAMapMap {
+  final MethodChannel _channel = MethodChannel('fl_amap_map');
 
-part 'src/location/amap_geo_fence.dart';
+  factory FlAMapMap() => _singleton ??= FlAMapMap._();
 
-part 'src/location/amap_location.dart';
+  FlAMapMap._();
 
-const MethodChannel _channel = MethodChannel('fl_amap');
+  static FlAMapMap? _singleton;
 
-/// 设置ios&android的key
-Future<bool> setAMapKey({
-  required String iosKey,
-  required String androidKey,
+  FlEventChannel? _flEventChannel;
 
-  /// 设置是否同意用户授权政策 设置为true才可以调用其他功能
-  bool isAgree = true,
+  /// 设置ios&android的key
+  Future<bool> setAMapKey({
+    required String iosKey,
+    required String androidKey,
 
-  /// 设置包含隐私政策 设置为true才可以调用其他功能
-  bool isContains = true,
+    /// 设置是否同意用户授权政策 设置为true才可以调用其他功能
+    bool isAgree = true,
 
-  /// 并展示用户授权弹窗 设置为true才可以调用其他功能
-  bool isShow = true,
-  bool enableHTTPS = true,
-}) async {
-  if (!_supportPlatform) return false;
-  String? key;
-  if (_isAndroid) key = androidKey;
-  if (_isIOS) key = iosKey;
-  if (key == null) return false;
-  final state = await _channel.invokeMethod('setApiKey', {
-    'key': key,
-    'isAgree': isAgree,
-    'isContains': isContains,
-    'isShow': isShow,
-    'enableHTTPS': enableHTTPS
-  });
-  return state ?? false;
+    /// 设置包含隐私政策 设置为true才可以调用其他功能
+    bool isContains = true,
+
+    /// 并展示用户授权弹窗 设置为true才可以调用其他功能
+    bool isShow = true,
+    bool enableHTTPS = true,
+  }) async {
+    if (!_supportPlatform) return false;
+    String? key;
+    if (_isAndroid) key = androidKey;
+    if (_isIOS) key = iosKey;
+    if (key == null) return false;
+    _flEventChannel ??= await FlChannel().create('${_channel.name}_event');
+    final state = await _channel.invokeMethod(
+        'setApiKey', {'key': key, 'isAgree': isAgree, 'isContains': isContains, 'isShow': isShow, 'enableHTTPS': enableHTTPS});
+    return state ?? false;
+  }
+
+  void dispose() {
+    _flEventChannel?.dispose();
+    _flEventChannel = null;
+  }
 }
 
 bool get _supportPlatform {
@@ -73,6 +78,5 @@ class LatLng {
   final double? latitude;
   final double? longitude;
 
-  Map<String, double?> toMap() =>
-      {'latitude': latitude, 'longitude': longitude};
+  Map<String, double?> toMap() => {'latitude': latitude, 'longitude': longitude};
 }
