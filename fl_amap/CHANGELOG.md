@@ -1,3 +1,7 @@
+## 3.4.4
+
+* fix [#22](https://github.com/Wayaer/fl_amap/issues/22#issue-3836074768)
+
 ## 3.4.3
 
 * 修复在 ios 上的错误

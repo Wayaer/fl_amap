@@ -156,7 +156,7 @@ class AMapLocation(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.M
 
     private fun calculateLineDistance(args: Map<*, *>): Float {
         val start = DPoint(args["startLatitude"] as Double, args["startLongitude"] as Double)
-        val end = DPoint(args["endLatitude"] as Double, args["endLongitude1"] as Double)
+        val end = DPoint(args["endLatitude"] as Double, args["endLongitude"] as Double)
         return CoordinateConverter.calculateLineDistance(start, end)
     }
 
