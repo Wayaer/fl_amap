@@ -140,7 +140,7 @@ class AMapLocation: NSObject, AMapLocationManagerDelegate {
             manager!.locationTimeout = args!["locationTimeout"] as! Int
             manager!.reGeocodeTimeout = args!["reGeocodeTimeout"] as! Int
             manager!.locatingWithReGeocode = args!["withReGeocode"] as! Bool
-            manager!.reGeocodeLanguage = AMapLocationReGeocodeLanguage(rawValue: args!["reGeocodeLanguage"] as! Int)!
+            manager!.reGeocodeLanguage = AMapRegionLanguageType(rawValue: Int32(args!["reGeocodeLanguage"] as! Int))!
             manager!.detectRiskOfFakeLocation = args!["detectRiskOfFakeLocation"] as! Bool
         }
     }

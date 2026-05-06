@@ -221,7 +221,7 @@ class AMapLocation(plugin: FlutterPlugin.FlutterPluginBinding) : MethodChannel.M
         option.locationPurpose =
             if (locationPurpose == null) null else AMapLocationClientOption.AMapLocationPurpose.entries[locationPurpose]
         option.geoLanguage =
-            com.amap.api.location.AMapLocationClientOption.GeoLanguage.entries[(arguments["geoLanguage"] as Int)]
+            AMapLocationClientOption.GeoLanguage.entries[(arguments["geoLanguage"] as Int)]
         option.isGpsFirst = arguments["gpsFirst"] as Boolean
         option.gpsFirstTimeout = (arguments["gpsFirstTimeout"] as Int).toLong()
         option.isMockEnable = arguments["mockEnable"] as Boolean

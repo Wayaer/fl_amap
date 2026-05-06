@@ -1,3 +1,8 @@
+## 3.5.0
+
+* 更新 sdk版本
+* GeoLanguage 支持多语言
+
 ## 3.4.4
 
 * fix [#22](https://github.com/Wayaer/fl_amap/issues/22#issue-3836074768)

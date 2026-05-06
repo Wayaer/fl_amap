@@ -2,8 +2,7 @@ part of '../fl_amap.dart';
 
 typedef FlAMapLocationChanged = void Function(AMapLocation? location);
 typedef FlAMapLocationFailed = void Function(AMapLocationError? error);
-typedef FlAMapLocationHeadingChanged = void Function(
-    AMapLocationHeading? heading);
+typedef FlAMapLocationHeadingChanged = void Function(AMapLocationHeading? heading);
 
 /// User has not yet made a choice with regards to this application
 /// case notDetermined = 0
@@ -35,24 +34,24 @@ typedef FlAMapLocationHeadingChanged = void Function(
 typedef FlAMapLocationAuthorizationChanged = void Function(int? status);
 
 class FlAMapLocation {
-  factory FlAMapLocation() => _singleton ??= FlAMapLocation._();
+  factory FlAMapLocation() => _instance;
 
   FlAMapLocation._();
 
-  final MethodChannel _channel = const MethodChannel('fl.amap.Location');
+  static final FlAMapLocation _instance = FlAMapLocation._();
 
-  static FlAMapLocation? _singleton;
+  static FlAMapLocation get instance => _instance;
+
+  final MethodChannel _channel = const MethodChannel('fl.amap.Location');
 
   bool _isInitialize = false;
 
   /// 初始化定位
   Future<bool> initialize(
       {AMapLocationOptionForIOS optionForIOS = const AMapLocationOptionForIOS(),
-      AMapLocationOptionForAndroid optionForAndroid =
-          const AMapLocationOptionForAndroid()}) async {
+      AMapLocationOptionForAndroid optionForAndroid = const AMapLocationOptionForAndroid()}) async {
     if (!_supportPlatform) return false;
-    final isInitialize = await _channel.invokeMethod<bool>(
-        'initialize', _optionToMap(optionForIOS, optionForAndroid));
+    final isInitialize = await _channel.invokeMethod<bool>('initialize', _optionToMap(optionForIOS, optionForAndroid));
     return _isInitialize = isInitialize ?? false;
   }
 
@@ -81,16 +80,13 @@ class FlAMapLocation {
           onAuthorizationChanged?.call(args is int ? args : null);
           break;
         case 'onHeadingChanged':
-          onHeadingChanged
-              ?.call(args is Map ? AMapLocationHeading.fromMap(args) : null);
+          onHeadingChanged?.call(args is Map ? AMapLocationHeading.fromMap(args) : null);
           break;
         case 'onLocationFailed':
-          onLocationFailed
-              ?.call(args is Map ? AMapLocationError.fromMap(args) : null);
+          onLocationFailed?.call(args is Map ? AMapLocationError.fromMap(args) : null);
           break;
         case 'onLocationChanged':
-          onLocationChanged
-              ?.call(args is Map ? AMapLocation.mapToLocation(args) : null);
+          onLocationChanged?.call(args is Map ? AMapLocation.mapToLocation(args) : null);
           break;
       }
     });
@@ -106,22 +102,19 @@ class FlAMapLocation {
 
   /// 直接获取定位
   Future<AMapLocation?> getLocation(
-      {AMapLocationOptionForIOS? optionForIOS,
-      AMapLocationOptionForAndroid? optionForAndroid}) async {
+      {AMapLocationOptionForIOS? optionForIOS, AMapLocationOptionForAndroid? optionForAndroid}) async {
     if (!_supportPlatform || !_isInitialize) return null;
-    final map = await _channel.invokeMethod<Map<dynamic, dynamic>>(
-        'getLocation', _optionToMap(optionForIOS, optionForAndroid));
+    final map =
+        await _channel.invokeMethod<Map<dynamic, dynamic>>('getLocation', _optionToMap(optionForIOS, optionForAndroid));
     if (map == null) return null;
     return AMapLocation.mapToLocation(map);
   }
 
   /// 启动监听位置改变
   Future<bool> startLocation(
-      {AMapLocationOptionForIOS? optionForIOS,
-      AMapLocationOptionForAndroid? optionForAndroid}) async {
+      {AMapLocationOptionForIOS? optionForIOS, AMapLocationOptionForAndroid? optionForAndroid}) async {
     if (!_supportPlatform || !_isInitialize) return false;
-    final state = await _channel.invokeMethod<bool>(
-        'startLocation', _optionToMap(optionForIOS, optionForAndroid));
+    final state = await _channel.invokeMethod<bool>('startLocation', _optionToMap(optionForIOS, optionForAndroid));
     return state ?? false;
   }
 
@@ -161,8 +154,7 @@ class FlAMapLocation {
   /// 停止设备朝向校准显示
   Future<bool> dismissHeadingCalibrationDisplay() async {
     if (!_isIOS || !_isInitialize) return false;
-    final state =
-        await _channel.invokeMethod<bool>('dismissHeadingCalibrationDisplay');
+    final state = await _channel.invokeMethod<bool>('dismissHeadingCalibrationDisplay');
     return state ?? false;
   }
 
@@ -172,22 +164,18 @@ class FlAMapLocation {
   /// 例：`<service android:name="com.amap.api.location.APSService" android:foregroundServiceType="location"/>`
   /// 主要是为了解决Android 8.0以上版本对后台定位的限制，开启后会显示通知栏,如果您的应用本身已经存在一个前台服务通知，则无需再开启此接口
   /// 注意:启动后台定位只是代表开启了后台定位的能力，并不代表已经开始定位，开始定位请调用
-  Future<bool> enableBackgroundLocation(
-      AMapNotificationForAndroid notification) async {
+  Future<bool> enableBackgroundLocation(AMapNotificationForAndroid notification) async {
     if (!_isAndroid || !_isInitialize) return false;
-    final state = await _channel.invokeMethod<bool>(
-        'enableBackgroundLocation', notification.toMap());
+    final state = await _channel.invokeMethod<bool>('enableBackgroundLocation', notification.toMap());
     return state ?? false;
   }
 
   /// 仅支持android
   /// 关闭后台定位功能,关闭后台定位功能只是代表不再提供后台定位的能力，并不是停止定位，停止定位请调用
   /// [removeNotification] - 是否移除通知栏， true：移除通知栏，false：不移除通知栏，可以手动移除
-  Future<bool> disableBackgroundLocation(
-      {bool removeNotification = true}) async {
+  Future<bool> disableBackgroundLocation({bool removeNotification = true}) async {
     if (!_isAndroid || !_isInitialize) return false;
-    final state = await _channel.invokeMethod<bool>(
-        'disableBackgroundLocation', removeNotification);
+    final state = await _channel.invokeMethod<bool>('disableBackgroundLocation', removeNotification);
     return state ?? false;
   }
 
@@ -196,18 +184,15 @@ class FlAMapLocation {
   /// 返回true代表当前位置在大陆、港澳地区，反之不在。
   Future<bool> isAMapDataAvailable(LatLng latLng) async {
     if (!_supportPlatform) return false;
-    final state = await _channel.invokeMethod<bool>(
-        'isAMapDataAvailable', latLng.toMap());
+    final state = await _channel.invokeMethod<bool>('isAMapDataAvailable', latLng.toMap());
     return state ?? false;
   }
 
   /// calculateLineDistance
   /// 计算两点间距离 单位：米
-  Future<double?> calculateLineDistance(
-      LatLng startLatLng, LatLng endLatLng) async {
+  Future<double?> calculateLineDistance(LatLng startLatLng, LatLng endLatLng) async {
     if (!_isAndroid || !_isInitialize) return null;
-    final distance =
-        await _channel.invokeMethod<double>('calculateLineDistance', {
+    final distance = await _channel.invokeMethod<double>('calculateLineDistance', {
       'startLatitude': startLatLng.latitude,
       'startLongitude': startLatLng.longitude,
       'endLatitude': endLatLng.latitude,
@@ -218,18 +203,17 @@ class FlAMapLocation {
 
   /// coordinateConverter
   /// 进行坐标转换
-  Future<CoordinateConverterResult?> coordinateConverter(
-      LatLng latLng, CoordType from) async {
+  Future<CoordinateConverterResult?> coordinateConverter(LatLng latLng, CoordType from) async {
     if (!_supportPlatform) return null;
     assert(latLng.latitude != null && latLng.longitude != null);
-    final map = await _channel.invokeMethod<Map<dynamic, dynamic>>(
-        'coordinateConverter', {...latLng.toMap(), 'from': from.index});
+    final map = await _channel
+        .invokeMethod<Map<dynamic, dynamic>>('coordinateConverter', {...latLng.toMap(), 'from': from.index});
     if (map == null) return null;
     return CoordinateConverterResult.fromMap(map);
   }
 
-  Map<String, dynamic>? _optionToMap(AMapLocationOptionForIOS? optionForIOS,
-      AMapLocationOptionForAndroid? optionForAndroid) {
+  Map<String, dynamic>? _optionToMap(
+      AMapLocationOptionForIOS? optionForIOS, AMapLocationOptionForAndroid? optionForAndroid) {
     if (optionForIOS != null && _isIOS) return optionForIOS.toMap();
     if (optionForAndroid != null && _isAndroid) return optionForAndroid.toMap();
     return null;
@@ -319,8 +303,7 @@ class AMapLocationQualityReport {
         netUseTime = map['netUseTime'] as int?,
         networkType = map['networkType'] as String?,
         isWifiAble = map['isWifiAble'] as bool?,
-        isInstalledHighDangerMockApp =
-            map['isInstalledHighDangerMockApp'] as bool?;
+        isInstalledHighDangerMockApp = map['isInstalledHighDangerMockApp'] as bool?;
 
   /// 提示语义,状态良好时，返回的是内容为空 根据当前的质量报告，给出相应的建议
   final String? adviseMessage;
@@ -362,13 +345,11 @@ class AMapLocationForAndroid extends AMapLocation {
         buildingId = map['buildingId'] as String?,
         conScenario = map['conScenario'] as int?,
         coordType = map['coordType'] as String?,
-        gpsAccuracyStatus =
-            GPSAccuracyStatus.getStatus(map['gpsAccuracyStatus'] as int?),
+        gpsAccuracyStatus = GPSAccuracyStatus.getStatus(map['gpsAccuracyStatus'] as int?),
         locationDetail = map['locationDetail'] as String?,
         locationQualityReport = map['locationQualityReport'] == null
             ? null
-            : AMapLocationQualityReport.fromMap(
-                map['locationQualityReport'] as Map),
+            : AMapLocationQualityReport.fromMap(map['locationQualityReport'] as Map),
         satellites = map['satellites'] as int?,
         trustedLevel = map['trustedLevel'] as int?,
         description = map['description'] as String?,
@@ -634,8 +615,7 @@ class AMapLocationError {
   /// ios 设备才有的错误信息
   final Map<dynamic, dynamic>? userInfo;
 
-  Map<String, dynamic> toMap() =>
-      {'errorCode': errorCode, 'errorInfo': errorInfo, 'userInfo': userInfo};
+  Map<String, dynamic> toMap() => {'errorCode': errorCode, 'errorInfo': errorInfo, 'userInfo': userInfo};
 }
 
 class AMapLocation {
@@ -660,8 +640,7 @@ class AMapLocation {
         poiName = map['poiName'] as String?,
         province = map['province'] as String?,
         street = map['street'] as String?,
-        address =
-            map['address'] as String? ?? map['formattedAddress'] as String?,
+        address = map['address'] as String? ?? map['formattedAddress'] as String?,
         streetNum = map['streetNum'] as String? ?? map['number'] as String?,
         latitude = map['latitude'] as double?,
         longitude = map['longitude'] as double?,
@@ -969,7 +948,7 @@ class AMapLocationOptionForAndroid {
         'locationMode': locationMode.index,
         'locationProtocol': locationProtocol.index,
         'locationPurpose': locationPurpose?.index,
-        'geoLanguage': geoLanguage.index,
+        'geoLanguage': geoLanguage.code,
         'gpsFirst': gpsFirst,
         'gpsFirstTimeout': gpsFirstTimeout,
         'mockEnable': mockEnable,
@@ -990,8 +969,7 @@ class AMapLocationOptionForIOS {
   const AMapLocationOptionForIOS({
     this.locationAccuracyMode = AMapLocationAccuracyMode.fullAndReduceAccuracy,
     this.distanceFilter,
-    this.desiredAccuracy =
-        CLLocationAccuracy.kCLLocationAccuracyNearestTenMeters,
+    this.desiredAccuracy = CLLocationAccuracy.kCLLocationAccuracyNearestTenMeters,
     this.pausesLocationUpdatesAutomatically = false,
     this.allowsBackgroundLocationUpdates = false,
     this.locationTimeout = 3,
@@ -1048,8 +1026,7 @@ class AMapLocationOptionForIOS {
         'locationAccuracyMode': locationAccuracyMode.index,
         'desiredAccuracy': desiredAccuracy.name,
         'distanceFilter': distanceFilter,
-        'pausesLocationUpdatesAutomatically':
-            pausesLocationUpdatesAutomatically,
+        'pausesLocationUpdatesAutomatically': pausesLocationUpdatesAutomatically,
         'allowsBackgroundLocationUpdates': allowsBackgroundLocationUpdates,
         'locationTimeout': locationTimeout,
         'reGeocodeTimeout': reGeocodeTimeout,
@@ -1089,14 +1066,41 @@ enum AMapLocationPurpose {
 
 /// android ios 逆地理位置信息的语言
 enum GeoLanguage {
-  /// 选择这种模式，会根据位置按照相应的语言返回逆地理信息，在国外按英语返回，在国内按中文返回
-  none,
+  none(22, 0),
+  zh(0, 1),
+  zhHK(1, 22),
+  en(2, 2),
+  es(3, 3),
+  pt(4, 4),
+  fr(5, 5),
+  de(6, 6),
+  th(7, 7),
+  ja(8, 8),
+  ko(9, 9),
+  ar(10, 10),
+  tr(11, 11),
+  he(12, 12),
+  it(13, 13),
+  ru(14, 14),
+  ms(15, 15),
+  id(16, 16),
+  vi(17, 17),
+  pl(18, 18),
+  cs(19, 19),
+  uk(20, 20),
+  az(21, 21),
+  ;
 
-  /// 设置只中文后，无论在国外还是国内都为返回中文的逆地理信息
-  zh,
+  final int iosCode;
+  final int androidCode;
 
-  /// 设置英文后，无论在国外还是国内都为返回英文的逆地理信息
-  en,
+  const GeoLanguage(this.iosCode, this.androidCode);
+
+  int? get code {
+    if (_isAndroid) return androidCode;
+    if (_isIOS) return iosCode;
+    return null;
+  }
 }
 
 /// android 获取卫星信号强度

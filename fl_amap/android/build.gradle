@@ -55,6 +55,6 @@ android {
     }
 
     dependencies {
-        api 'com.amap.api:location:6.4.9'
+        api 'com.amap.api:location:11.1.200'
     }
 }

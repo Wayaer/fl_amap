@@ -9,11 +9,13 @@ part 'src/amap_location.dart';
 part 'src/enum.dart';
 
 class FlAMap {
-  factory FlAMap() => _singleton ??= FlAMap._();
+  factory FlAMap() => _instance;
 
   FlAMap._();
 
-  static FlAMap? _singleton;
+  static final FlAMap _instance = FlAMap._();
+
+  static FlAMap get instance => _instance;
 
   /// 设置ios&android的key
   Future<bool> setAMapKey({
@@ -34,12 +36,9 @@ class FlAMap {
     if (_isAndroid) key = androidKey;
     if (_isIOS) key = iosKey;
     if (key == null) return false;
-    final state = await FlAMapLocation()._channel.invokeMethod('setApiKey', {
-      'key': key,
-      'isAgree': isAgree,
-      'isContains': isContains,
-      'isShow': isShow
-    });
+    final state = await FlAMapLocation()
+        ._channel
+        .invokeMethod('setApiKey', {'key': key, 'isAgree': isAgree, 'isContains': isContains, 'isShow': isShow});
     return state == true;
   }
 }
@@ -67,6 +66,5 @@ class LatLng {
   /// 经度
   double? longitude;
 
-  Map<String, dynamic> toMap() =>
-      {'latitude': latitude, 'longitude': longitude};
+  Map<String, dynamic> toMap() => {'latitude': latitude, 'longitude': longitude};
 }
