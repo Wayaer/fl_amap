@@ -22,11 +22,13 @@ part 'src/controller_for_ios.dart';
 class FlAMapMap {
   final MethodChannel _channel = MethodChannel('fl_amap_map');
 
-  factory FlAMapMap() => _singleton ??= FlAMapMap._();
+  factory FlAMapMap() => _instance;
 
   FlAMapMap._();
 
-  static FlAMapMap? _singleton;
+  static final FlAMapMap _instance = FlAMapMap._();
+
+  static FlAMapMap get instance => _instance;
 
   FlEventChannel? _flEventChannel;
 
@@ -51,8 +53,8 @@ class FlAMapMap {
     if (_isIOS) key = iosKey;
     if (key == null) return false;
     _flEventChannel ??= await FlChannel().create('${_channel.name}_event');
-    final state = await _channel.invokeMethod(
-        'setApiKey', {'key': key, 'isAgree': isAgree, 'isContains': isContains, 'isShow': isShow, 'enableHTTPS': enableHTTPS});
+    final state = await _channel.invokeMethod('setApiKey',
+        {'key': key, 'isAgree': isAgree, 'isContains': isContains, 'isShow': isShow, 'enableHTTPS': enableHTTPS});
     return state ?? false;
   }
 
